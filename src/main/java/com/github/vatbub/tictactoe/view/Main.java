@@ -11,17 +11,20 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -30,6 +33,8 @@ import logging.FOKLogger;
 import org.controlsfx.control.ToggleSwitch;
 import view.ExceptionAlert;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -39,6 +44,8 @@ public class Main extends Application {
     private static final double animationSpeed = 0.3;
     private static final int gameRows = 3;
     private static final int gameCols = 3;
+    private static final String player1Letter = "X";
+    private static final String player2Letter = "O";
 
     private static Main currentMainView;
     private static Stage stage;
@@ -52,7 +59,7 @@ public class Main extends Application {
     private AnchorPane gamePane;
 
     @FXML
-    private TableView<String> gameTable;
+    private TableView<Row> gameTable;
 
     @FXML
     private VBox menuBox;
@@ -159,6 +166,19 @@ public class Main extends Application {
             }
         });
 
+        gameTable.setSelectionModel(null);
+        gameTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        gameTable.heightProperty().addListener((observable, oldValue, newValue) -> {
+            Pane header = (Pane) gameTable.lookup("TableHeaderRow");
+            if (header.isVisible()) {
+                header.setMaxHeight(0);
+                header.setMinHeight(0);
+                header.setPrefHeight(0);
+                header.setVisible(false);
+            }
+            renderRows();
+        });
+
         initBoard();
         initNewGame();
     }
@@ -212,21 +232,63 @@ public class Main extends Application {
         }
 
         for (int i = 0; i < gameCols; i++) {
-            TableColumn<String, String> column = new TableColumn<>(Integer.toString(i + 1));
+            TableColumn<Row, String> column = new TableColumn<>(Integer.toString(i + 1));
             //noinspection Convert2Lambda
-            column.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<String, String>, ObservableValue<String>>() {
+            int finalI = i;
+            column.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().getValues().get(finalI)));
+
+            column.setCellFactory(new Callback<TableColumn<Row, String>, TableCell<Row, String>>() {
                 @Override
-                public ObservableValue<String> call(TableColumn.CellDataFeatures<String, String> p) {
-                    return new SimpleStringProperty(p.getValue());
+                public TableCell<Row, String> call(TableColumn col) {
+                    TableCell<Row, String> cell = new TableCell<Row, String>() {
+                        // The updateItem method is what is called when setting the cell's text.  You can customize formatting here
+                        @Override
+                        protected void updateItem(String item, boolean empty) {
+                            // calling super here is very important - don't skip this!
+                            super.updateItem(item, empty);
+                            if (item != null) {
+                                setText(item);
+                            }
+                        }
+                    };
+
+                    cell.setOnMouseClicked(event -> {
+                        System.out.println("clicked " +gameTable.getColumns().indexOf(col) + ", " + cell.getIndex());
+                    });
+                    return cell;
                 }
             });
 
             gameTable.getColumns().add(column);
         }
+
+        renderRows();
     }
 
-    private void renderRows(){
-        // ObservableList<String>
+    private void renderRows() {
+        ObservableList<Row> generatedRows = FXCollections.observableArrayList();
+
+        for (int r = 0; r < board.getRowCount(); r++) {
+            List<String> values = new ArrayList<>();
+
+            for (int c = 0; c < board.getColumnCount(); c++) {
+                if (board.getPlayerAt(r, c) == null) {
+                    values.add("");
+                } else if (board.getPlayerAt(r, c) == Player.PLAYER_1) {
+                    values.add(player1Letter);
+                } else if (board.getPlayerAt(r, c) == Player.PLAYER_2) {
+                    values.add(player2Letter);
+                }
+            }
+
+            generatedRows.add(new Row(values));
+        }
+
+        gameTable.setItems(generatedRows);
+
+        double effectiveHeight = gameTable.getHeight() - 2;
+        gameTable.setFixedCellSize(effectiveHeight / board.getRowCount());
+        gameTable.refresh();
     }
 
     private void player1SetSampleName() {
