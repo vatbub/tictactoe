@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.*?>
 <?import org.controlsfx.control.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.scene.effect.*?>
@@ -22,6 +23,7 @@
                   <Button fx:id="thinkOnAction" mnemonicParsing="false" text="Think for me" />
               </items>
             </ToolBar>
+            <Group fx:id="winLineGroup" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0" />
          </children>
          <effect>
             <GaussianBlur />

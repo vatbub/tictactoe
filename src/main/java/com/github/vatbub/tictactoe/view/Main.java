@@ -11,17 +11,16 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -46,15 +45,12 @@ public class Main extends Application {
     private static final int gameCols = 3;
     private static final String player1Letter = "X";
     private static final String player2Letter = "O";
-
-    private static Main currentMainView;
-    private static Stage stage;
+    StringProperty style = new SimpleStringProperty("");
     private String suggestedHumanName1;
     private String suggestedHumanName2;
     private String suggestedAIName1;
     private String suggestedAIName2;
     private Board board;
-
     @FXML
     private AnchorPane gamePane;
 
@@ -78,6 +74,9 @@ public class Main extends Application {
 
     @FXML
     private ToggleSwitch player2AIToggle;
+
+    @FXML
+    private Group winLineGroup;
 
     public static void main(String[] args) {
         Common.setAppName("tictactoev2");
@@ -124,7 +123,6 @@ public class Main extends Application {
      */
     @Override
     public void start(Stage primaryStage) throws Exception {
-        stage = primaryStage;
         Parent root = FXMLLoader.load(getClass().getResource("View.fxml"));
         Scene scene = new Scene(root);
         primaryStage.setMinWidth(scene.getRoot().minWidth(0) + 70);
@@ -141,8 +139,6 @@ public class Main extends Application {
     @FXML
         // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
-        currentMainView = this;
-
         // modify the default exception handler to show a good error message on every uncaught exception
         final Thread.UncaughtExceptionHandler currentUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> {
@@ -150,9 +146,7 @@ public class Main extends Application {
                 // execute current handler as we only want to append it
                 currentUncaughtExceptionHandler.uncaughtException(thread, exception);
             }
-            Platform.runLater(() -> {
-                new ExceptionAlert(exception).showAndWait();
-            });
+            Platform.runLater(() -> new ExceptionAlert(exception).showAndWait());
         });
 
         player1AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
@@ -167,7 +161,6 @@ public class Main extends Application {
         });
 
         gameTable.setSelectionModel(null);
-        gameTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         gameTable.heightProperty().addListener((observable, oldValue, newValue) -> {
             Pane header = (Pane) gameTable.lookup("TableHeaderRow");
             if (header.isVisible()) {
@@ -177,6 +170,14 @@ public class Main extends Application {
                 header.setVisible(false);
             }
             renderRows();
+        });
+        gameTable.setRowFactory(new Callback<TableView<Row>, TableRow<Row>>() {
+            @Override
+            public TableRow<Row> call(TableView<Row> param) {
+                TableRow<Row> row = new TableRow<>();
+                row.styleProperty().bind(style);
+                return row;
+            }
         });
 
         initBoard();
@@ -197,8 +198,8 @@ public class Main extends Application {
             finalPlayerName2 = finalPlayerName2 + " (AI)";
         }
 
-        Player.PLAYER_1 = new Player(player1AIToggle.isSelected(), finalPlayerName1);
-        Player.PLAYER_2 = new Player(player2AIToggle.isSelected(), finalPlayerName2);
+        board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1));
+        board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2));
     }
 
     @FXML
@@ -253,12 +254,16 @@ public class Main extends Application {
                     };
 
                     cell.setOnMouseClicked(event -> {
-                        System.out.println("clicked " +gameTable.getColumns().indexOf(col) + ", " + cell.getIndex());
+                        if (board.getPlayerAt(cell.getIndex(), gameTable.getColumns().indexOf(col)) == null) {
+                            board.doTurn(cell.getIndex(), gameTable.getColumns().indexOf(col));
+                            renderRows();
+                        }
                     });
                     return cell;
                 }
             });
 
+            column.setStyle("-fx-alignment: CENTER;");
             gameTable.getColumns().add(column);
         }
 
@@ -274,9 +279,9 @@ public class Main extends Application {
             for (int c = 0; c < board.getColumnCount(); c++) {
                 if (board.getPlayerAt(r, c) == null) {
                     values.add("");
-                } else if (board.getPlayerAt(r, c) == Player.PLAYER_1) {
+                } else if (board.getPlayerAt(r, c) == board.getPlayer1()) {
                     values.add(player1Letter);
-                } else if (board.getPlayerAt(r, c) == Player.PLAYER_2) {
+                } else if (board.getPlayerAt(r, c) == board.getPlayer2()) {
                     values.add(player2Letter);
                 }
             }
@@ -288,17 +293,18 @@ public class Main extends Application {
 
         double effectiveHeight = gameTable.getHeight() - 2;
         gameTable.setFixedCellSize(effectiveHeight / board.getRowCount());
+        style.set("-fx-font-size:" + Math.round((effectiveHeight - 250) / board.getRowCount()) + "px;");
         gameTable.refresh();
     }
 
     private void player1SetSampleName() {
-        if (Player.PLAYER_1 == null) {
+        if (board.getPlayer1() == null) {
             player1Name.setText(player1AIToggle.isSelected() ? suggestedAIName1 : suggestedHumanName1);
         }
     }
 
     private void player2SetSampleName() {
-        if (Player.PLAYER_2 == null) {
+        if (board.getPlayer2() == null) {
             player2Name.setText(player2AIToggle.isSelected() ? suggestedAIName2 : suggestedHumanName2);
         }
     }
