@@ -228,6 +228,7 @@ public class Main extends Application {
 
     private void initBoard() {
         board = new Board(gameRows, gameCols);
+        board.setGameEndCallback((winner) -> System.out.println("The winner is: " + winner.getName()));
         while (gameTable.getColumns().size() > 0) {
             gameTable.getColumns().remove(0);
         }

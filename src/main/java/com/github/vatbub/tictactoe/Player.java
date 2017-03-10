@@ -49,4 +49,9 @@ public class Player {
 
         currentBoard.doTurn(r, c);
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleObjectProperty;
 /**
  * A classic tic tac toe board.
  */
+@SuppressWarnings("WeakerAccess")
 public class Board {
     private static final int gemsInARowToWin = 3;
 
@@ -15,10 +16,12 @@ public class Board {
     private Player player1;
     private Player player2;
     private ObjectProperty<Player> currentPlayer = new SimpleObjectProperty<>();
+    private ObjectProperty<GameEndRunnable> gameEndCallback = new SimpleObjectProperty<>();
 
     /**
      * Initializes a new 3*3 game board
      */
+    @SuppressWarnings("unused")
     public Board() {
         this(3);
     }
@@ -113,6 +116,15 @@ public class Board {
         }
 
         this.setPlayerAt(row, col, getCurrentPlayer());
+
+        Player winner = getWinner(row, col);
+        if (winner != null) {
+            if (getGameEndCallback() != null) {
+                getGameEndCallback().run(winner);
+            }
+            return;
+        }
+
         if (getCurrentPlayer() == getPlayer1()) {
             currentPlayer.set(getPlayer2());
         } else {
@@ -138,7 +150,7 @@ public class Board {
         Player res = getPlayerAt(r, c);
 
         // go to the up
-        while (gemsFound < gemsInARowToWin && r >= 0 && r < getRowCount()) {
+        while (gemsFound < gemsInARowToWin && r - 1 >= 0 && r - 1 < getRowCount()) {
             r = r - 1;
             if (getPlayerAt(r, c) == res) {
                 gemsFound = gemsFound + 1;
@@ -150,7 +162,7 @@ public class Board {
 
         // go to the down
         r = startRow;
-        while (gemsFound < gemsInARowToWin && r >= 0 && r < getRowCount()) {
+        while (gemsFound < gemsInARowToWin && r + 1 >= 0 && r + 1 < getRowCount()) {
             r = r + 1;
             if (getPlayerAt(r, c) == res) {
                 gemsFound = gemsFound + 1;
@@ -162,8 +174,8 @@ public class Board {
 
         // go left
         r = startRow;
-        gemsFound = 0;
-        while (gemsFound < gemsInARowToWin && c >= 0 && c < getColumnCount()) {
+        gemsFound = 1;
+        while (gemsFound < gemsInARowToWin && c - 1 >= 0 && c - 1 < getColumnCount()) {
             c = c - 1;
             if (getPlayerAt(r, c) == res) {
                 gemsFound = gemsFound + 1;
@@ -175,7 +187,7 @@ public class Board {
 
         // go right
         c = startCol;
-        while (gemsFound < gemsInARowToWin && c >= 0 && c < getColumnCount()) {
+        while (gemsFound < gemsInARowToWin && c + 1 >= 0 && c + 1 < getColumnCount()) {
             c = c + 1;
             if (getPlayerAt(r, c) == res) {
                 gemsFound = gemsFound + 1;
@@ -187,8 +199,8 @@ public class Board {
 
         // go up-left
         c = startCol;
-        gemsFound = 0;
-        while (gemsFound < gemsInARowToWin && c >= 0 && c < getColumnCount() && r >= 0 && r < getRowCount()) {
+        gemsFound = 1;
+        while (gemsFound < gemsInARowToWin && c - 1 >= 0 && c - 1 < getColumnCount() && r - 1 >= 0 && r - 1 < getRowCount()) {
             c = c - 1;
             r = r - 1;
             if (getPlayerAt(r, c) == res) {
@@ -202,7 +214,7 @@ public class Board {
         // go down-right
         c = startCol;
         r = startRow;
-        while (gemsFound < gemsInARowToWin && c >= 0 && c < getColumnCount() && r >= 0 && r < getRowCount()) {
+        while (gemsFound < gemsInARowToWin && c + 1 >= 0 && c + 1 < getColumnCount() && r + 1 >= 0 && r + 1 < getRowCount()) {
             c = c + 1;
             r = r + 1;
             if (getPlayerAt(r, c) == res) {
@@ -215,9 +227,9 @@ public class Board {
 
         // go up-right
         c = startCol;
-        r=startRow;
-        gemsFound = 0;
-        while (gemsFound < gemsInARowToWin && c >= 0 && c < getColumnCount() && r >= 0 && r < getRowCount()) {
+        r = startRow;
+        gemsFound = 1;
+        while (gemsFound < gemsInARowToWin && c + 1 >= 0 && c + 1 < getColumnCount() && r - 1 >= 0 && r - 1 < getRowCount()) {
             c = c + 1;
             r = r - 1;
             if (getPlayerAt(r, c) == res) {
@@ -231,7 +243,7 @@ public class Board {
         // go down-left
         c = startCol;
         r = startRow;
-        while (gemsFound < gemsInARowToWin && c >= 0 && c < getColumnCount() && r >= 0 && r < getRowCount()) {
+        while (gemsFound < gemsInARowToWin && c - 1 >= 0 && c - 1 < getColumnCount() && r + 1 >= 0 && r + 1 < getRowCount()) {
             c = c - 1;
             r = r + 1;
             if (getPlayerAt(r, c) == res) {
@@ -245,9 +257,9 @@ public class Board {
         // either tie or not finished
 
         // check if there is any space left
-        for (int row = 0; row<getRowCount(); row++){
-            for (int col = 0; col<getColumnCount(); col++){
-                if (getPlayerAt(row, col)==null){
+        for (int row = 0; row < getRowCount(); row++) {
+            for (int col = 0; col < getColumnCount(); col++) {
+                if (getPlayerAt(row, col) == null) {
                     // we've found an empty space
                     return null;
                 }
@@ -283,5 +295,18 @@ public class Board {
         }
 
         return "[" + res + "]";
+    }
+
+    public GameEndRunnable getGameEndCallback() {
+        return gameEndCallback.get();
+    }
+
+    public void setGameEndCallback(GameEndRunnable gameEndCallback) {
+        this.gameEndCallback.set(gameEndCallback);
+    }
+
+    @SuppressWarnings("unused")
+    public ObjectProperty<GameEndRunnable> gameEndCallbackProperty() {
+        return gameEndCallback;
     }
 }
