@@ -4,8 +4,8 @@ package com.github.vatbub.tictactoe;
  * A Player entity in the game
  */
 public class Player {
-    public static Player player1;
-    public static Player player2;
+    public static Player PLAYER_1;
+    public static Player PLAYER_2;
 
     private String name;
     private boolean ai;
