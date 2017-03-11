@@ -59,7 +59,7 @@ public class NameList {
         aiNames.add("ZORAC");
         aiNames.add("The H2G2");
         aiNames.add("Deep Thought");
-        aiNames.add("G.O.R:N.");
+        aiNames.add("G.O.R.N.");
         aiNames.add("L7");
         aiNames.add("Project 2501");
 
