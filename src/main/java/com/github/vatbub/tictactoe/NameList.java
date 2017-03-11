@@ -88,10 +88,10 @@ public class NameList {
                 "Anita Mandalay\n" +
                 "Anita Plummer\n" +
                 "Anna Conda\n" +
-                "Anna Fender (an offender)\n" +
+                "Anna Fender\n" +
                 "Anna Graham\n" +
-                "Anna Prentice (an apprentice)\n" +
-                "Anna Recksiek (anorexic)\n" +
+                "Anna Prentice\n" +
+                "Anna Recksiek\n" +
                 "Anna Sasin\n" +
                 "Anne Teak\n" +
                 "Annette Curtain\n" +
@@ -115,8 +115,8 @@ public class NameList {
                 "Ben Down\n" +
                 "Eileen Dover\n" +
                 "Skip Dover\n" +
-                "Ben Marcata (a musical term)\n" +
-                "Bess Eaton (donut shop chain)\n" +
+                "Ben Marcata\n" +
+                "Bess Eaton\n" +
                 "Biff Wellington\n" +
                 "Bill Board\n" +
                 "Bill Ding\n" +
@@ -129,11 +129,10 @@ public class NameList {
                 "Kitty Katz\n" +
                 "Bonnie Ann Clyde\n" +
                 "Bonnie Beaver\n" +
-                "MD - she's an Ob/Gyn of course!\n" +
-                "Brad Hammer (carpenter joke)\n" +
+                "Brad Hammer\n" +
                 "Brandon Cattell\n" +
                 "Brandon Irons\n" +
-                "Brandy Anne Koch (Brandy and Coke)\n" +
+                "Brandy Anne Koch\n" +
                 "Brandy D. Cantor\n" +
                 "Brighton Early\n" +
                 "Brock Lee\n" +
@@ -150,14 +149,14 @@ public class NameList {
                 "Candy Kane\n" +
                 "Candy Sweet\n" +
                 "Cara Van\n" +
-                "Carrie Dababi (\"carry the baby\" - Dababi is an Egyptian name)\n" +
+                "Carrie Dababi\n" +
                 "Carrie Oakey\n" +
                 "Casey Macy\n" +
                 "Charity Case\n" +
                 "Cheri Pitts\n" +
                 "Harry Pitts\n" +
                 "Chip Munk\n" +
-                "Chip Stone (sculptor)\n" +
+                "Chip Stone\n" +
                 "Chris Coe\n" +
                 "Chris Cross\n" +
                 "Chris P. Bacon\n" +
@@ -312,7 +311,7 @@ public class NameList {
                 "Jasmine Rice\n" +
                 "Jay Walker\n" +
                 "Jean Poole\n" +
-                "Jed Dye (Jedi)\n" +
+                "Jed Dye\n" +
                 "Jenny Tull\n" +
                 "Jerry Atrick\n" +
                 "Jim Laucher\n" +
@@ -365,14 +364,13 @@ public class NameList {
                 "Liv Long\n" +
                 "Lois Price\n" +
                 "Lou Pole\n" +
-                "Lou Zar (loser)\n" +
+                "Lou Zar\n" +
                 "Lucy Fer\n" +
                 "Luke Warm\n" +
                 "Lynn C. Doyle\n" +
                 "Lynn O. Liam\n" +
                 "M. Balmer\n" +
-                "Mark Skid (Skid\n" +
-                "Mark)\n" +
+                "Mark Skid\n" +
                 "Manny Kinn\n" +
                 "Marlon Fisher\n" +
                 "Marsha Dimes\n" +
@@ -419,7 +417,7 @@ public class NameList {
                 "Olive Branch\n" +
                 "Olive Green\n" +
                 "Olive Hoyl\n" +
-                "Olive Yew (I love you)\n" +
+                "Olive Yew\n" +
                 "Oliver Sutton\n" +
                 "Ophelia Payne\n" +
                 "Oren Jellow\n" +
@@ -467,7 +465,7 @@ public class NameList {
                 "Randy Lover\n" +
                 "Raney Schauer\n" +
                 "Ray Gunn\n" +
-                "Ray Zenz (raisins)\n" +
+                "Ray Zenz\n" +
                 "Raynor Schein\n" +
                 "Reid Enright\n" +
                 "Rhea Curran\n" +
@@ -488,7 +486,7 @@ public class NameList {
                 "Robin Feathers\n" +
                 "Robin Money\n" +
                 "U. O. Money\n" +
-                "Rock (Rocco) Bottoms\n" +
+                "Rock Bottoms\n" +
                 "Rock Pounder\n" +
                 "Rock Stone\n" +
                 "Rocky Beach\n" +
@@ -577,8 +575,6 @@ public class NameList {
                 "Warren Peace\n" +
                 "Warren T.\n" +
                 "Will Power\n" +
-                "Will Wynn (Mayor of Austin\n" +
-                "Texas)\n" +
                 "Willie B. Hardigan\n" +
                 "Willie Leak\n" +
                 "Willie Stroker\n" +
