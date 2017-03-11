@@ -111,6 +111,9 @@ public class Main extends Application {
     @FXML
     private Label looserText;
 
+    @FXML
+    private Label currentPlayerLabel;
+
     public static void main(String[] args) {
         Common.setAppName("tictactoev2");
         FOKLogger.enableLoggingOfUncaughtExceptions();
@@ -224,7 +227,7 @@ public class Main extends Application {
     @FXML
     void startButtonOnAction(ActionEvent event) {
         initBoard();
-        if (looserPane.isVisible()){
+        if (looserPane.isVisible()) {
             fadeLooserPaneOut();
         }
         hideMenu();
@@ -240,6 +243,7 @@ public class Main extends Application {
 
         board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1));
         board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2));
+        updateCurrentPlayerLabel();
     }
 
     @FXML
@@ -261,12 +265,21 @@ public class Main extends Application {
         player1SetSampleName();
         player2SetSampleName();
 
-        if (looserPane.isVisible()){
+        if (looserPane.isVisible()) {
             blurLooserPane();
         }
 
         if (!isMenuShown()) {
             showMenu();
+        }
+    }
+
+    private void updateCurrentPlayerLabel() {
+        Player currentPlayer = board.getCurrentPlayer();
+        if (currentPlayer == board.getPlayer1() || currentPlayer == null) {
+            currentPlayerLabel.setText(player1Letter);
+        } else if (currentPlayer == board.getPlayer2()) {
+            currentPlayerLabel.setText(player2Letter);
         }
     }
 
@@ -304,6 +317,7 @@ public class Main extends Application {
                     cell.setOnMouseClicked(event -> {
                         if (board.getPlayerAt(cell.getIndex(), gameTable.getColumns().indexOf(col)) == null) {
                             board.doTurn(cell.getIndex(), gameTable.getColumns().indexOf(col));
+                            updateCurrentPlayerLabel();
                             renderRows();
                         }
                     });
@@ -476,7 +490,7 @@ public class Main extends Application {
         timeline.play();
     }
 
-    private void blurLooserPane(){
+    private void blurLooserPane() {
         GaussianBlur blur = new GaussianBlur(0);
         looserPane.setEffect(blur);
         Timeline timeline = new Timeline();
@@ -486,7 +500,7 @@ public class Main extends Application {
         timeline.play();
     }
 
-    private void fadeLooserPaneOut(){
+    private void fadeLooserPaneOut() {
         FadeTransition fadeTransition = new FadeTransition();
         fadeTransition.setNode(looserPane);
         fadeTransition.setFromValue(looserPane.getOpacity());

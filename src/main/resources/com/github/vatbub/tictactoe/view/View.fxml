@@ -27,6 +27,11 @@
               </items>
             </ToolBar>
             <Group fx:id="winLineGroup" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0" />
+            <Label fx:id="currentPlayerLabel" text="X" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
+               <font>
+                  <Font size="36.0" />
+               </font>
+            </Label>
          </children>
          <effect>
             <GaussianBlur />
