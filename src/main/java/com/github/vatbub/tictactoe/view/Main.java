@@ -45,6 +45,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
@@ -175,7 +176,7 @@ public class Main extends Application {
     }
 
     @Override
-    public void stop(){
+    public void stop() {
         System.exit(0);
     }
 
@@ -303,10 +304,10 @@ public class Main extends Application {
     private void initBoard() {
         guiAnimationQueue.submit(() -> {
             board = new Board(gameRows, gameCols);
-            board.setGameEndCallback((winner) -> {
+            board.setGameEndCallback((winnerInfo) -> {
                 guiAnimationQueue.submit(() -> {
-                    System.out.println("The winner is: " + winner.getName());
-                    showLooser(winner.getName());
+                    System.out.println("The winner is: " + winnerInfo.winningPlayer.getName());
+                    showLooser(winnerInfo);
                 });
             });
             while (gameTable.getColumns().size() > 0) {
@@ -475,7 +476,8 @@ public class Main extends Application {
         blurGamePane();
     }
 
-    private void showLooser(String looserName) {
+    private void showLooser(Board.WinnerInfo winnerInfo) {
+        String looserName = board.getOpponent(winnerInfo.winningPlayer).getName();
         guiAnimationQueue.submitWaitForUnlock(() -> {
             ShakeTransition anim = new ShakeTransition(gamePane, null);
             anim.playFromStart();
@@ -494,6 +496,14 @@ public class Main extends Application {
 
             timeline.getKeyFrames().addAll(kf1, kf2);
 
+            winLineGroup.setVisible(true);
+            Line originLine = new Line(0,0,0,0);
+            winLineGroup.getChildren().add(originLine);
+            double cellWidth = gameTable.getWidth() / board.getColumnCount();
+            double effectiveHeight = gameTable.getHeight() - 2;
+            double cellHeight = effectiveHeight / board.getRowCount();
+            Line winLine = new Line((winnerInfo.winLineStartColumn * cellWidth) + (cellWidth / 2.0), (winnerInfo.winLineStartRow * cellHeight) + (cellHeight / 2.0), (winnerInfo.winLineEndColumn * cellWidth) + (cellWidth / 2.0), (winnerInfo.winLineEndRow * cellHeight) + (cellHeight / 2.0));
+            winLineGroup.getChildren().add(winLine);
             looseMessage.setOpacity(0);
             looserText.setText(looserName + " lost :(");
             looserPane.setVisible(true);

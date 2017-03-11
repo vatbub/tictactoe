@@ -130,30 +130,40 @@ public class Board {
             currentPlayerProperty().set(getPlayer1());
         }
 
-        Player opponent = getCurrentPlayer();
-
         if (getPlayerAt(row, col) != null) {
             throw new IllegalStateException("Cell is already taken by a player");
         }
 
         this.setPlayerAt(row, col, getCurrentPlayer());
 
-        Player winner = getWinner(row, col);
-        if (winner != null) {
+        WinnerInfo winnerInfo = getWinner(row, col);
+        if (winnerInfo.winningPlayer != null) {
             if (getGameEndCallback() != null) {
-                getGameEndCallback().run(winner);
+                getGameEndCallback().run(winnerInfo);
             }
             return;
         }
 
-        if (getCurrentPlayer() == getPlayer1()) {
-            currentPlayer.set(getPlayer2());
-        } else {
-            currentPlayer.set(getPlayer1());
-        }
+        currentPlayerProperty().set(getOpponent(getCurrentPlayer()));
 
         if (getCurrentPlayer().isAi()) {
-            getCurrentPlayer().doAiTurn(this, opponent);
+            getCurrentPlayer().doAiTurn(this, getOpponent(getCurrentPlayer()));
+        }
+    }
+
+    /**
+     * Returns the opponent of the specified player
+     *
+     * @param player The player whose opponent needs to be determined. {@code player} must be either Player1 or Player2 on this board, otherwise a {@code IllegalArgumentException} is thrown
+     * @return The opponent of the specified player
+     */
+    public Player getOpponent(Player player) {
+        if (player == getPlayer1()) {
+            return getPlayer2();
+        } else if (player == getPlayer2()) {
+            return getPlayer1();
+        } else {
+            throw new IllegalArgumentException(player.getName() + " is not part of the game and thus cannot have an opponent");
         }
     }
 
@@ -164,28 +174,35 @@ public class Board {
      * @param startCol The column of the cell where the winner search shall start. This should be the column of the last turn.
      * @return The winner of the game, {@code Player.TIE_PLAYER} if the game is finished but there is no winner or {@code null} if the game is not finished yet.
      */
-    public Player getWinner(int startRow, int startCol) {
+    public WinnerInfo getWinner(int startRow, int startCol) {
         int gemsFound = 1;
         int r = startRow;
         int c = startCol;
-        Player res = getPlayerAt(r, c);
+        WinnerInfo res = new WinnerInfo();
+        res.winningPlayer = getPlayerAt(r, c);
+        res.winLineStartRow = r;
+        res.winLineStartColumn = c;
+        res.winLineEndRow = r;
+        res.winLineEndColumn = c;
 
-        // go to the up
+        // go up
         while (gemsFound < gemsInARowToWin && r - 1 >= 0 && r - 1 < getRowCount()) {
             r = r - 1;
-            if (getPlayerAt(r, c) == res) {
+            if (getPlayerAt(r, c) == res.winningPlayer) {
                 gemsFound = gemsFound + 1;
+                res.winLineStartRow = r;
             }
         }
         if (gemsFound >= gemsInARowToWin) {
             return res;
         }
 
-        // go to the down
+        // go down
         r = startRow;
         while (gemsFound < gemsInARowToWin && r + 1 >= 0 && r + 1 < getRowCount()) {
             r = r + 1;
-            if (getPlayerAt(r, c) == res) {
+            if (getPlayerAt(r, c) == res.winningPlayer) {
+                res.winLineEndRow = r;
                 gemsFound = gemsFound + 1;
             }
         }
@@ -195,10 +212,13 @@ public class Board {
 
         // go left
         r = startRow;
+        res.winLineStartRow = r;
+        res.winLineEndRow = r;
         gemsFound = 1;
         while (gemsFound < gemsInARowToWin && c - 1 >= 0 && c - 1 < getColumnCount()) {
             c = c - 1;
-            if (getPlayerAt(r, c) == res) {
+            if (getPlayerAt(r, c) == res.winningPlayer) {
+                res.winLineStartColumn = c;
                 gemsFound = gemsFound + 1;
             }
         }
@@ -210,7 +230,8 @@ public class Board {
         c = startCol;
         while (gemsFound < gemsInARowToWin && c + 1 >= 0 && c + 1 < getColumnCount()) {
             c = c + 1;
-            if (getPlayerAt(r, c) == res) {
+            if (getPlayerAt(r, c) == res.winningPlayer) {
+                res.winLineEndColumn = c;
                 gemsFound = gemsFound + 1;
             }
         }
@@ -220,11 +241,15 @@ public class Board {
 
         // go up-left
         c = startCol;
+        res.winLineStartColumn = c;
+        res.winLineEndColumn = c;
         gemsFound = 1;
         while (gemsFound < gemsInARowToWin && c - 1 >= 0 && c - 1 < getColumnCount() && r - 1 >= 0 && r - 1 < getRowCount()) {
             c = c - 1;
             r = r - 1;
-            if (getPlayerAt(r, c) == res) {
+            if (getPlayerAt(r, c) == res.winningPlayer) {
+                res.winLineStartRow = r;
+                res.winLineStartColumn = c;
                 gemsFound = gemsFound + 1;
             }
         }
@@ -238,7 +263,9 @@ public class Board {
         while (gemsFound < gemsInARowToWin && c + 1 >= 0 && c + 1 < getColumnCount() && r + 1 >= 0 && r + 1 < getRowCount()) {
             c = c + 1;
             r = r + 1;
-            if (getPlayerAt(r, c) == res) {
+            if (getPlayerAt(r, c) == res.winningPlayer) {
+                res.winLineEndRow = r;
+                res.winLineEndColumn = c;
                 gemsFound = gemsFound + 1;
             }
         }
@@ -249,11 +276,17 @@ public class Board {
         // go up-right
         c = startCol;
         r = startRow;
+        res.winLineStartColumn = c;
+        res.winLineEndColumn = c;
+        res.winLineStartRow = r;
+        res.winLineEndRow = r;
         gemsFound = 1;
         while (gemsFound < gemsInARowToWin && c + 1 >= 0 && c + 1 < getColumnCount() && r - 1 >= 0 && r - 1 < getRowCount()) {
             c = c + 1;
             r = r - 1;
-            if (getPlayerAt(r, c) == res) {
+            if (getPlayerAt(r, c) == res.winningPlayer) {
+                res.winLineStartRow = r;
+                res.winLineStartColumn = c;
                 gemsFound = gemsFound + 1;
             }
         }
@@ -267,7 +300,9 @@ public class Board {
         while (gemsFound < gemsInARowToWin && c - 1 >= 0 && c - 1 < getColumnCount() && r + 1 >= 0 && r + 1 < getRowCount()) {
             c = c - 1;
             r = r + 1;
-            if (getPlayerAt(r, c) == res) {
+            if (getPlayerAt(r, c) == res.winningPlayer) {
+                res.winLineEndRow = r;
+                res.winLineEndColumn = c;
                 gemsFound = gemsFound + 1;
             }
         }
@@ -282,13 +317,15 @@ public class Board {
             for (int col = 0; col < getColumnCount(); col++) {
                 if (getPlayerAt(row, col) == null) {
                     // we've found an empty space
-                    return null;
+                    res.winningPlayer = null;
+                    return res;
                 }
             }
         }
 
         // it's a tie
-        return Player.TIE_PLAYER;
+        res.winningPlayer = Player.TIE_PLAYER;
+        return res;
     }
 
     @Override
@@ -329,5 +366,40 @@ public class Board {
     @SuppressWarnings("unused")
     public ObjectProperty<GameEndRunnable> gameEndCallbackProperty() {
         return gameEndCallback;
+    }
+
+    public class WinnerInfo {
+        /**
+         * The player who won the game, {@code null} if the game is not finished yet or {@link Player#TIE_PLAYER} if the game ended in a tie.
+         */
+        public Player winningPlayer;
+
+        /**
+         * The row coordinate of the starting point of the line of gems that caused the {@link #winningPlayer} to win
+         */
+        public int winLineStartRow;
+
+        /**
+         * The column coordinate of the starting point of the line of gems that caused the {@link #winningPlayer} to win
+         */
+        public int winLineStartColumn;
+
+        /**
+         * The row coordinate of the end point of the line of gems that caused the {@link #winningPlayer} to win
+         */
+        public int winLineEndRow;
+
+        /**
+         * The column coordinate of the end point of the line of gems that caused the {@link #winningPlayer} to win
+         */
+        public int winLineEndColumn;
+
+        public boolean isFinished() {
+            return winningPlayer != null;
+        }
+
+        public boolean isTie() {
+            return winningPlayer == Player.TIE_PLAYER;
+        }
     }
 }
