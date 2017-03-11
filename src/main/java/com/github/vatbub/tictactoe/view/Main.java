@@ -1,13 +1,31 @@
 package com.github.vatbub.tictactoe.view;
 
+/*-
+ * #%L
+ * tictactoe
+ * %%
+ * Copyright (C) 2016 - 2017 Frederik Kammel
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
 import common.Common;
-import javafx.animation.FadeTransition;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -17,14 +35,17 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
@@ -77,6 +98,15 @@ public class Main extends Application {
 
     @FXML
     private Group winLineGroup;
+
+    @FXML
+    private AnchorPane looserPane;
+
+    @FXML
+    private ImageView looseImage;
+
+    @FXML
+    private AnchorPane looseMessage;
 
     public static void main(String[] args) {
         Common.setAppName("tictactoev2");
@@ -171,22 +201,30 @@ public class Main extends Application {
             }
             renderRows();
         });
-        gameTable.setRowFactory(new Callback<TableView<Row>, TableRow<Row>>() {
-            @Override
-            public TableRow<Row> call(TableView<Row> param) {
-                TableRow<Row> row = new TableRow<>();
-                row.styleProperty().bind(style);
-                return row;
-            }
+        gameTable.setRowFactory(param -> {
+            TableRow<Row> row = new TableRow<>();
+            row.styleProperty().bind(style);
+            return row;
         });
+
+        looseImage.fitHeightProperty().bind(looserPane.heightProperty());
+        looseImage.fitWidthProperty().bind(looserPane.widthProperty());
+        looserPane.setOnMouseClicked((event) -> showLooser("bla"));
 
         initBoard();
         initNewGame();
     }
 
+    private void updateLooserImageSize() {
+        looseImage.setViewport(new Rectangle2D(0, 0, looserPane.getWidth(), looserPane.getHeight()));
+    }
+
     @FXML
     void startButtonOnAction(ActionEvent event) {
         initBoard();
+        if (looserPane.isVisible()){
+            fadeLooserPaneOut();
+        }
         hideMenu();
         String finalPlayerName1 = player1Name.getText();
         if (player1AIToggle.isSelected()) {
@@ -221,6 +259,10 @@ public class Main extends Application {
         player1SetSampleName();
         player2SetSampleName();
 
+        if (looserPane.isVisible()){
+            blurLooserPane();
+        }
+
         if (!isMenuShown()) {
             showMenu();
         }
@@ -228,7 +270,10 @@ public class Main extends Application {
 
     private void initBoard() {
         board = new Board(gameRows, gameCols);
-        board.setGameEndCallback((winner) -> System.out.println("The winner is: " + winner.getName()));
+        board.setGameEndCallback((winner) -> {
+            System.out.println("The winner is: " + winner.getName());
+            showLooser("bla");
+        });
         while (gameTable.getColumns().size() > 0) {
             gameTable.getColumns().remove(0);
         }
@@ -325,21 +370,33 @@ public class Main extends Application {
         FadeTransition menuBackgroundTransition = new FadeTransition();
         menuBackgroundTransition.setNode(menuBackground);
         menuBackgroundTransition.setFromValue(menuBackground.getOpacity());
-        menuBackgroundTransition.setToValue(0.3);
+        menuBackgroundTransition.setToValue(0.12);
         menuBackgroundTransition.setAutoReverse(false);
         menuBackgroundTransition.setDuration(Duration.seconds(animationSpeed));
 
-        GaussianBlur gameEffect = new GaussianBlur(0.0);
-        gamePane.setEffect(gameEffect);
-        Timeline timeline = new Timeline();
-        KeyValue keyValue = new KeyValue(gameEffect.radiusProperty(), 10.0);
-        KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
-        timeline.getKeyFrames().add(keyFrame);
+        blurGamePane();
 
         menuBackground.setVisible(true);
         menuBox.setVisible(true);
         menuTransition.play();
         menuBackgroundTransition.play();
+    }
+
+    private void blurGamePane() {
+        blurGamePane(7.0);
+    }
+
+    private void unblurGamePane() {
+        blurGamePane(0.0);
+    }
+
+    private void blurGamePane(double toValue) {
+        GaussianBlur gameEffect = (GaussianBlur) gamePane.getEffect();
+        gamePane.setEffect(gameEffect);
+        Timeline timeline = new Timeline();
+        KeyValue keyValue = new KeyValue(gameEffect.radiusProperty(), toValue);
+        KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
+        timeline.getKeyFrames().add(keyFrame);
         timeline.play();
     }
 
@@ -358,20 +415,108 @@ public class Main extends Application {
         menuBackgroundTransition.setAutoReverse(false);
         menuBackgroundTransition.setDuration(Duration.seconds(animationSpeed));
 
-        GaussianBlur gameEffect = (GaussianBlur) gamePane.getEffect();
-        gamePane.setEffect(gameEffect);
-        Timeline timeline = new Timeline();
-        KeyValue keyValue = new KeyValue(gameEffect.radiusProperty(), 0.0);
-        KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
-        timeline.getKeyFrames().add(keyFrame);
-
+        unblurGamePane();
         menuTransition.play();
         menuBackgroundTransition.play();
-        timeline.play();
 
         menuTransition.setOnFinished((event) -> {
             menuBox.setVisible(false);
             menuBackground.setVisible(false);
         });
+    }
+
+    private void showWinner(String winnerName) {
+        TranslateTransition girlTransition = new TranslateTransition();
+        blurGamePane();
+    }
+
+    private void showLooser(String looserName) {
+        ShakeTransition anim = new ShakeTransition(gamePane, null);
+        anim.playFromStart();
+
+        Timeline timeline = new Timeline();
+
+        Circle c1 = new Circle((452 / 600.0) * looserPane.getWidth(), (323 / 640.0) * looserPane.getHeight(), 0);
+        GaussianBlur circleBlur = new GaussianBlur(30);
+        c1.setEffect(circleBlur);
+        looseImage.setClip(c1);
+
+        KeyValue kv4 = new KeyValue(c1.radiusProperty(), 0);
+        KeyFrame kf4 = new KeyFrame(Duration.millis(800), kv4);
+        KeyValue kv5 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
+        KeyFrame kf5 = new KeyFrame(Duration.millis(900), kv5);
+
+        timeline.getKeyFrames().addAll(kf4, kf5);
+
+
+        /*Timeline timeline = new Timeline();
+
+        Circle c1 = new Circle((452 / 600.0) * looserPane.getWidth(), (323 / 640.0) * looserPane.getHeight(), 0);
+        GaussianBlur circleBlur = new GaussianBlur(30);
+        c1.setEffect(circleBlur);
+        looseImage.setClip(c1);
+
+        KeyValue kv1 = new KeyValue(c1.radiusProperty(), (50 / 640.0) * looserPane.getHeight());
+        KeyFrame kf1 = new KeyFrame(Duration.millis(200), kv1);
+        KeyValue kv2 = new KeyValue(c1.radiusProperty(), (50 / 640.0) * looserPane.getHeight());
+        KeyFrame kf2 = new KeyFrame(Duration.millis(800), kv2);
+        KeyValue kv3 = new KeyValue(c1.radiusProperty(), (250 / 640.0) * looserPane.getHeight());
+        KeyFrame kf3 = new KeyFrame(Duration.millis(1000), kv3);
+        KeyValue kv4 = new KeyValue(c1.radiusProperty(), (250 / 640.0) * looserPane.getHeight());
+        KeyFrame kf4 = new KeyFrame(Duration.millis(1400), kv4);
+        KeyValue kv5 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
+        KeyFrame kf5 = new KeyFrame(Duration.millis(1600), kv5);
+
+        timeline.getKeyFrames().addAll(kf1, kf2, kf3, kf4, kf5);*/
+
+        looseMessage.setOpacity(0);
+        looserPane.setVisible(true);
+        looserPane.setOpacity(1);
+
+        timeline.setOnFinished((event) -> {
+            looseImage.setClip(null);
+            blurGamePane();
+            PauseTransition wait = new PauseTransition();
+            wait.setDuration(Duration.seconds(1));
+            wait.setOnFinished((event2) -> {
+                FadeTransition looseMessageTransition = new FadeTransition();
+                looseMessageTransition.setNode(looseMessage);
+                looseMessageTransition.setFromValue(0);
+                looseMessageTransition.setToValue(1);
+                looseMessageTransition.setDuration(Duration.millis(500));
+                looseMessageTransition.setAutoReverse(false);
+                looseMessageTransition.play();
+            });
+
+            wait.play();
+        });
+
+        timeline.play();
+    }
+
+    private void blurLooserPane(){
+        GaussianBlur blur = new GaussianBlur(0);
+        looserPane.setEffect(blur);
+        Timeline timeline = new Timeline();
+        KeyValue keyValue = new KeyValue(blur.radiusProperty(), 7);
+        KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
+        timeline.getKeyFrames().add(keyFrame);
+        timeline.play();
+    }
+
+    private void fadeLooserPaneOut(){
+        FadeTransition fadeTransition = new FadeTransition();
+        fadeTransition.setNode(looserPane);
+        fadeTransition.setFromValue(looserPane.getOpacity());
+        fadeTransition.setToValue(0);
+        fadeTransition.setDuration(Duration.seconds(animationSpeed));
+        fadeTransition.setAutoReverse(false);
+
+        fadeTransition.setOnFinished((event) -> {
+            looserPane.setVisible(false);
+            looserPane.setEffect(null);
+        });
+
+        fadeTransition.play();
     }
 }

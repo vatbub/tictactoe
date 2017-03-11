@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.*?>
 <?import org.controlsfx.control.*?>
@@ -21,7 +23,7 @@
             <ToolBar layoutX="8.0" layoutY="8.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <items>
                 <Button mnemonicParsing="false" onAction="#newGameOnAction" text="New game" />
-                  <Button fx:id="thinkOnAction" mnemonicParsing="false" text="Think for me" />
+                  <Button mnemonicParsing="false" onAction="#thinkOnAction" text="Think for me" />
               </items>
             </ToolBar>
             <Group fx:id="winLineGroup" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0" />
@@ -30,7 +32,35 @@
             <GaussianBlur />
          </effect>
       </AnchorPane>
-      <AnchorPane fx:id="menuBackground" opacity="0.12" style="-fx-background-color: gray;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <AnchorPane fx:id="menuBackground" opacity="0.12" style="-fx-background-color: gray;" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <AnchorPane fx:id="looserPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <ImageView fx:id="looseImage" pickOnBounds="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <image>
+                  <Image url="@loose.png" />
+               </image>
+            </ImageView>
+            <AnchorPane fx:id="looseMessage" layoutX="1.0" layoutY="380.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="100.0">
+               <children>
+                  <AnchorPane layoutX="9.0" layoutY="9.0" opacity="0.29" style="-fx-background-color: #DDDDDD;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <effect>
+                        <DropShadow />
+                     </effect>
+                  </AnchorPane>
+                  <VBox alignment="CENTER" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <children>
+                        <Label text="You lost :(">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Label>
+                        <Button mnemonicParsing="false" onAction="#newGameOnAction" text="New Game" />
+                     </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+         </children>
+      </AnchorPane>
       <VBox fx:id="menuBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <HBox alignment="CENTER">
