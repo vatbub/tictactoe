@@ -60,7 +60,7 @@
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <gitRepoName>tictactoe</gitRepoName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mainClass>view.MainWindow</mainClass>
+        <mainClass>com.github.vatbub.tictactoe.view.Main</mainClass>
     </properties>
 
     <dependencies>
