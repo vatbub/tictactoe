@@ -226,24 +226,7 @@ public class Main extends Application {
 
     @FXML
     void startButtonOnAction(ActionEvent event) {
-        initBoard();
-        if (looserPane.isVisible()) {
-            fadeLooserPaneOut();
-        }
-        hideMenu();
-        String finalPlayerName1 = player1Name.getText();
-        if (player1AIToggle.isSelected()) {
-            finalPlayerName1 = finalPlayerName1 + " (AI)";
-        }
-
-        String finalPlayerName2 = player2Name.getText();
-        if (player2AIToggle.isSelected()) {
-            finalPlayerName2 = finalPlayerName2 + " (AI)";
-        }
-
-        board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1));
-        board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2));
-        updateCurrentPlayerLabel();
+        startGame();
     }
 
     @FXML
@@ -271,6 +254,31 @@ public class Main extends Application {
 
         if (!isMenuShown()) {
             showMenu();
+        }
+    }
+
+    private void startGame(){
+        initBoard();
+        if (looserPane.isVisible()) {
+            fadeLooserPaneOut();
+        }
+        hideMenu();
+        String finalPlayerName1 = player1Name.getText();
+        if (player1AIToggle.isSelected()) {
+            finalPlayerName1 = finalPlayerName1 + " (AI)";
+        }
+
+        String finalPlayerName2 = player2Name.getText();
+        if (player2AIToggle.isSelected()) {
+            finalPlayerName2 = finalPlayerName2 + " (AI)";
+        }
+
+        board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1));
+        board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2));
+        updateCurrentPlayerLabel();
+
+        if (board.getPlayer1().isAi()){
+            board.getPlayer1().doAiTurn(board, board.getPlayer2());
         }
     }
 
