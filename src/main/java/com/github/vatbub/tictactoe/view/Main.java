@@ -108,6 +108,9 @@ public class Main extends Application {
     @FXML
     private AnchorPane looseMessage;
 
+    @FXML
+    private Label looserText;
+
     public static void main(String[] args) {
         Common.setAppName("tictactoev2");
         FOKLogger.enableLoggingOfUncaughtExceptions();
@@ -209,7 +212,6 @@ public class Main extends Application {
 
         looseImage.fitHeightProperty().bind(looserPane.heightProperty());
         looseImage.fitWidthProperty().bind(looserPane.widthProperty());
-        looserPane.setOnMouseClicked((event) -> showLooser("bla"));
 
         initBoard();
         initNewGame();
@@ -272,7 +274,7 @@ public class Main extends Application {
         board = new Board(gameRows, gameCols);
         board.setGameEndCallback((winner) -> {
             System.out.println("The winner is: " + winner.getName());
-            showLooser("bla");
+            showLooser(winner.getName());
         });
         while (gameTable.getColumns().size() > 0) {
             gameTable.getColumns().remove(0);
@@ -441,35 +443,15 @@ public class Main extends Application {
         c1.setEffect(circleBlur);
         looseImage.setClip(c1);
 
-        KeyValue kv4 = new KeyValue(c1.radiusProperty(), 0);
-        KeyFrame kf4 = new KeyFrame(Duration.millis(800), kv4);
-        KeyValue kv5 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
-        KeyFrame kf5 = new KeyFrame(Duration.millis(900), kv5);
+        KeyValue kv1 = new KeyValue(c1.radiusProperty(), 0);
+        KeyFrame kf1 = new KeyFrame(Duration.millis(800), kv1);
+        KeyValue kv2 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
+        KeyFrame kf2 = new KeyFrame(Duration.millis(900), kv2);
 
-        timeline.getKeyFrames().addAll(kf4, kf5);
-
-
-        /*Timeline timeline = new Timeline();
-
-        Circle c1 = new Circle((452 / 600.0) * looserPane.getWidth(), (323 / 640.0) * looserPane.getHeight(), 0);
-        GaussianBlur circleBlur = new GaussianBlur(30);
-        c1.setEffect(circleBlur);
-        looseImage.setClip(c1);
-
-        KeyValue kv1 = new KeyValue(c1.radiusProperty(), (50 / 640.0) * looserPane.getHeight());
-        KeyFrame kf1 = new KeyFrame(Duration.millis(200), kv1);
-        KeyValue kv2 = new KeyValue(c1.radiusProperty(), (50 / 640.0) * looserPane.getHeight());
-        KeyFrame kf2 = new KeyFrame(Duration.millis(800), kv2);
-        KeyValue kv3 = new KeyValue(c1.radiusProperty(), (250 / 640.0) * looserPane.getHeight());
-        KeyFrame kf3 = new KeyFrame(Duration.millis(1000), kv3);
-        KeyValue kv4 = new KeyValue(c1.radiusProperty(), (250 / 640.0) * looserPane.getHeight());
-        KeyFrame kf4 = new KeyFrame(Duration.millis(1400), kv4);
-        KeyValue kv5 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
-        KeyFrame kf5 = new KeyFrame(Duration.millis(1600), kv5);
-
-        timeline.getKeyFrames().addAll(kf1, kf2, kf3, kf4, kf5);*/
+        timeline.getKeyFrames().addAll(kf1, kf2);
 
         looseMessage.setOpacity(0);
+        looserText.setText(looserName + " lost :(");
         looserPane.setVisible(true);
         looserPane.setOpacity(1);
 
