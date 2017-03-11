@@ -35,7 +35,6 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -60,6 +59,7 @@ import java.util.Locale;
 /**
  * The main game view
  */
+@SuppressWarnings("JavaDoc")
 public class Main extends Application {
     private static final double animationSpeed = 0.3;
     private static final int gameRows = 3;
@@ -72,6 +72,8 @@ public class Main extends Application {
     private String suggestedAIName1;
     private String suggestedAIName2;
     private Board board;
+    private AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
+
     @FXML
     private AnchorPane gamePane;
 
@@ -172,6 +174,11 @@ public class Main extends Application {
         primaryStage.show();
     }
 
+    @Override
+    public void stop(){
+        System.exit(0);
+    }
+
     @FXML
         // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -220,10 +227,6 @@ public class Main extends Application {
         initNewGame();
     }
 
-    private void updateLooserImageSize() {
-        looseImage.setViewport(new Rectangle2D(0, 0, looserPane.getWidth(), looserPane.getHeight()));
-    }
-
     @FXML
     void startButtonOnAction(ActionEvent event) {
         startGame();
@@ -240,131 +243,143 @@ public class Main extends Application {
     }
 
     private void initNewGame() {
-        suggestedAIName1 = NameList.getNextAIName();
-        suggestedAIName2 = NameList.getNextAIName();
-        suggestedHumanName1 = NameList.getNextHumanName();
-        suggestedHumanName2 = NameList.getNextHumanName();
+        guiAnimationQueue.submit(() -> {
+            suggestedAIName1 = NameList.getNextAIName();
+            suggestedAIName2 = NameList.getNextAIName();
+            suggestedHumanName1 = NameList.getNextHumanName();
+            suggestedHumanName2 = NameList.getNextHumanName();
 
-        player1SetSampleName();
-        player2SetSampleName();
+            player1SetSampleName();
+            player2SetSampleName();
 
-        if (looserPane.isVisible()) {
-            blurLooserPane();
-        }
+            if (looserPane.isVisible()) {
+                blurLooserPane();
+            }
 
-        if (!isMenuShown()) {
-            showMenu();
-        }
+            if (!isMenuShown()) {
+                showMenu();
+            }
+        });
     }
 
-    private void startGame(){
+    private void startGame() {
         initBoard();
         if (looserPane.isVisible()) {
             fadeLooserPaneOut();
         }
         hideMenu();
-        String finalPlayerName1 = player1Name.getText();
-        if (player1AIToggle.isSelected()) {
-            finalPlayerName1 = finalPlayerName1 + " (AI)";
-        }
+        guiAnimationQueue.submit(() -> {
+            String finalPlayerName1 = player1Name.getText();
+            if (player1AIToggle.isSelected()) {
+                finalPlayerName1 = finalPlayerName1 + " (AI)";
+            }
 
-        String finalPlayerName2 = player2Name.getText();
-        if (player2AIToggle.isSelected()) {
-            finalPlayerName2 = finalPlayerName2 + " (AI)";
-        }
+            String finalPlayerName2 = player2Name.getText();
+            if (player2AIToggle.isSelected()) {
+                finalPlayerName2 = finalPlayerName2 + " (AI)";
+            }
 
-        board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1));
-        board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2));
-        updateCurrentPlayerLabel();
+            board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1));
+            board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2));
+            updateCurrentPlayerLabel();
 
-        if (board.getPlayer1().isAi()){
-            board.getPlayer1().doAiTurn(board, board.getPlayer2());
-        }
+            if (board.getPlayer1().isAi()) {
+                board.getPlayer1().doAiTurn(board, board.getPlayer2());
+            }
+        });
     }
 
     private void updateCurrentPlayerLabel() {
-        Player currentPlayer = board.getCurrentPlayer();
-        if (currentPlayer == board.getPlayer1() || currentPlayer == null) {
-            currentPlayerLabel.setText(player1Letter);
-        } else if (currentPlayer == board.getPlayer2()) {
-            currentPlayerLabel.setText(player2Letter);
-        }
+        guiAnimationQueue.submit(() -> {
+            Player currentPlayer = board.getCurrentPlayer();
+            if (currentPlayer == board.getPlayer1() || currentPlayer == null) {
+                currentPlayerLabel.setText(player1Letter);
+            } else if (currentPlayer == board.getPlayer2()) {
+                currentPlayerLabel.setText(player2Letter);
+            }
+        });
     }
 
     private void initBoard() {
-        board = new Board(gameRows, gameCols);
-        board.setGameEndCallback((winner) -> {
-            System.out.println("The winner is: " + winner.getName());
-            showLooser(winner.getName());
-        });
-        while (gameTable.getColumns().size() > 0) {
-            gameTable.getColumns().remove(0);
-        }
-
-        for (int i = 0; i < gameCols; i++) {
-            TableColumn<Row, String> column = new TableColumn<>(Integer.toString(i + 1));
-            //noinspection Convert2Lambda
-            int finalI = i;
-            column.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().getValues().get(finalI)));
-
-            column.setCellFactory(new Callback<TableColumn<Row, String>, TableCell<Row, String>>() {
-                @Override
-                public TableCell<Row, String> call(TableColumn col) {
-                    TableCell<Row, String> cell = new TableCell<Row, String>() {
-                        // The updateItem method is what is called when setting the cell's text.  You can customize formatting here
-                        @Override
-                        protected void updateItem(String item, boolean empty) {
-                            // calling super here is very important - don't skip this!
-                            super.updateItem(item, empty);
-                            if (item != null) {
-                                setText(item);
-                            }
-                        }
-                    };
-
-                    cell.setOnMouseClicked(event -> {
-                        if (board.getPlayerAt(cell.getIndex(), gameTable.getColumns().indexOf(col)) == null) {
-                            board.doTurn(cell.getIndex(), gameTable.getColumns().indexOf(col));
-                            updateCurrentPlayerLabel();
-                            renderRows();
-                        }
-                    });
-                    return cell;
-                }
+        guiAnimationQueue.submit(() -> {
+            board = new Board(gameRows, gameCols);
+            board.setGameEndCallback((winner) -> {
+                guiAnimationQueue.submit(() -> {
+                    System.out.println("The winner is: " + winner.getName());
+                    showLooser(winner.getName());
+                });
             });
+            while (gameTable.getColumns().size() > 0) {
+                gameTable.getColumns().remove(0);
+            }
 
-            column.setStyle("-fx-alignment: CENTER;");
-            gameTable.getColumns().add(column);
-        }
+            for (int i = 0; i < gameCols; i++) {
+                TableColumn<Row, String> column = new TableColumn<>(Integer.toString(i + 1));
+                //noinspection Convert2Lambda
+                int finalI = i;
+                column.setCellValueFactory(p -> new SimpleStringProperty(p.getValue().getValues().get(finalI)));
 
-        renderRows();
+                column.setCellFactory(new Callback<TableColumn<Row, String>, TableCell<Row, String>>() {
+                    @Override
+                    public TableCell<Row, String> call(TableColumn col) {
+                        TableCell<Row, String> cell = new TableCell<Row, String>() {
+                            // The updateItem method is what is called when setting the cell's text.  You can customize formatting here
+                            @Override
+                            protected void updateItem(String item, boolean empty) {
+                                // calling super here is very important - don't skip this!
+                                super.updateItem(item, empty);
+                                if (item != null) {
+                                    setText(item);
+                                }
+                            }
+                        };
+
+                        cell.setOnMouseClicked(event -> {
+                            if (board.getPlayerAt(cell.getIndex(), gameTable.getColumns().indexOf(col)) == null) {
+                                board.doTurn(cell.getIndex(), gameTable.getColumns().indexOf(col));
+                                updateCurrentPlayerLabel();
+                                renderRows();
+                            }
+                        });
+                        return cell;
+                    }
+                });
+
+                column.setStyle("-fx-alignment: CENTER;");
+                gameTable.getColumns().add(column);
+            }
+
+            renderRows();
+        });
     }
 
     private void renderRows() {
-        ObservableList<Row> generatedRows = FXCollections.observableArrayList();
+        guiAnimationQueue.submit(() -> {
+            ObservableList<Row> generatedRows = FXCollections.observableArrayList();
 
-        for (int r = 0; r < board.getRowCount(); r++) {
-            List<String> values = new ArrayList<>();
+            for (int r = 0; r < board.getRowCount(); r++) {
+                List<String> values = new ArrayList<>();
 
-            for (int c = 0; c < board.getColumnCount(); c++) {
-                if (board.getPlayerAt(r, c) == null) {
-                    values.add("");
-                } else if (board.getPlayerAt(r, c) == board.getPlayer1()) {
-                    values.add(player1Letter);
-                } else if (board.getPlayerAt(r, c) == board.getPlayer2()) {
-                    values.add(player2Letter);
+                for (int c = 0; c < board.getColumnCount(); c++) {
+                    if (board.getPlayerAt(r, c) == null) {
+                        values.add("");
+                    } else if (board.getPlayerAt(r, c) == board.getPlayer1()) {
+                        values.add(player1Letter);
+                    } else if (board.getPlayerAt(r, c) == board.getPlayer2()) {
+                        values.add(player2Letter);
+                    }
                 }
+
+                generatedRows.add(new Row(values));
             }
 
-            generatedRows.add(new Row(values));
-        }
+            gameTable.setItems(generatedRows);
 
-        gameTable.setItems(generatedRows);
-
-        double effectiveHeight = gameTable.getHeight() - 2;
-        gameTable.setFixedCellSize(effectiveHeight / board.getRowCount());
-        style.set("-fx-font-size:" + Math.round((effectiveHeight - 250) / board.getRowCount()) + "px;");
-        gameTable.refresh();
+            double effectiveHeight = gameTable.getHeight() - 2;
+            gameTable.setFixedCellSize(effectiveHeight / board.getRowCount());
+            style.set("-fx-font-size:" + Math.round((effectiveHeight - 250) / board.getRowCount()) + "px;");
+            gameTable.refresh();
+        });
     }
 
     private void player1SetSampleName() {
@@ -384,26 +399,28 @@ public class Main extends Application {
     }
 
     private void showMenu() {
-        FadeTransition menuTransition = new FadeTransition();
-        menuTransition.setNode(menuBox);
-        menuTransition.setFromValue(menuBox.getOpacity());
-        menuTransition.setToValue(1);
-        menuTransition.setAutoReverse(false);
-        menuTransition.setDuration(Duration.seconds(animationSpeed));
+        guiAnimationQueue.submit(() -> {
+            FadeTransition menuTransition = new FadeTransition();
+            menuTransition.setNode(menuBox);
+            menuTransition.setFromValue(menuBox.getOpacity());
+            menuTransition.setToValue(1);
+            menuTransition.setAutoReverse(false);
+            menuTransition.setDuration(Duration.seconds(animationSpeed));
 
-        FadeTransition menuBackgroundTransition = new FadeTransition();
-        menuBackgroundTransition.setNode(menuBackground);
-        menuBackgroundTransition.setFromValue(menuBackground.getOpacity());
-        menuBackgroundTransition.setToValue(0.12);
-        menuBackgroundTransition.setAutoReverse(false);
-        menuBackgroundTransition.setDuration(Duration.seconds(animationSpeed));
+            FadeTransition menuBackgroundTransition = new FadeTransition();
+            menuBackgroundTransition.setNode(menuBackground);
+            menuBackgroundTransition.setFromValue(menuBackground.getOpacity());
+            menuBackgroundTransition.setToValue(0.12);
+            menuBackgroundTransition.setAutoReverse(false);
+            menuBackgroundTransition.setDuration(Duration.seconds(animationSpeed));
 
-        blurGamePane();
+            blurGamePane();
 
-        menuBackground.setVisible(true);
-        menuBox.setVisible(true);
-        menuTransition.play();
-        menuBackgroundTransition.play();
+            menuBackground.setVisible(true);
+            menuBox.setVisible(true);
+            menuTransition.play();
+            menuBackgroundTransition.play();
+        });
     }
 
     private void blurGamePane() {
@@ -415,37 +432,41 @@ public class Main extends Application {
     }
 
     private void blurGamePane(double toValue) {
-        GaussianBlur gameEffect = (GaussianBlur) gamePane.getEffect();
-        gamePane.setEffect(gameEffect);
-        Timeline timeline = new Timeline();
-        KeyValue keyValue = new KeyValue(gameEffect.radiusProperty(), toValue);
-        KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
-        timeline.getKeyFrames().add(keyFrame);
-        timeline.play();
+        guiAnimationQueue.submit(() -> {
+            GaussianBlur gameEffect = (GaussianBlur) gamePane.getEffect();
+            gamePane.setEffect(gameEffect);
+            Timeline timeline = new Timeline();
+            KeyValue keyValue = new KeyValue(gameEffect.radiusProperty(), toValue);
+            KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
+            timeline.getKeyFrames().add(keyFrame);
+            timeline.play();
+        });
     }
 
     private void hideMenu() {
-        FadeTransition menuTransition = new FadeTransition();
-        menuTransition.setNode(menuBox);
-        menuTransition.setFromValue(menuBox.getOpacity());
-        menuTransition.setToValue(0);
-        menuTransition.setAutoReverse(false);
-        menuTransition.setDuration(Duration.seconds(animationSpeed));
+        guiAnimationQueue.submit(() -> {
+            FadeTransition menuTransition = new FadeTransition();
+            menuTransition.setNode(menuBox);
+            menuTransition.setFromValue(menuBox.getOpacity());
+            menuTransition.setToValue(0);
+            menuTransition.setAutoReverse(false);
+            menuTransition.setDuration(Duration.seconds(animationSpeed));
 
-        FadeTransition menuBackgroundTransition = new FadeTransition();
-        menuBackgroundTransition.setNode(menuBackground);
-        menuBackgroundTransition.setFromValue(menuBackground.getOpacity());
-        menuBackgroundTransition.setToValue(0);
-        menuBackgroundTransition.setAutoReverse(false);
-        menuBackgroundTransition.setDuration(Duration.seconds(animationSpeed));
+            FadeTransition menuBackgroundTransition = new FadeTransition();
+            menuBackgroundTransition.setNode(menuBackground);
+            menuBackgroundTransition.setFromValue(menuBackground.getOpacity());
+            menuBackgroundTransition.setToValue(0);
+            menuBackgroundTransition.setAutoReverse(false);
+            menuBackgroundTransition.setDuration(Duration.seconds(animationSpeed));
 
-        unblurGamePane();
-        menuTransition.play();
-        menuBackgroundTransition.play();
+            unblurGamePane();
+            menuTransition.play();
+            menuBackgroundTransition.play();
 
-        menuTransition.setOnFinished((event) -> {
-            menuBox.setVisible(false);
-            menuBackground.setVisible(false);
+            menuTransition.setOnFinished((event) -> {
+                menuBox.setVisible(false);
+                menuBackground.setVisible(false);
+            });
         });
     }
 
@@ -455,72 +476,83 @@ public class Main extends Application {
     }
 
     private void showLooser(String looserName) {
-        ShakeTransition anim = new ShakeTransition(gamePane, null);
-        anim.playFromStart();
+        guiAnimationQueue.submitWaitForUnlock(() -> {
+            ShakeTransition anim = new ShakeTransition(gamePane, null);
+            anim.playFromStart();
 
-        Timeline timeline = new Timeline();
+            Timeline timeline = new Timeline();
 
-        Circle c1 = new Circle((452 / 600.0) * looserPane.getWidth(), (323 / 640.0) * looserPane.getHeight(), 0);
-        GaussianBlur circleBlur = new GaussianBlur(30);
-        c1.setEffect(circleBlur);
-        looseImage.setClip(c1);
+            Circle c1 = new Circle((452 / 600.0) * looserPane.getWidth(), (323 / 640.0) * looserPane.getHeight(), 0);
+            GaussianBlur circleBlur = new GaussianBlur(30);
+            c1.setEffect(circleBlur);
+            looseImage.setClip(c1);
 
-        KeyValue kv1 = new KeyValue(c1.radiusProperty(), 0);
-        KeyFrame kf1 = new KeyFrame(Duration.millis(800), kv1);
-        KeyValue kv2 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
-        KeyFrame kf2 = new KeyFrame(Duration.millis(900), kv2);
+            KeyValue kv1 = new KeyValue(c1.radiusProperty(), 0);
+            KeyFrame kf1 = new KeyFrame(Duration.millis(800), kv1);
+            KeyValue kv2 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
+            KeyFrame kf2 = new KeyFrame(Duration.millis(900), kv2);
 
-        timeline.getKeyFrames().addAll(kf1, kf2);
+            timeline.getKeyFrames().addAll(kf1, kf2);
 
-        looseMessage.setOpacity(0);
-        looserText.setText(looserName + " lost :(");
-        looserPane.setVisible(true);
-        looserPane.setOpacity(1);
+            looseMessage.setOpacity(0);
+            looserText.setText(looserName + " lost :(");
+            looserPane.setVisible(true);
+            looserPane.setOpacity(1);
 
-        timeline.setOnFinished((event) -> {
-            looseImage.setClip(null);
-            blurGamePane();
-            PauseTransition wait = new PauseTransition();
-            wait.setDuration(Duration.seconds(1));
-            wait.setOnFinished((event2) -> {
-                FadeTransition looseMessageTransition = new FadeTransition();
-                looseMessageTransition.setNode(looseMessage);
-                looseMessageTransition.setFromValue(0);
-                looseMessageTransition.setToValue(1);
-                looseMessageTransition.setDuration(Duration.millis(500));
-                looseMessageTransition.setAutoReverse(false);
-                looseMessageTransition.play();
+            timeline.setOnFinished((event) -> {
+                looseImage.setClip(null);
+                blurGamePane();
+                PauseTransition wait = new PauseTransition();
+                wait.setDuration(Duration.seconds(1));
+                wait.setOnFinished((event2) -> {
+                    FadeTransition looseMessageTransition = new FadeTransition();
+                    looseMessageTransition.setNode(looseMessage);
+                    looseMessageTransition.setFromValue(0);
+                    looseMessageTransition.setToValue(1);
+                    looseMessageTransition.setDuration(Duration.millis(500));
+                    looseMessageTransition.setAutoReverse(false);
+                    looseMessageTransition.play();
+                });
+
+                wait.play();
             });
 
-            wait.play();
+            timeline.play();
         });
 
-        timeline.play();
     }
 
     private void blurLooserPane() {
-        GaussianBlur blur = new GaussianBlur(0);
-        looserPane.setEffect(blur);
-        Timeline timeline = new Timeline();
-        KeyValue keyValue = new KeyValue(blur.radiusProperty(), 7);
-        KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
-        timeline.getKeyFrames().add(keyFrame);
-        timeline.play();
+        guiAnimationQueue.submit(() -> {
+            GaussianBlur blur = new GaussianBlur(0);
+            looserPane.setEffect(blur);
+            Timeline timeline = new Timeline();
+            KeyValue keyValue = new KeyValue(blur.radiusProperty(), 7);
+            KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
+            timeline.getKeyFrames().add(keyFrame);
+            timeline.play();
+        });
+
     }
 
     private void fadeLooserPaneOut() {
-        FadeTransition fadeTransition = new FadeTransition();
-        fadeTransition.setNode(looserPane);
-        fadeTransition.setFromValue(looserPane.getOpacity());
-        fadeTransition.setToValue(0);
-        fadeTransition.setDuration(Duration.seconds(animationSpeed));
-        fadeTransition.setAutoReverse(false);
+        guiAnimationQueue.submit(() -> {
+            guiAnimationQueue.setBlocked(true);
+            FadeTransition fadeTransition = new FadeTransition();
+            fadeTransition.setNode(looserPane);
+            fadeTransition.setFromValue(looserPane.getOpacity());
+            fadeTransition.setToValue(0);
+            fadeTransition.setDuration(Duration.seconds(animationSpeed));
+            fadeTransition.setAutoReverse(false);
 
-        fadeTransition.setOnFinished((event) -> {
-            looserPane.setVisible(false);
-            looserPane.setEffect(null);
+            fadeTransition.setOnFinished((event) -> {
+                looserPane.setVisible(false);
+                looserPane.setEffect(null);
+                guiAnimationQueue.setBlocked(false);
+            });
+
+            fadeTransition.play();
         });
 
-        fadeTransition.play();
     }
 }
