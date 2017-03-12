@@ -36,6 +36,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -44,8 +45,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
@@ -67,6 +68,7 @@ public class Main extends Application {
     private static final int gameCols = 3;
     private static final String player1Letter = "X";
     private static final String player2Letter = "O";
+
     StringProperty style = new SimpleStringProperty("");
     private String suggestedHumanName1;
     private String suggestedHumanName2;
@@ -269,6 +271,7 @@ public class Main extends Application {
             fadeLooserPaneOut();
         }
         hideMenu();
+        fadeWinLineGroup();
         guiAnimationQueue.submit(() -> {
             String finalPlayerName1 = player1Name.getText();
             if (player1AIToggle.isSelected()) {
@@ -376,7 +379,7 @@ public class Main extends Application {
 
             gameTable.setItems(generatedRows);
 
-            double effectiveHeight = gameTable.getHeight() - 2;
+            double effectiveHeight = gameTable.getHeight() - 5;
             gameTable.setFixedCellSize(effectiveHeight / board.getRowCount());
             style.set("-fx-font-size:" + Math.round((effectiveHeight - 250) / board.getRowCount()) + "px;");
             gameTable.refresh();
@@ -401,73 +404,22 @@ public class Main extends Application {
 
     private void showMenu() {
         guiAnimationQueue.submit(() -> {
-            FadeTransition menuTransition = new FadeTransition();
-            menuTransition.setNode(menuBox);
-            menuTransition.setFromValue(menuBox.getOpacity());
-            menuTransition.setToValue(1);
-            menuTransition.setAutoReverse(false);
-            menuTransition.setDuration(Duration.seconds(animationSpeed));
-
-            FadeTransition menuBackgroundTransition = new FadeTransition();
-            menuBackgroundTransition.setNode(menuBackground);
-            menuBackgroundTransition.setFromValue(menuBackground.getOpacity());
-            menuBackgroundTransition.setToValue(0.12);
-            menuBackgroundTransition.setAutoReverse(false);
-            menuBackgroundTransition.setDuration(Duration.seconds(animationSpeed));
+            fadeNode(menuBackground, 0.12);
+            fadeNode(menuBox, 1);
 
             blurGamePane();
 
             menuBackground.setVisible(true);
             menuBox.setVisible(true);
-            menuTransition.play();
-            menuBackgroundTransition.play();
-        });
-    }
-
-    private void blurGamePane() {
-        blurGamePane(7.0);
-    }
-
-    private void unblurGamePane() {
-        blurGamePane(0.0);
-    }
-
-    private void blurGamePane(double toValue) {
-        guiAnimationQueue.submit(() -> {
-            GaussianBlur gameEffect = (GaussianBlur) gamePane.getEffect();
-            gamePane.setEffect(gameEffect);
-            Timeline timeline = new Timeline();
-            KeyValue keyValue = new KeyValue(gameEffect.radiusProperty(), toValue);
-            KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
-            timeline.getKeyFrames().add(keyFrame);
-            timeline.play();
         });
     }
 
     private void hideMenu() {
         guiAnimationQueue.submit(() -> {
-            FadeTransition menuTransition = new FadeTransition();
-            menuTransition.setNode(menuBox);
-            menuTransition.setFromValue(menuBox.getOpacity());
-            menuTransition.setToValue(0);
-            menuTransition.setAutoReverse(false);
-            menuTransition.setDuration(Duration.seconds(animationSpeed));
-
-            FadeTransition menuBackgroundTransition = new FadeTransition();
-            menuBackgroundTransition.setNode(menuBackground);
-            menuBackgroundTransition.setFromValue(menuBackground.getOpacity());
-            menuBackgroundTransition.setToValue(0);
-            menuBackgroundTransition.setAutoReverse(false);
-            menuBackgroundTransition.setDuration(Duration.seconds(animationSpeed));
+            fadeNode(menuBackground, 0);
+            fadeNode(menuBox, 0);
 
             unblurGamePane();
-            menuTransition.play();
-            menuBackgroundTransition.play();
-
-            menuTransition.setOnFinished((event) -> {
-                menuBox.setVisible(false);
-                menuBackground.setVisible(false);
-            });
         });
     }
 
@@ -485,25 +437,23 @@ public class Main extends Application {
             Timeline timeline = new Timeline();
 
             Circle c1 = new Circle((452 / 600.0) * looserPane.getWidth(), (323 / 640.0) * looserPane.getHeight(), 0);
+            Circle c2 = new Circle((452 / 600.0) * looserPane.getWidth(), (323 / 640.0) * looserPane.getHeight(), 0);
             GaussianBlur circleBlur = new GaussianBlur(30);
             c1.setEffect(circleBlur);
             looseImage.setClip(c1);
+            addWinLineOnLoose(winnerInfo);
+            // winLineGroup.setClip(c2);
 
             KeyValue kv1 = new KeyValue(c1.radiusProperty(), 0);
-            KeyFrame kf1 = new KeyFrame(Duration.millis(800), kv1);
+            KeyValue kv12 = new KeyValue(c2.radiusProperty(), 0);
+            KeyFrame kf1 = new KeyFrame(Duration.millis(800), kv1, kv12);
             KeyValue kv2 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
-            KeyFrame kf2 = new KeyFrame(Duration.millis(900), kv2);
+            KeyValue kv22 = new KeyValue(c2.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
+            KeyFrame kf2 = new KeyFrame(Duration.millis(900), kv2, kv22);
 
             timeline.getKeyFrames().addAll(kf1, kf2);
 
-            winLineGroup.setVisible(true);
-            Line originLine = new Line(0,0,0,0);
-            winLineGroup.getChildren().add(originLine);
-            double cellWidth = gameTable.getWidth() / board.getColumnCount();
-            double effectiveHeight = gameTable.getHeight() - 2;
-            double cellHeight = effectiveHeight / board.getRowCount();
-            Line winLine = new Line((winnerInfo.winLineStartColumn * cellWidth) + (cellWidth / 2.0), (winnerInfo.winLineStartRow * cellHeight) + (cellHeight / 2.0), (winnerInfo.winLineEndColumn * cellWidth) + (cellWidth / 2.0), (winnerInfo.winLineEndRow * cellHeight) + (cellHeight / 2.0));
-            winLineGroup.getChildren().add(winLine);
+
             looseMessage.setOpacity(0);
             looserText.setText(looserName + " lost :(");
             looserPane.setVisible(true);
@@ -511,6 +461,7 @@ public class Main extends Application {
 
             timeline.setOnFinished((event) -> {
                 looseImage.setClip(null);
+                winLineGroup.setClip(null);
                 blurGamePane();
                 PauseTransition wait = new PauseTransition();
                 wait.setDuration(Duration.seconds(1));
@@ -532,37 +483,185 @@ public class Main extends Application {
 
     }
 
-    private void blurLooserPane() {
-        guiAnimationQueue.submit(() -> {
-            GaussianBlur blur = new GaussianBlur(0);
-            looserPane.setEffect(blur);
-            Timeline timeline = new Timeline();
-            KeyValue keyValue = new KeyValue(blur.radiusProperty(), 7);
-            KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
-            timeline.getKeyFrames().add(keyFrame);
-            timeline.play();
-        });
+    private void addWinLineOnLoose(Board.WinnerInfo winnerInfo) {
+        final double strokeWidth = 2;
 
+        Line originLine = new Line(0, 0, 0, 0);
+        winLineGroup.getChildren().add(originLine);
+
+        // Line winLine = new Line((winnerInfo.winLineStartColumn * cellWidth) + (cellWidth / 2.0), (winnerInfo.winLineStartRow * cellHeight) + (cellHeight / 2.0), (winnerInfo.winLineEndColumn * cellWidth) + (cellWidth / 2.0), (winnerInfo.winLineEndRow * cellHeight) + (cellHeight / 2.0));
+        // winLine.setStrokeWidth(100);
+        // winLine.setFill(Color.TRANSPARENT);
+        // winLineGroup.getChildren().add(winLine);
+
+        WinLine winLine = new WinLine(winnerInfo);
+        winLine.startArc.setFill(Color.TRANSPARENT);
+        winLine.startArc.setStroke(Color.BLACK);
+        winLine.startArc.setStrokeWidth(strokeWidth);
+        winLine.endArc.setFill(Color.TRANSPARENT);
+        winLine.endArc.setStroke(Color.BLACK);
+        winLine.endArc.setStrokeWidth(strokeWidth);
+        winLine.rightLine.setStrokeWidth(strokeWidth);
+        winLine.leftLine.setStrokeWidth(strokeWidth);
+
+        winLine.centerLine.setStrokeWidth(0);
+        winLineGroup.getChildren().addAll(winLine.getAll());
+
+        winLineGroup.setOpacity(0);
+        GaussianBlur blur = new GaussianBlur(7);
+        winLineGroup.setEffect(blur);
+        winLineGroup.setVisible(true);
+        KeyValue kv1 = new KeyValue(winLineGroup.opacityProperty(), 0);
+        KeyFrame kf1 = new KeyFrame(Duration.millis(900), kv1);
+        KeyValue kv2 = new KeyValue(winLineGroup.opacityProperty(), 1);
+        KeyFrame kf2 = new KeyFrame(Duration.millis(950), kv2);
+
+        Timeline timeline = new Timeline();
+        timeline.getKeyFrames().addAll(kf1, kf2);
+        timeline.play();
     }
 
     private void fadeLooserPaneOut() {
+        fadeNode(looserPane, 0, true);
+    }
+
+    private void fadeWinLineGroup() {
+        fadeNode(winLineGroup, 0, () -> winLineGroup.getChildren().clear());
+    }
+
+    private void blurGamePane() {
+        blurGamePane(7.0);
+    }
+
+    private void unblurGamePane() {
+        blurGamePane(0.0);
+    }
+
+    private void blurGamePane(double toValue) {
+        blurNode(gamePane, toValue);
+    }
+
+    private void blurLooserPane() {
+        blurNode(looserPane, 7);
+    }
+
+    private void blurNode(Node node, double toValue) {
+        blurNode(node, toValue, null);
+    }
+
+    private void blurNode(Node node, double toValue, @SuppressWarnings("SameParameterValue") Runnable onFinish) {
         guiAnimationQueue.submit(() -> {
-            guiAnimationQueue.setBlocked(true);
+            GaussianBlur blur = (GaussianBlur) node.getEffect();
+            if (blur == null) {
+                blur = new GaussianBlur(0);
+                node.setEffect(blur);
+            }
+            node.setEffect(blur);
+            Timeline timeline = new Timeline();
+            KeyValue keyValue = new KeyValue(blur.radiusProperty(), toValue);
+            KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
+            timeline.getKeyFrames().add(keyFrame);
+
+            timeline.setOnFinished((event) -> {
+                if (toValue == 0) {
+                    node.setEffect(null);
+                }
+                if (onFinish != null) {
+                    onFinish.run();
+                }
+            });
+
+            timeline.play();
+        });
+    }
+
+    private void fadeNode(Node node, double toValue) {
+        fadeNode(node, toValue, false);
+    }
+
+    private void fadeNode(Node node, double toValue, boolean block) {
+        fadeNode(node, toValue, block, null);
+    }
+
+    private void fadeNode(Node node, double toValue, Runnable onFinish) {
+        fadeNode(node, toValue, false, onFinish);
+    }
+
+    private void fadeNode(Node node, double toValue, boolean block, Runnable onFinish) {
+        guiAnimationQueue.submit(() -> {
+            if (block) {
+                guiAnimationQueue.setBlocked(true);
+            }
+            if (!node.isVisible()) {
+                node.setVisible(true);
+            }
+
             FadeTransition fadeTransition = new FadeTransition();
-            fadeTransition.setNode(looserPane);
-            fadeTransition.setFromValue(looserPane.getOpacity());
-            fadeTransition.setToValue(0);
+            fadeTransition.setNode(node);
+            fadeTransition.setFromValue(node.getOpacity());
+            fadeTransition.setToValue(toValue);
             fadeTransition.setDuration(Duration.seconds(animationSpeed));
             fadeTransition.setAutoReverse(false);
 
             fadeTransition.setOnFinished((event) -> {
-                looserPane.setVisible(false);
-                looserPane.setEffect(null);
-                guiAnimationQueue.setBlocked(false);
+                if (toValue == 0) {
+                    node.setEffect(null);
+                    node.setVisible(false);
+                }
+                if (block) {
+                    guiAnimationQueue.setBlocked(false);
+                }
+                if (onFinish != null) {
+                    onFinish.run();
+                }
             });
 
             fadeTransition.play();
         });
+    }
 
+    private class WinLine {
+        Arc startArc;
+        Line leftLine;
+        Line centerLine;
+        Line rightLine;
+        Arc endArc;
+
+        WinLine(Board.WinnerInfo winnerInfo) {
+            double cellWidth = gameTable.getWidth() / board.getColumnCount();
+            double cellHeight = gameTable.getFixedCellSize();
+            double winLineWidth = cellHeight/2;
+            double startX = (winnerInfo.winLineStartColumn * cellWidth) + (cellWidth / 2.0);
+            double startY = (winnerInfo.winLineStartRow * cellHeight) + (cellHeight / 2.0);
+            double endX = (winnerInfo.winLineEndColumn * cellWidth) + (cellWidth / 2.0);
+            double endY = (winnerInfo.winLineEndRow * cellHeight) + (cellHeight / 2.0);
+
+            // public Arc(double centerX, double centerY, double radiusX, double radiusY, double startAngle, double length) {
+            double startAngle = Math.atan2(endX - startX, endY - startY) * 180 / Math.PI;
+            //noinspection SuspiciousNameCombination
+            startArc = new Arc(startX, startY, winLineWidth, winLineWidth, startAngle, 180);
+            startArc.setType(ArcType.OPEN);
+
+            startAngle = startAngle + 180;
+            if (startAngle > 360) {
+                startAngle = startAngle - 360;
+            }
+            endArc = new Arc(endX, endY, winLineWidth, winLineWidth, startAngle, 180);
+            endArc.setType(ArcType.OPEN);
+
+            leftLine = new Line(startX - Math.cos(startAngle * Math.PI / 180) * winLineWidth, startY + Math.sin(startAngle * Math.PI / 180) * winLineWidth, endX - Math.cos(startAngle * Math.PI / 180) * winLineWidth, endY + Math.sin(startAngle * Math.PI / 180) * winLineWidth);
+            centerLine = new Line(startX, startY, endX, endY);
+            rightLine = new Line(startX + Math.cos(startAngle * Math.PI / 180) * winLineWidth, startY - Math.sin(startAngle * Math.PI / 180) * winLineWidth, endX + Math.cos(startAngle * Math.PI / 180) * winLineWidth, endY - Math.sin(startAngle * Math.PI / 180) * winLineWidth);
+        }
+
+        List<Shape> getAll() {
+            List<Shape> res = new ArrayList<>(5);
+            res.add(startArc);
+            res.add(leftLine);
+            res.add(centerLine);
+            res.add(rightLine);
+            res.add(endArc);
+            return res;
+        }
     }
 }
