@@ -78,6 +78,9 @@ public class Main extends Application {
     private AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
 
     @FXML
+    private AnchorPane root;
+
+    @FXML
     private AnchorPane gamePane;
 
     @FXML
@@ -118,6 +121,12 @@ public class Main extends Application {
 
     @FXML
     private Label currentPlayerLabel;
+
+    @FXML
+    private AnchorPane tiePane;
+
+    @FXML
+    private ImageView bowTie;
 
     public static void main(String[] args) {
         Common.setAppName("tictactoev2");
@@ -310,7 +319,12 @@ public class Main extends Application {
             board.setGameEndCallback((winnerInfo) -> {
                 guiAnimationQueue.submit(() -> {
                     System.out.println("The winner is: " + winnerInfo.winningPlayer.getName());
-                    showLooser(winnerInfo);
+                    if (winnerInfo.isTie()) {
+                        showTie(winnerInfo);
+                    } else {
+                        // showTie(winnerInfo);
+                        showLooser(winnerInfo);
+                    }
                 });
             });
             while (gameTable.getColumns().size() > 0) {
@@ -428,6 +442,46 @@ public class Main extends Application {
         blurGamePane();
     }
 
+    private void showTie(Board.WinnerInfo winnerInfo) {
+        guiAnimationQueue.submitWaitForUnlock(() -> {
+            bowTie.setX(370);
+            bowTie.setY(-150);
+
+            blurGamePane();
+            tiePane.setVisible(true);
+            bowTie.setVisible(true);
+
+            double endX = 370;
+            double endY = 90;
+
+            Timeline timeline = new Timeline();
+            double S4 = 1.45;
+            double x0 = 0.33;
+            KeyValue kv1x = new KeyValue(bowTie.xProperty(), endX, new CustomEaseOutInterpolator(S4, x0));
+            KeyValue kv1y = new KeyValue(bowTie.yProperty(), endY, new CustomEaseOutInterpolator(S4, x0));
+            KeyFrame kf1 = new KeyFrame(Duration.seconds(1), kv1x, kv1y);
+            timeline.getKeyFrames().add(kf1);
+
+            timeline.setOnFinished((event) -> {
+                System.out.println("moved");
+                root.getChildren().remove(bowTie);
+                tiePane.getChildren().add(bowTie);
+                AnchorPane.setRightAnchor(bowTie, tiePane.getWidth() - bowTie.getFitWidth() - endX);
+                AnchorPane.setTopAnchor(bowTie, endY);
+            });
+
+            timeline.play();
+            /*
+            FadeTransition looseMessageTransition = new FadeTransition();
+            looseMessageTransition.setNode(looseMessage);
+            looseMessageTransition.setFromValue(0);
+            looseMessageTransition.setToValue(1);
+            looseMessageTransition.setDuration(Duration.millis(500));
+            looseMessageTransition.setAutoReverse(false);
+            looseMessageTransition.play();*/
+        });
+    }
+
     private void showLooser(Board.WinnerInfo winnerInfo) {
         String looserName = board.getOpponent(winnerInfo.winningPlayer).getName();
         guiAnimationQueue.submitWaitForUnlock(() -> {
@@ -437,19 +491,15 @@ public class Main extends Application {
             Timeline timeline = new Timeline();
 
             Circle c1 = new Circle((452 / 600.0) * looserPane.getWidth(), (323 / 640.0) * looserPane.getHeight(), 0);
-            Circle c2 = new Circle((452 / 600.0) * looserPane.getWidth(), (323 / 640.0) * looserPane.getHeight(), 0);
             GaussianBlur circleBlur = new GaussianBlur(30);
             c1.setEffect(circleBlur);
             looseImage.setClip(c1);
             addWinLineOnLoose(winnerInfo);
-            // winLineGroup.setClip(c2);
 
             KeyValue kv1 = new KeyValue(c1.radiusProperty(), 0);
-            KeyValue kv12 = new KeyValue(c2.radiusProperty(), 0);
-            KeyFrame kf1 = new KeyFrame(Duration.millis(800), kv1, kv12);
+            KeyFrame kf1 = new KeyFrame(Duration.millis(800), kv1);
             KeyValue kv2 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
-            KeyValue kv22 = new KeyValue(c2.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
-            KeyFrame kf2 = new KeyFrame(Duration.millis(900), kv2, kv22);
+            KeyFrame kf2 = new KeyFrame(Duration.millis(900), kv2);
 
             timeline.getKeyFrames().addAll(kf1, kf2);
 
@@ -488,11 +538,6 @@ public class Main extends Application {
 
         Line originLine = new Line(0, 0, 0, 0);
         winLineGroup.getChildren().add(originLine);
-
-        // Line winLine = new Line((winnerInfo.winLineStartColumn * cellWidth) + (cellWidth / 2.0), (winnerInfo.winLineStartRow * cellHeight) + (cellHeight / 2.0), (winnerInfo.winLineEndColumn * cellWidth) + (cellWidth / 2.0), (winnerInfo.winLineEndRow * cellHeight) + (cellHeight / 2.0));
-        // winLine.setStrokeWidth(100);
-        // winLine.setFill(Color.TRANSPARENT);
-        // winLineGroup.getChildren().add(winLine);
 
         WinLine winLine = new WinLine(winnerInfo);
         winLine.startArc.setFill(Color.TRANSPARENT);
@@ -630,7 +675,7 @@ public class Main extends Application {
         WinLine(Board.WinnerInfo winnerInfo) {
             double cellWidth = gameTable.getWidth() / board.getColumnCount();
             double cellHeight = gameTable.getFixedCellSize();
-            double winLineWidth = cellHeight/2;
+            double winLineWidth = cellHeight / 2;
             double startX = (winnerInfo.winLineStartColumn * cellWidth) + (cellWidth / 2.0);
             double startY = (winnerInfo.winLineStartRow * cellHeight) + (cellHeight / 2.0);
             double endX = (winnerInfo.winLineEndColumn * cellWidth) + (cellWidth / 2.0);

@@ -8,3 +8,4 @@ This is another implementation of the tic tac toe game. While I already implemen
 ## Graphics
 - [Win](http://www.freepik.com/free-vector/the-winner_766744.htm) 
 - [Loose](http://www.freepik.com/free-vector/damaged-wall-grunge-background_708092.htm)
+- [Tie](http://www.freepik.com/free-vector/variety-of-colorful-bow-ties_791412.htm)
