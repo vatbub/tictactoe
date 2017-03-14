@@ -33,6 +33,7 @@ after_success:
 - git config --global user.name $GH_USER_NAME
 - git add CHANGELOG.md
 - git commit -m "[skip ci] Updated Changelog"
+- git status
 - git push git@github.com:vatbub/zorkClone.git master
 branches:
   only:
