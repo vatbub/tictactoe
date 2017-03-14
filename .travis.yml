@@ -22,7 +22,6 @@ before_cache:
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true
 after_success:
 - git checkout master
-- git pull
 - "\\curl -sSL https://get.rvm.io | bash -s stable --ruby"
 - rvm reload
 - gem install github_changelog_generator -v 1.13.0
@@ -33,8 +32,7 @@ after_success:
 - git config --global user.name $GH_USER_NAME
 - git add CHANGELOG.md
 - git commit -m "[skip ci] Updated Changelog"
-- git status
-- git push git@github.com:vatbub/zorkClone.git master
+- git push git@github.com:vatbub/tictactoe.git master
 branches:
   only:
   - master
