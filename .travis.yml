@@ -22,6 +22,7 @@ before_cache:
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true
 after_success:
 - git checkout master
+- git pull
 - "\\curl -sSL https://get.rvm.io | bash -s stable --ruby"
 - rvm reload
 - gem install github_changelog_generator -v 1.13.0
