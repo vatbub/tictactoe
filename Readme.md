@@ -1,6 +1,9 @@
 #TicTacToe
 This is another implementation of the tic tac toe game. While I already implemented a crappy version to learn how the MiniMax Algorithm works, I finally decided to rewrite everything with all the knowledge in mind that I (hopefully) acquired over time.
 
+##Download the standalone app
+Get the FOKLauncher ([Download](https://bintray.com/vatbub/fokprojectsReleases/foklauncher#downloads)|[GitHub Repo](https://github.com/vatbub/fokLauncher)) and download "Tic Tac Toe NEW VERSION" there.
+
 ##Plans
 - Make a nice JavaFX GUI
 - Create a perfect and quick ai
