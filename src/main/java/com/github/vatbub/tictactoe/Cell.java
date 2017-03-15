@@ -33,7 +33,7 @@ public class Cell {
         this(null);
     }
 
-    public Cell(@Nullable Player currentPlayer){
+    public Cell(@SuppressWarnings("SameParameterValue") @Nullable Player currentPlayer){
         this.currentPlayer = currentPlayer;
     }
 

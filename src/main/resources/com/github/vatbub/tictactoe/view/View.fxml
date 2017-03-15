@@ -11,6 +11,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
+<!--suppress ALL -->
 <AnchorPane fx:id="root" prefHeight="645.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.vatbub.tictactoe.view.Main">
    <children>
       <AnchorPane fx:id="gamePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

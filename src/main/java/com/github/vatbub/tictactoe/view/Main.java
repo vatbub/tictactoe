@@ -70,15 +70,14 @@ public class Main extends Application {
     private static final String player1Letter = "X";
     private static final String player2Letter = "O";
 
-    StringProperty style = new SimpleStringProperty("");
+    final StringProperty style = new SimpleStringProperty("");
+    private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
+    private final RefreshableNodeList refreshedNodes = new RefreshableNodeList();
     private String suggestedHumanName1;
     private String suggestedHumanName2;
     private String suggestedAIName1;
     private String suggestedAIName2;
     private Board board;
-    private AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
-    private RefreshableNodeList refreshedNodes = new RefreshableNodeList();
-
     @FXML
     private AnchorPane root;
 
@@ -162,7 +161,6 @@ public class Main extends Application {
      * The main entry point for all JavaFX applications.
      * The start method is called after the init method has returned,
      * and after the system is ready for the application to begin running.
-     * <p>
      * <p>
      * NOTE: This method is called on the JavaFX Application Thread.
      * </p>
@@ -321,17 +319,15 @@ public class Main extends Application {
     private void initBoard() {
         guiAnimationQueue.submit(() -> {
             board = new Board(gameRows, gameCols);
-            board.setGameEndCallback((winnerInfo) -> {
-                guiAnimationQueue.submit(() -> {
-                    System.out.println("The winner is: " + winnerInfo.winningPlayer.getName());
-                    if (winnerInfo.isTie()) {
-                        showTie(winnerInfo);
-                    } else {
-                        // showTie(winnerInfo);
-                        showLooser(winnerInfo);
-                    }
-                });
-            });
+            board.setGameEndCallback((winnerInfo) -> guiAnimationQueue.submit(() -> {
+                System.out.println("The winner is: " + winnerInfo.winningPlayer.getName());
+                if (winnerInfo.isTie()) {
+                    showTie(winnerInfo);
+                } else {
+                    // showTie(winnerInfo);
+                    showLooser(winnerInfo);
+                }
+            }));
             while (gameTable.getColumns().size() > 0) {
                 gameTable.getColumns().remove(0);
             }
@@ -633,7 +629,7 @@ public class Main extends Application {
         fadeNode(node, toValue, block, null);
     }
 
-    private void fadeNode(Node node, double toValue, Runnable onFinish) {
+    private void fadeNode(Node node, @SuppressWarnings("SameParameterValue") double toValue, Runnable onFinish) {
         fadeNode(node, toValue, false, onFinish);
     }
 
@@ -671,11 +667,11 @@ public class Main extends Application {
     }
 
     private class WinLine {
-        Arc startArc;
-        Line leftLine;
-        Line centerLine;
-        Line rightLine;
-        Arc endArc;
+        final Arc startArc;
+        final Line leftLine;
+        final Line centerLine;
+        final Line rightLine;
+        final Arc endArc;
 
         WinLine(Board.WinnerInfo winnerInfo) {
             double cellWidth = gameTable.getWidth() / board.getColumnCount();
@@ -696,6 +692,7 @@ public class Main extends Application {
             if (startAngle > 360) {
                 startAngle = startAngle - 360;
             }
+            //noinspection SuspiciousNameCombination
             endArc = new Arc(endX, endY, winLineWidth, winLineWidth, startAngle, 180);
             endArc.setType(ArcType.OPEN);
 

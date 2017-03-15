@@ -28,8 +28,8 @@ import java.util.*;
  */
 @SuppressWarnings("WeakerAccess")
 public class NameList {
-    private static List<String> aiNames;
-    private static List<String> humanNames;
+    private static final List<String> aiNames;
+    private static final List<String> humanNames;
     private static int lastAIIndex = -1;
     private static int lastHumanIndex = -1;
 

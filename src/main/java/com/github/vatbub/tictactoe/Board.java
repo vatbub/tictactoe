@@ -31,13 +31,13 @@ import javafx.beans.property.SimpleObjectProperty;
 public class Board {
     private static final int gemsInARowToWin = 3;
 
-    private Cell[][] board;
-    private int dimRows;
-    private int dimCols;
+    private final Cell[][] board;
+    private final int dimRows;
+    private final int dimCols;
+    private final ObjectProperty<Player> currentPlayer = new SimpleObjectProperty<>();
+    private final ObjectProperty<GameEndRunnable> gameEndCallback = new SimpleObjectProperty<>();
     private Player player1;
     private Player player2;
-    private ObjectProperty<Player> currentPlayer = new SimpleObjectProperty<>();
-    private ObjectProperty<GameEndRunnable> gameEndCallback = new SimpleObjectProperty<>();
 
     /**
      * Initializes a new 3*3 game board
@@ -52,7 +52,7 @@ public class Board {
      *
      * @param quadraticDim The edge length of the board
      */
-    public Board(int quadraticDim) {
+    public Board(@SuppressWarnings("SameParameterValue") int quadraticDim) {
         this(quadraticDim, quadraticDim);
     }
 
@@ -71,8 +71,10 @@ public class Board {
      *
      * @param dimRows The desired width of the board
      * @param dimCols The desired height of the board.
+     * @param player1 The first player on the board
+     * @param player2 The second player on the board
      */
-    public Board(int dimRows, int dimCols, Player player1, Player player2) {
+    public Board(int dimRows, int dimCols, @SuppressWarnings("SameParameterValue") Player player1, @SuppressWarnings("SameParameterValue") Player player2) {
         this.dimCols = dimCols;
         this.dimRows = dimRows;
         setPlayer1(player1);

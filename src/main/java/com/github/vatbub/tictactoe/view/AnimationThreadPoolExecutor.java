@@ -22,6 +22,7 @@ package com.github.vatbub.tictactoe.view;
 
 
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -107,6 +108,7 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
      */
+    @NotNull
     @Override
     public Future<?> submit(Runnable task) {
         Runnable effectiveTask = () -> Platform.runLater(task);
@@ -117,6 +119,7 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
      */
+    @NotNull
     @Override
     public <T> Future<T> submit(Runnable task, T result) {
         Runnable effectiveTask = () -> Platform.runLater(task);
@@ -127,6 +130,7 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
      */
+    @NotNull
     @Override
     public <T> Future<T> submit(Callable<T> task) {
         Callable<T> effectiveTask = () -> {
@@ -138,6 +142,7 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
         return super.schedule(effectiveTask, 0, NANOSECONDS);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public Future<?> submitWaitForUnlock(Runnable task) {
         Runnable effectiveTask = () -> {
             // PrintStreams magically don't make the wait loop hang
