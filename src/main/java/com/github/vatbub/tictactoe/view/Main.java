@@ -444,15 +444,15 @@ public class Main extends Application {
 
     private void showTie(Board.WinnerInfo winnerInfo) {
         guiAnimationQueue.submitWaitForUnlock(() -> {
-            bowTie.setX(370);
+            double endX = tiePane.getWidth() - 230;
+            double endY = 90;
+
+            bowTie.setX(endX);
             bowTie.setY(-150);
 
             blurGamePane();
             tiePane.setVisible(true);
             bowTie.setVisible(true);
-
-            double endX = 370;
-            double endY = 90;
 
             Timeline timeline = new Timeline();
             double S4 = 1.45;
