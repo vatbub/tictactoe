@@ -24,6 +24,7 @@ package com.github.vatbub.tictactoe.view;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
+import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import common.Common;
 import javafx.animation.*;
 import javafx.application.Application;
@@ -76,6 +77,7 @@ public class Main extends Application {
     private String suggestedAIName2;
     private Board board;
     private AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
+    private RefreshableNodeList refreshedNodes = new RefreshableNodeList();
 
     @FXML
     private AnchorPane root;
@@ -203,6 +205,9 @@ public class Main extends Application {
             }
             Platform.runLater(() -> new ExceptionAlert(exception).showAndWait());
         });
+
+        root.heightProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(root.getWidth(), oldValue.doubleValue(), root.getWidth(), newValue.doubleValue()));
+        root.widthProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(oldValue.doubleValue(), root.getHeight(), newValue.doubleValue(), root.getHeight()));
 
         player1AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if ((oldValue && player1Name.getText().equals(suggestedAIName1)) || (!oldValue && player1Name.getText().equals(suggestedHumanName1))) {
