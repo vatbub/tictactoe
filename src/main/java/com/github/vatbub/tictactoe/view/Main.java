@@ -27,10 +27,13 @@ import com.github.vatbub.tictactoe.Player;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableArc;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableLine;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
+import com.sun.javafx.tk.Toolkit;
 import common.Common;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -53,6 +56,7 @@ import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
@@ -83,6 +87,7 @@ public class Main extends Application {
     private String suggestedAIName1;
     private String suggestedAIName2;
     private Board board;
+    private ObjectProperty<Font> rowFont;
     @FXML
     private AnchorPane root;
 
@@ -237,6 +242,12 @@ public class Main extends Application {
         gameTable.setRowFactory(param -> {
             TableRow<Row> row = new TableRow<>();
             row.styleProperty().bind(style);
+
+            if (rowFont == null) {
+                rowFont = new SimpleObjectProperty<>();
+                rowFont.bind(row.fontProperty());
+            }
+
             return row;
         });
 
@@ -369,7 +380,7 @@ public class Main extends Application {
                     }
                 });
 
-                column.setStyle("-fx-alignment: CENTER;");
+                column.setStyle("-fx-alignment: CENTER; -fx-padding: 0;");
                 gameTable.getColumns().add(column);
             }
 
@@ -400,8 +411,23 @@ public class Main extends Application {
             gameTable.setItems(generatedRows);
 
             double effectiveHeight = gameTable.getHeight() - 5;
+            long fontSize = Math.round((effectiveHeight - 250) / board.getRowCount());
+
+            // get letter widths;
+            Font font = new Font(rowFont.getName(), fontSize);
+            double player1SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player1Letter, font);
+            double player2SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player2Letter, font);
+
+            // make the font smaller so that it fits the cell even if the width is very small
+            while (player1SymbolWidth > (gameTable.getWidth() / board.getColumnCount()) || player2SymbolWidth + 10 > (gameTable.getWidth() / board.getColumnCount())) {
+                fontSize = fontSize - 1;
+                font = new Font(rowFont.getName(), fontSize);
+                player1SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player1Letter, font);
+                player2SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player2Letter, font);
+            }
+
             gameTable.setFixedCellSize(effectiveHeight / board.getRowCount());
-            style.set("-fx-font-size:" + Math.round((effectiveHeight - 250) / board.getRowCount()) + "px;");
+            style.set("-fx-font-size:" + fontSize + "px; -fx-padding: 0;");
             gameTable.refresh();
         });
     }
