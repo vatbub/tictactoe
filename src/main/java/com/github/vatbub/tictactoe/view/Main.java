@@ -24,6 +24,8 @@ package com.github.vatbub.tictactoe.view;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
+import com.github.vatbub.tictactoe.view.refreshables.RefreshableArc;
+import com.github.vatbub.tictactoe.view.refreshables.RefreshableLine;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import common.Common;
 import javafx.animation.*;
@@ -47,7 +49,10 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.*;
+import javafx.scene.shape.ArcType;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
@@ -204,8 +209,8 @@ public class Main extends Application {
             Platform.runLater(() -> new ExceptionAlert(exception).showAndWait());
         });
 
-        root.heightProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(root.getWidth(), oldValue.doubleValue(), root.getWidth(), newValue.doubleValue()));
-        root.widthProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(oldValue.doubleValue(), root.getHeight(), newValue.doubleValue(), root.getHeight()));
+        gameTable.heightProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(gameTable.getWidth(), oldValue.doubleValue(), gameTable.getWidth(), newValue.doubleValue()));
+        gameTable.widthProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(oldValue.doubleValue(), gameTable.getHeight(), newValue.doubleValue(), gameTable.getHeight()));
 
         player1AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
             if ((oldValue && player1Name.getText().equals(suggestedAIName1)) || (!oldValue && player1Name.getText().equals(suggestedHumanName1))) {
@@ -572,7 +577,11 @@ public class Main extends Application {
     }
 
     private void fadeWinLineGroup() {
-        fadeNode(winLineGroup, 0, () -> winLineGroup.getChildren().clear());
+        fadeNode(winLineGroup, 0, () -> {
+            //noinspection SuspiciousMethodCalls
+            refreshedNodes.removeAll(winLineGroup.getChildren());
+            winLineGroup.getChildren().clear();
+        });
     }
 
     private void blurGamePane() {
@@ -666,39 +675,106 @@ public class Main extends Application {
         });
     }
 
+    private class WinLineGeometry {
+        double winLineWidth;
+        double startX;
+        double startY;
+        double endX;
+        double endY;
+        double startAngle;
+
+        WinLineGeometry(Board.WinnerInfo winnerInfo, double newHeight, double newWidth) {
+            double cellWidth = newWidth / board.getColumnCount();
+            double cellHeight = newHeight / board.getRowCount();
+            winLineWidth = cellHeight / 2;
+            startX = (winnerInfo.winLineStartColumn * cellWidth) + (cellWidth / 2.0);
+            startY = (winnerInfo.winLineStartRow * cellHeight) + (cellHeight / 2.0);
+            endX = (winnerInfo.winLineEndColumn * cellWidth) + (cellWidth / 2.0);
+            endY = (winnerInfo.winLineEndRow * cellHeight) + (cellHeight / 2.0);
+            startAngle = Math.atan2(endX - startX, endY - startY) * 180 / Math.PI;
+        }
+    }
+
     private class WinLine {
-        final Arc startArc;
-        final Line leftLine;
-        final Line centerLine;
-        final Line rightLine;
-        final Arc endArc;
+        final RefreshableArc startArc;
+        final RefreshableLine leftLine;
+        final RefreshableLine centerLine;
+        final RefreshableLine rightLine;
+        final RefreshableArc endArc;
 
         WinLine(Board.WinnerInfo winnerInfo) {
-            double cellWidth = gameTable.getWidth() / board.getColumnCount();
-            double cellHeight = gameTable.getFixedCellSize();
-            double winLineWidth = cellHeight / 2;
-            double startX = (winnerInfo.winLineStartColumn * cellWidth) + (cellWidth / 2.0);
-            double startY = (winnerInfo.winLineStartRow * cellHeight) + (cellHeight / 2.0);
-            double endX = (winnerInfo.winLineEndColumn * cellWidth) + (cellWidth / 2.0);
-            double endY = (winnerInfo.winLineEndRow * cellHeight) + (cellHeight / 2.0);
-
-            // public Arc(double centerX, double centerY, double radiusX, double radiusY, double startAngle, double length) {
-            double startAngle = Math.atan2(endX - startX, endY - startY) * 180 / Math.PI;
             //noinspection SuspiciousNameCombination
-            startArc = new Arc(startX, startY, winLineWidth, winLineWidth, startAngle, 180);
+            startArc = new RefreshableArc() {
+                @Override
+                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
+                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
+                    this.setCenterX(geometry.startX);
+                    this.setCenterY(geometry.startY);
+                    this.setRadiusX(geometry.winLineWidth);
+                    this.setRadiusY(geometry.winLineWidth);
+                    this.setStartAngle(geometry.startAngle);
+                    this.setLength(180);
+                }
+            };
+            refreshedNodes.add(startArc);
             startArc.setType(ArcType.OPEN);
 
-            startAngle = startAngle + 180;
-            if (startAngle > 360) {
-                startAngle = startAngle - 360;
-            }
             //noinspection SuspiciousNameCombination
-            endArc = new Arc(endX, endY, winLineWidth, winLineWidth, startAngle, 180);
+            endArc = new RefreshableArc() {
+                @Override
+                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
+                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
+
+                    geometry.startAngle = geometry.startAngle + 180;
+                    if (geometry.startAngle > 360) {
+                        geometry.startAngle = geometry.startAngle - 360;
+                    }
+
+                    this.setCenterX(geometry.endX);
+                    this.setCenterY(geometry.endY);
+                    this.setRadiusX(geometry.winLineWidth);
+                    this.setRadiusY(geometry.winLineWidth);
+                    this.setStartAngle(geometry.startAngle);
+                    this.setLength(180);
+                }
+            };
+            refreshedNodes.add(endArc);
             endArc.setType(ArcType.OPEN);
 
-            leftLine = new Line(startX - Math.cos(startAngle * Math.PI / 180) * winLineWidth, startY + Math.sin(startAngle * Math.PI / 180) * winLineWidth, endX - Math.cos(startAngle * Math.PI / 180) * winLineWidth, endY + Math.sin(startAngle * Math.PI / 180) * winLineWidth);
-            centerLine = new Line(startX, startY, endX, endY);
-            rightLine = new Line(startX + Math.cos(startAngle * Math.PI / 180) * winLineWidth, startY - Math.sin(startAngle * Math.PI / 180) * winLineWidth, endX + Math.cos(startAngle * Math.PI / 180) * winLineWidth, endY - Math.sin(startAngle * Math.PI / 180) * winLineWidth);
+            leftLine = new RefreshableLine() {
+                @Override
+                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
+                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
+                    this.setStartX(geometry.startX - Math.cos(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
+                    this.setStartY(geometry.startY + Math.sin(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
+                    this.setEndX(geometry.endX - Math.cos(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
+                    this.setEndY(geometry.endY + Math.sin(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
+                }
+            };
+            refreshedNodes.add(leftLine);
+            centerLine = new RefreshableLine() {
+                @Override
+                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
+                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
+                    this.setStartX(geometry.startX);
+                    this.setStartY(geometry.startY);
+                    this.setEndX(geometry.endX);
+                    this.setEndY(geometry.endY);
+                }
+            };
+            refreshedNodes.add(centerLine);
+            rightLine = new RefreshableLine() {
+                @Override
+                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
+                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
+                    this.setStartX(geometry.startX + Math.cos(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
+                    this.setStartY(geometry.startY - Math.sin(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
+                    this.setEndX(geometry.endX + Math.cos(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
+                    this.setEndY(geometry.endY - Math.sin(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
+                }
+            };
+            refreshedNodes.add(rightLine);
+            refreshedNodes.refreshAll(gameTable.getWidth(), gameTable.getHeight(), gameTable.getWidth(), gameTable.getHeight());
         }
 
         List<Shape> getAll() {
