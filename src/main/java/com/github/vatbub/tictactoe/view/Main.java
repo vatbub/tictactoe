@@ -47,6 +47,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.GaussianBlur;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -253,9 +254,20 @@ public class Main extends Application {
 
         looseImage.fitHeightProperty().bind(looserPane.heightProperty());
         looseImage.fitWidthProperty().bind(looserPane.widthProperty());
+        looseImage.fitHeightProperty().addListener((observable, oldValue, newValue) -> reloadLooseImage(looseImage.getFitWidth(), newValue.doubleValue()));
+        looseImage.fitWidthProperty().addListener((observable, oldValue, newValue) -> reloadLooseImage(newValue.doubleValue(), looseImage.getFitWidth()));
 
         initBoard();
         initNewGame();
+    }
+
+    private void reloadLooseImage(double newWidth, double newHeight) {
+        Thread looseImageReloadThread = new Thread(() -> {
+            Image image = new Image(getClass().getResource("loose.png").toString(), newWidth, newHeight, false, true);
+            Platform.runLater(() -> looseImage.setImage(image));
+        });
+        looseImageReloadThread.setName("looseImageReloadThread");
+        looseImageReloadThread.start();
     }
 
     @FXML
