@@ -267,7 +267,6 @@ public class Main extends Application {
         loadTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                System.out.println("Reloading image...");
                 Image image = new Image(getClass().getResource("loose.png").toString(), newWidth, newHeight, false, true);
                 Platform.runLater(() -> looseImage.setImage(image));
             }
