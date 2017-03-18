@@ -65,9 +65,7 @@ import logging.FOKLogger;
 import org.controlsfx.control.ToggleSwitch;
 import view.ExceptionAlert;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * The main game view
@@ -89,6 +87,8 @@ public class Main extends Application {
     private String suggestedAIName2;
     private Board board;
     private ObjectProperty<Font> rowFont;
+    private Timer loadTimer = new Timer();
+
     @FXML
     private AnchorPane root;
 
@@ -262,12 +262,16 @@ public class Main extends Application {
     }
 
     private void reloadLooseImage(double newWidth, double newHeight) {
-        Thread looseImageReloadThread = new Thread(() -> {
-            Image image = new Image(getClass().getResource("loose.png").toString(), newWidth, newHeight, false, true);
-            Platform.runLater(() -> looseImage.setImage(image));
-        });
-        looseImageReloadThread.setName("looseImageReloadThread");
-        looseImageReloadThread.start();
+        loadTimer.cancel();
+        loadTimer = new Timer();
+        loadTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("Reloading image...");
+                Image image = new Image(getClass().getResource("loose.png").toString(), newWidth, newHeight, false, true);
+                Platform.runLater(() -> looseImage.setImage(image));
+            }
+        }, 300);
     }
 
     @FXML
