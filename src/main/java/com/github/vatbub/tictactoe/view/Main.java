@@ -129,6 +129,9 @@ public class Main extends Application {
     private AnchorPane looseMessage;
 
     @FXML
+    private AnchorPane tieMessage;
+
+    @FXML
     private Label looserText;
 
     @FXML
@@ -301,6 +304,9 @@ public class Main extends Application {
             if (looserPane.isVisible()) {
                 blurLooserPane();
             }
+            if (tiePane.isVisible()) {
+                blurTiePane();
+            }
 
             if (!isMenuShown()) {
                 showMenu();
@@ -312,6 +318,9 @@ public class Main extends Application {
         initBoard();
         if (looserPane.isVisible()) {
             fadeLooserPaneOut();
+        }
+        if (tiePane.isVisible()) {
+            fadeTiePaneOut();
         }
         hideMenu();
         fadeWinLineGroup();
@@ -355,7 +364,6 @@ public class Main extends Application {
                 if (winnerInfo.isTie()) {
                     showTie(winnerInfo);
                 } else {
-                    // showTie(winnerInfo);
                     showLooser(winnerInfo);
                 }
             }));
@@ -494,10 +502,13 @@ public class Main extends Application {
             double endX = tiePane.getWidth() - 230;
             double endY = 90;
 
+            AnchorPane.clearConstraints(bowTie);
             bowTie.setX(endX);
             bowTie.setY(-150);
 
             blurGamePane();
+            tieMessage.setOpacity(0);
+            tiePane.setOpacity(1);
             tiePane.setVisible(true);
             bowTie.setVisible(true);
 
@@ -509,23 +520,12 @@ public class Main extends Application {
             KeyFrame kf1 = new KeyFrame(Duration.seconds(1), kv1x, kv1y);
             timeline.getKeyFrames().add(kf1);
 
-            timeline.setOnFinished((event) -> {
-                System.out.println("moved");
-                root.getChildren().remove(bowTie);
-                tiePane.getChildren().add(bowTie);
+            timeline.setOnFinished((event) -> fadeNode(tieMessage, 1, () -> {
                 AnchorPane.setRightAnchor(bowTie, tiePane.getWidth() - bowTie.getFitWidth() - endX);
                 AnchorPane.setTopAnchor(bowTie, endY);
-            });
+            }));
 
             timeline.play();
-            /*
-            FadeTransition looseMessageTransition = new FadeTransition();
-            looseMessageTransition.setNode(looseMessage);
-            looseMessageTransition.setFromValue(0);
-            looseMessageTransition.setToValue(1);
-            looseMessageTransition.setDuration(Duration.millis(500));
-            looseMessageTransition.setAutoReverse(false);
-            looseMessageTransition.play();*/
         });
     }
 
@@ -578,6 +578,10 @@ public class Main extends Application {
             timeline.play();
         });
 
+    }
+
+    private void fadeTiePaneOut() {
+        fadeNode(tiePane, 0);
     }
 
     private void addWinLineOnLoose(Board.WinnerInfo winnerInfo) {
@@ -639,6 +643,10 @@ public class Main extends Application {
 
     private void blurLooserPane() {
         blurNode(looserPane, 7);
+    }
+
+    private void blurTiePane() {
+        blurNode(tiePane, 7);
     }
 
     private void blurNode(Node node, double toValue) {
