@@ -24,8 +24,7 @@ package com.github.vatbub.tictactoe.view;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
-import com.github.vatbub.tictactoe.view.refreshables.RefreshableArc;
-import com.github.vatbub.tictactoe.view.refreshables.RefreshableLine;
+import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import com.sun.javafx.tk.Toolkit;
 import common.Common;
@@ -53,10 +52,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.ArcType;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Shape;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -87,7 +84,7 @@ public class Main extends Application {
     private String suggestedAIName2;
     private Board board;
     private ObjectProperty<Font> rowFont;
-    private Timer loadTimer = new Timer();
+    private Map<String, Timer> loadTimerMap = new HashMap<>();
 
     @FXML
     private AnchorPane root;
@@ -139,6 +136,21 @@ public class Main extends Application {
 
     @FXML
     private AnchorPane tiePane;
+
+    @FXML
+    private AnchorPane winPane;
+
+    @FXML
+    private ImageView confetti;
+
+    @FXML
+    private ImageView winningGirl;
+
+    @FXML
+    private AnchorPane winMessage;
+
+    @FXML
+    private Label winnerText;
 
     @FXML
     private ImageView bowTie;
@@ -257,21 +269,31 @@ public class Main extends Application {
 
         looseImage.fitHeightProperty().bind(looserPane.heightProperty());
         looseImage.fitWidthProperty().bind(looserPane.widthProperty());
-        looseImage.fitHeightProperty().addListener((observable, oldValue, newValue) -> reloadLooseImage(looseImage.getFitWidth(), newValue.doubleValue()));
-        looseImage.fitWidthProperty().addListener((observable, oldValue, newValue) -> reloadLooseImage(newValue.doubleValue(), looseImage.getFitWidth()));
+        looseImage.fitHeightProperty().addListener((observable, oldValue, newValue) -> reloadImage(looseImage, getClass().getResource("loose.png").toString(), looseImage.getFitWidth(), newValue.doubleValue()));
+        looseImage.fitWidthProperty().addListener((observable, oldValue, newValue) -> reloadImage(looseImage, getClass().getResource("loose.png").toString(), newValue.doubleValue(), looseImage.getFitWidth()));
+
+        confetti.fitHeightProperty().bind(winPane.heightProperty());
+        confetti.fitWidthProperty().bind(winPane.widthProperty());
+        confetti.fitHeightProperty().addListener((observable, oldValue, newValue) -> reloadImage(confetti, getClass().getResource("confetti.png").toString(), confetti.getFitWidth(), newValue.doubleValue()));
+        confetti.fitWidthProperty().addListener((observable, oldValue, newValue) -> reloadImage(confetti, getClass().getResource("confetti.png").toString(), newValue.doubleValue(), confetti.getFitWidth()));
 
         initBoard();
         initNewGame();
     }
 
-    private void reloadLooseImage(double newWidth, double newHeight) {
-        loadTimer.cancel();
-        loadTimer = new Timer();
+    private void reloadImage(ImageView imageView, String imageURL, double newWidth, double newHeight) {
+        if (loadTimerMap.get(imageURL) != null) {
+            loadTimerMap.get(imageURL).cancel();
+        }
+
+        Timer loadTimer = new Timer();
+        loadTimerMap.put(imageURL, loadTimer);
         loadTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                Image image = new Image(getClass().getResource("loose.png").toString(), newWidth, newHeight, false, true);
-                Platform.runLater(() -> looseImage.setImage(image));
+                System.out.println("Loaded '" + imageURL + "', h:" + newHeight + ", w:" + newWidth);
+                Image image = new Image(imageURL, newWidth, newHeight, false, true);
+                Platform.runLater(() -> imageView.setImage(image));
             }
         }, 300);
     }
@@ -307,6 +329,9 @@ public class Main extends Application {
             if (tiePane.isVisible()) {
                 blurTiePane();
             }
+            if (winPane.isVisible()) {
+                blurWinPane();
+            }
 
             if (!isMenuShown()) {
                 showMenu();
@@ -317,10 +342,13 @@ public class Main extends Application {
     private void startGame() {
         initBoard();
         if (looserPane.isVisible()) {
-            fadeLooserPaneOut();
+            fadeNode(looserPane, 0, true);
         }
         if (tiePane.isVisible()) {
-            fadeTiePaneOut();
+            fadeNode(tiePane, 0);
+        }
+        if (winPane.isVisible()) {
+            fadeNode(winPane, 0);
         }
         hideMenu();
         fadeWinLineGroup();
@@ -362,7 +390,9 @@ public class Main extends Application {
             board.setGameEndCallback((winnerInfo) -> guiAnimationQueue.submit(() -> {
                 System.out.println("The winner is: " + winnerInfo.winningPlayer.getName());
                 if (winnerInfo.isTie()) {
-                    showTie(winnerInfo);
+                    showTie();
+                } else if (!winnerInfo.winningPlayer.isAi() && board.getOpponent(winnerInfo.winningPlayer).isAi()) {
+                    showWinner(winnerInfo);
                 } else {
                     showLooser(winnerInfo);
                 }
@@ -492,12 +522,110 @@ public class Main extends Application {
         });
     }
 
-    private void showWinner(String winnerName) {
-        TranslateTransition girlTransition = new TranslateTransition();
-        blurGamePane();
+    private void showWinner(Board.WinnerInfo winnerInfo) {
+        guiAnimationQueue.submitWaitForUnlock(() -> addWinLineOnWin(winnerInfo, () -> {
+            winnerText.setText(winnerInfo.winningPlayer.getName() + " won :)");
+            double endX = winningGirl.getX();
+            double endY = winPane.getHeight() - winningGirl.getFitHeight();
+
+            double confettiOffset = 30;
+
+            double confettiX = confetti.getX();
+            double confettiY = confetti.getY();
+
+            AnchorPane.clearConstraints(winningGirl);
+            winningGirl.setX(endX);
+            winningGirl.setY(root.getHeight() + 140);
+
+            blurGamePane();
+            winMessage.setOpacity(0);
+            confetti.setOpacity(0);
+            winPane.setOpacity(1);
+            winPane.setVisible(true);
+            winningGirl.setVisible(true);
+
+            Timeline timeline = new Timeline();
+            double S4 = 1.45;
+            double x0 = 0.33;
+            KeyValue confettiKeyValue1x = new KeyValue(confetti.xProperty(), confettiX);
+            KeyValue confettiKeyValue1y = new KeyValue(confetti.yProperty(), confettiY - confettiOffset);
+            KeyValue confettiKeyValue1opacity = new KeyValue(confetti.opacityProperty(), 0);
+            KeyFrame confettiKeyFrame1 = new KeyFrame(Duration.seconds(0), confettiKeyValue1x, confettiKeyValue1y, confettiKeyValue1opacity);
+
+            KeyValue confettiKeyValue2x = new KeyValue(confetti.xProperty(), confettiX);
+            KeyValue confettiKeyValue2y = new KeyValue(confetti.yProperty(), confettiY - confettiOffset);
+            KeyValue confettiKeyValue2opacity = new KeyValue(confetti.opacityProperty(), 0);
+            KeyFrame confettiKeyFrame2 = new KeyFrame(Duration.millis(500), confettiKeyValue2x, confettiKeyValue2y, confettiKeyValue2opacity);
+
+            KeyValue confettiKeyValue3x = new KeyValue(confetti.xProperty(), confettiX, new CustomEaseOutInterpolator(S4, x0));
+            KeyValue confettiKeyValue3y = new KeyValue(confetti.yProperty(), confettiY, new CustomEaseOutInterpolator(S4, x0));
+            KeyValue confettiKeyValue3opacity = new KeyValue(confetti.opacityProperty(), 1);
+            KeyFrame confettiKeyFrame3 = new KeyFrame(Duration.millis(1100), confettiKeyValue3x, confettiKeyValue3y, confettiKeyValue3opacity);
+
+            KeyValue winningGirlKeyValue1x = new KeyValue(winningGirl.xProperty(), endX, new CustomEaseOutInterpolator(S4, x0));
+            KeyValue winningGirlKeyValue1y = new KeyValue(winningGirl.yProperty(), endY, new CustomEaseOutInterpolator(S4, x0));
+            KeyFrame winningGirlKeyFrame1 = new KeyFrame(Duration.seconds(1), winningGirlKeyValue1x, winningGirlKeyValue1y);
+            timeline.getKeyFrames().addAll(winningGirlKeyFrame1, confettiKeyFrame1, confettiKeyFrame2, confettiKeyFrame3);
+
+            timeline.setOnFinished((event) -> fadeNode(winMessage, 1, () -> {
+                AnchorPane.setRightAnchor(winningGirl, 0.0);
+                AnchorPane.setBottomAnchor(winningGirl, winPane.getHeight() - winningGirl.getFitHeight() - endY);
+            }));
+
+            timeline.play();
+        }));
     }
 
-    private void showTie(Board.WinnerInfo winnerInfo) {
+    private void addWinLineOnWin(Board.WinnerInfo winnerInfo, Runnable onFinished) {
+        final Paint color = Color.YELLOW;
+
+        Line originLine = new Line(0, 0, 0, 0);
+        winLineGroup.getChildren().add(originLine);
+
+        WinLine winLine = new WinLine(winnerInfo);
+        double winLineEndX = winLine.endArc.getCenterX();
+        double winLineEndY = winLine.endArc.getCenterY();
+        winLine.startArc.setFill(color);
+        winLine.startArc.setStrokeWidth(0);
+        winLine.endArc.setFill(color);
+        winLine.endArc.setStrokeWidth(0);
+        winLine.rightLine.setStrokeWidth(0);
+        winLine.leftLine.setStrokeWidth(0);
+        winLine.centerLine.setStroke(color);
+
+        winLine.centerLine.strokeWidthProperty().bind(winLine.startArc.radiusXProperty().multiply(2));
+        winLineGroup.getChildren().addAll(winLine.getAll());
+
+        winLineGroup.setOpacity(0);
+        // GaussianBlur blur = new GaussianBlur(7);
+        // winLineGroup.setEffect(blur);
+        winLineGroup.setVisible(true);
+        KeyValue stretchKeyValue1x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX());
+        KeyValue stretchKeyValue1y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY());
+        KeyFrame stretchKeyFrame1 = new KeyFrame(Duration.millis(0), stretchKeyValue1x, stretchKeyValue1y);
+
+        KeyValue stretchKeyValue2x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX());
+        KeyValue stretchKeyValue2y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY());
+        KeyFrame stretchKeyFrame2 = new KeyFrame(Duration.millis(200), stretchKeyValue2x, stretchKeyValue2y);
+
+        KeyValue stretchKeyValue3x = new KeyValue(winLine.endArc.centerXProperty(), winLineEndX);
+        KeyValue stretchKeyValue3y = new KeyValue(winLine.endArc.centerYProperty(), winLineEndY);
+        KeyFrame stretchKeyFrame3 = new KeyFrame(Duration.millis(1200), stretchKeyValue3x, stretchKeyValue3y);
+
+        KeyValue opacityKeyValue1 = new KeyValue(winLineGroup.opacityProperty(), 0.5);
+        KeyFrame opacityKeyFrame1 = new KeyFrame(Duration.millis(200), opacityKeyValue1);
+
+        Timeline timeline = new Timeline();
+        timeline.getKeyFrames().addAll(stretchKeyFrame1, stretchKeyFrame2, stretchKeyFrame3, opacityKeyFrame1);
+        timeline.play();
+
+        timeline.setOnFinished((event) -> {
+            blurNode(winLineGroup, 7);
+            onFinished.run();
+        });
+    }
+
+    private void showTie() {
         guiAnimationQueue.submitWaitForUnlock(() -> {
             double endX = tiePane.getWidth() - 230;
             double endY = 90;
@@ -515,10 +643,10 @@ public class Main extends Application {
             Timeline timeline = new Timeline();
             double S4 = 1.45;
             double x0 = 0.33;
-            KeyValue kv1x = new KeyValue(bowTie.xProperty(), endX, new CustomEaseOutInterpolator(S4, x0));
-            KeyValue kv1y = new KeyValue(bowTie.yProperty(), endY, new CustomEaseOutInterpolator(S4, x0));
-            KeyFrame kf1 = new KeyFrame(Duration.seconds(1), kv1x, kv1y);
-            timeline.getKeyFrames().add(kf1);
+            KeyValue keyValue1x = new KeyValue(bowTie.xProperty(), endX, new CustomEaseOutInterpolator(S4, x0));
+            KeyValue keyValue1y = new KeyValue(bowTie.yProperty(), endY, new CustomEaseOutInterpolator(S4, x0));
+            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(1), keyValue1x, keyValue1y);
+            timeline.getKeyFrames().add(keyFrame1);
 
             timeline.setOnFinished((event) -> fadeNode(tieMessage, 1, () -> {
                 AnchorPane.setRightAnchor(bowTie, tiePane.getWidth() - bowTie.getFitWidth() - endX);
@@ -543,12 +671,12 @@ public class Main extends Application {
             looseImage.setClip(c1);
             addWinLineOnLoose(winnerInfo);
 
-            KeyValue kv1 = new KeyValue(c1.radiusProperty(), 0);
-            KeyFrame kf1 = new KeyFrame(Duration.millis(800), kv1);
-            KeyValue kv2 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
-            KeyFrame kf2 = new KeyFrame(Duration.millis(900), kv2);
+            KeyValue keyValue1 = new KeyValue(c1.radiusProperty(), 0);
+            KeyFrame keyFrame1 = new KeyFrame(Duration.millis(800), keyValue1);
+            KeyValue keyValue2 = new KeyValue(c1.radiusProperty(), (500 / 640.0) * looserPane.getHeight());
+            KeyFrame keyFrame2 = new KeyFrame(Duration.millis(900), keyValue2);
 
-            timeline.getKeyFrames().addAll(kf1, kf2);
+            timeline.getKeyFrames().addAll(keyFrame1, keyFrame2);
 
 
             looseMessage.setOpacity(0);
@@ -580,10 +708,6 @@ public class Main extends Application {
 
     }
 
-    private void fadeTiePaneOut() {
-        fadeNode(tiePane, 0);
-    }
-
     private void addWinLineOnLoose(Board.WinnerInfo winnerInfo) {
         final double strokeWidth = 2;
 
@@ -607,18 +731,14 @@ public class Main extends Application {
         GaussianBlur blur = new GaussianBlur(7);
         winLineGroup.setEffect(blur);
         winLineGroup.setVisible(true);
-        KeyValue kv1 = new KeyValue(winLineGroup.opacityProperty(), 0);
-        KeyFrame kf1 = new KeyFrame(Duration.millis(900), kv1);
-        KeyValue kv2 = new KeyValue(winLineGroup.opacityProperty(), 1);
-        KeyFrame kf2 = new KeyFrame(Duration.millis(950), kv2);
+        KeyValue keyValue1 = new KeyValue(winLineGroup.opacityProperty(), 0);
+        KeyFrame keyFrame1 = new KeyFrame(Duration.millis(900), keyValue1);
+        KeyValue keyValue2 = new KeyValue(winLineGroup.opacityProperty(), 1);
+        KeyFrame keyFrame2 = new KeyFrame(Duration.millis(950), keyValue2);
 
         Timeline timeline = new Timeline();
-        timeline.getKeyFrames().addAll(kf1, kf2);
+        timeline.getKeyFrames().addAll(keyFrame1, keyFrame2);
         timeline.play();
-    }
-
-    private void fadeLooserPaneOut() {
-        fadeNode(looserPane, 0, true);
     }
 
     private void fadeWinLineGroup() {
@@ -647,6 +767,10 @@ public class Main extends Application {
 
     private void blurTiePane() {
         blurNode(tiePane, 7);
+    }
+
+    private void blurWinPane() {
+        blurNode(winPane, 7);
     }
 
     private void blurNode(Node node, double toValue) {
@@ -683,7 +807,7 @@ public class Main extends Application {
         fadeNode(node, toValue, false);
     }
 
-    private void fadeNode(Node node, double toValue, boolean block) {
+    private void fadeNode(Node node, double toValue, @SuppressWarnings("SameParameterValue") boolean block) {
         fadeNode(node, toValue, block, null);
     }
 
@@ -744,86 +868,80 @@ public class Main extends Application {
         }
     }
 
-    private class WinLine {
-        final RefreshableArc startArc;
-        final RefreshableLine leftLine;
-        final RefreshableLine centerLine;
-        final RefreshableLine rightLine;
-        final RefreshableArc endArc;
+    private class WinLine implements Refreshable {
+        final Arc startArc;
+        final Line leftLine;
+        final Line centerLine;
+        final Line rightLine;
+        final Arc endArc;
+        final Rectangle clipRectangle = new Rectangle();
+        private Board.WinnerInfo winnerInfo;
+        private double lastWinLineWidth = 0;
 
         WinLine(Board.WinnerInfo winnerInfo) {
-            //noinspection SuspiciousNameCombination
-            startArc = new RefreshableArc() {
-                @Override
-                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
-                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
-                    this.setCenterX(geometry.startX);
-                    this.setCenterY(geometry.startY);
-                    this.setRadiusX(geometry.winLineWidth);
-                    this.setRadiusY(geometry.winLineWidth);
-                    this.setStartAngle(geometry.startAngle);
-                    this.setLength(180);
-                }
-            };
-            refreshedNodes.add(startArc);
+            this.winnerInfo = winnerInfo;
+            startArc = new Arc();
             startArc.setType(ArcType.OPEN);
 
             //noinspection SuspiciousNameCombination
-            endArc = new RefreshableArc() {
-                @Override
-                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
-                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
-
-                    geometry.startAngle = geometry.startAngle + 180;
-                    if (geometry.startAngle > 360) {
-                        geometry.startAngle = geometry.startAngle - 360;
-                    }
-
-                    this.setCenterX(geometry.endX);
-                    this.setCenterY(geometry.endY);
-                    this.setRadiusX(geometry.winLineWidth);
-                    this.setRadiusY(geometry.winLineWidth);
-                    this.setStartAngle(geometry.startAngle);
-                    this.setLength(180);
-                }
-            };
-            refreshedNodes.add(endArc);
+            endArc = new Arc();
             endArc.setType(ArcType.OPEN);
 
-            leftLine = new RefreshableLine() {
-                @Override
-                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
-                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
-                    this.setStartX(geometry.startX - Math.cos(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
-                    this.setStartY(geometry.startY + Math.sin(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
-                    this.setEndX(geometry.endX - Math.cos(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
-                    this.setEndY(geometry.endY + Math.sin(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
-                }
-            };
-            refreshedNodes.add(leftLine);
-            centerLine = new RefreshableLine() {
-                @Override
-                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
-                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
-                    this.setStartX(geometry.startX);
-                    this.setStartY(geometry.startY);
-                    this.setEndX(geometry.endX);
-                    this.setEndY(geometry.endY);
-                }
-            };
-            refreshedNodes.add(centerLine);
-            rightLine = new RefreshableLine() {
-                @Override
-                public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
-                    WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
-                    this.setStartX(geometry.startX + Math.cos(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
-                    this.setStartY(geometry.startY - Math.sin(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
-                    this.setEndX(geometry.endX + Math.cos(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
-                    this.setEndY(geometry.endY - Math.sin(geometry.startAngle * Math.PI / 180) * geometry.winLineWidth);
-                }
-            };
-            refreshedNodes.add(rightLine);
+            leftLine = new Line();
+            centerLine = new Line();
+            rightLine = new Line();
+            centerLine.setClip(clipRectangle);
+
+            startArc.centerXProperty().addListener((observable, oldValue, newValue) -> {
+                double startAngle = new WinLineGeometry(winnerInfo, gameTable.getHeight(), gameTable.getWidth()).startAngle;
+                internalRefresh(newValue.doubleValue(), startArc.getCenterY(), endArc.getCenterX(), endArc.getCenterY(), lastWinLineWidth, startAngle);
+            });
+            startArc.centerYProperty().addListener((observable, oldValue, newValue) -> {
+                double startAngle = new WinLineGeometry(winnerInfo, gameTable.getHeight(), gameTable.getWidth()).startAngle;
+                internalRefresh(startArc.getCenterX(), newValue.doubleValue(), endArc.getCenterX(), endArc.getCenterY(), lastWinLineWidth, startAngle);
+            });
+            endArc.centerXProperty().addListener((observable, oldValue, newValue) -> {
+                double startAngle = new WinLineGeometry(winnerInfo, gameTable.getHeight(), gameTable.getWidth()).startAngle;
+                internalRefresh(startArc.getCenterX(), startArc.getCenterY(), newValue.doubleValue(), endArc.getCenterY(), lastWinLineWidth, startAngle);
+            });
+            endArc.centerYProperty().addListener((observable, oldValue, newValue) -> {
+                double startAngle = new WinLineGeometry(winnerInfo, gameTable.getHeight(), gameTable.getWidth()).startAngle;
+                internalRefresh(startArc.getCenterX(), startArc.getCenterY(), endArc.getCenterX(), newValue.doubleValue(), lastWinLineWidth, startAngle);
+            });
+
+            refreshedNodes.add(this);
             refreshedNodes.refreshAll(gameTable.getWidth(), gameTable.getHeight(), gameTable.getWidth(), gameTable.getHeight());
+        }
+
+
+        private void internalRefresh(double startX, double startY, double endX, double endY, double winLineWidth, double startAngle) {
+            leftLine.setStartX(startX - Math.cos(startAngle * Math.PI / 180) * winLineWidth);
+            leftLine.setStartY(startY + Math.sin(startAngle * Math.PI / 180) * winLineWidth);
+            leftLine.setEndX(endX - Math.cos(startAngle * Math.PI / 180) * winLineWidth);
+            leftLine.setEndY(endY + Math.sin(startAngle * Math.PI / 180) * winLineWidth);
+
+            double tempStartAngle = -startAngle;
+            clipRectangle.setWidth(winLineWidth * 2);
+            clipRectangle.setHeight(Math.sqrt(Math.pow(startX - endX, 2) + Math.pow(startY - endY, 2)));
+            clipRectangle.setRotate(tempStartAngle);
+
+            // calculate the coordinates of the center of the rectangle
+            double centerX = (startX + endX) / 2;
+            double centerY = (startY + endY) / 2;
+
+            // now convert that into the coordinates of the upper left corner of the rectangle if the rotation was 0 (that's how javaFX needs them... :/ )
+            clipRectangle.setX(centerX - clipRectangle.getWidth() / 2);
+            clipRectangle.setY(centerY - clipRectangle.getHeight() / 2);
+
+            centerLine.setStartX(startX);
+            centerLine.setStartY(startY);
+            centerLine.setEndX(endX);
+            centerLine.setEndY(endY);
+
+            rightLine.setStartX(startX + Math.cos(startAngle * Math.PI / 180) * winLineWidth);
+            rightLine.setStartY(startY - Math.sin(startAngle * Math.PI / 180) * winLineWidth);
+            rightLine.setEndX(endX + Math.cos(startAngle * Math.PI / 180) * winLineWidth);
+            rightLine.setEndY(endY - Math.sin(startAngle * Math.PI / 180) * winLineWidth);
         }
 
         List<Shape> getAll() {
@@ -834,6 +952,41 @@ public class Main extends Application {
             res.add(rightLine);
             res.add(endArc);
             return res;
+        }
+
+        /**
+         * Called when the window is resized
+         *
+         * @param oldWindowWidth  The width of the window prior to resizing
+         * @param oldWindowHeight The height of the window prior to resizing
+         * @param newWindowWidth  The width of the window after to resizing
+         * @param newWindowHeight The height of the window after to resizing
+         */
+        @Override
+        public void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
+            WinLineGeometry geometry = new WinLineGeometry(winnerInfo, newWindowHeight, newWindowWidth);
+            lastWinLineWidth = geometry.winLineWidth;
+
+            startArc.setCenterX(geometry.startX);
+            startArc.setCenterY(geometry.startY);
+            startArc.setRadiusX(geometry.winLineWidth);
+            startArc.setRadiusY(geometry.winLineWidth);
+            startArc.setStartAngle(geometry.startAngle);
+            startArc.setLength(180);
+
+            double tempStartAngle = geometry.startAngle = geometry.startAngle + 180;
+            if (tempStartAngle > 360) {
+                tempStartAngle = tempStartAngle - 360;
+            }
+
+            endArc.setCenterX(geometry.endX);
+            endArc.setCenterY(geometry.endY);
+            endArc.setRadiusX(geometry.winLineWidth);
+            endArc.setRadiusY(geometry.winLineWidth);
+            endArc.setStartAngle(tempStartAngle);
+            endArc.setLength(180);
+
+            //internalRefresh(geometry.startX, geometry.startY, geometry.endX, geometry.endY, geometry.winLineWidth, geometry.startAngle);
         }
     }
 }
