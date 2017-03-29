@@ -604,16 +604,20 @@ public class Main extends Application {
         winLineGroup.setEffect(blur);
         winLineGroup.setBlendMode(BlendMode.DARKEN);
         winLineGroup.setVisible(true);
+
+        double winLineAnimationX1 = 0.2;
+        double winLineAnimationX2 = 0.5;
+
         KeyValue stretchKeyValue1x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX());
         KeyValue stretchKeyValue1y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY());
         KeyFrame stretchKeyFrame1 = new KeyFrame(Duration.millis(0), stretchKeyValue1x, stretchKeyValue1y);
 
-        KeyValue stretchKeyValue2x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX(), Interpolator.EASE_BOTH);
-        KeyValue stretchKeyValue2y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY(), Interpolator.EASE_BOTH);
+        KeyValue stretchKeyValue2x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX(), new CustomEaseBothInterpolator(winLineAnimationX1, winLineAnimationX2));
+        KeyValue stretchKeyValue2y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY(), new CustomEaseBothInterpolator(winLineAnimationX1, winLineAnimationX2));
         KeyFrame stretchKeyFrame2 = new KeyFrame(Duration.millis(100), stretchKeyValue2x, stretchKeyValue2y);
 
-        KeyValue stretchKeyValue3x = new KeyValue(winLine.endArc.centerXProperty(), winLineEndX, Interpolator.EASE_BOTH);
-        KeyValue stretchKeyValue3y = new KeyValue(winLine.endArc.centerYProperty(), winLineEndY, Interpolator.EASE_BOTH);
+        KeyValue stretchKeyValue3x = new KeyValue(winLine.endArc.centerXProperty(), winLineEndX, new CustomEaseBothInterpolator(winLineAnimationX1, winLineAnimationX2));
+        KeyValue stretchKeyValue3y = new KeyValue(winLine.endArc.centerYProperty(), winLineEndY, new CustomEaseBothInterpolator(winLineAnimationX1, winLineAnimationX2));
         KeyFrame stretchKeyFrame3 = new KeyFrame(Duration.millis(800), stretchKeyValue3x, stretchKeyValue3y);
 
         KeyValue opacityKeyValue1 = new KeyValue(winLineGroup.opacityProperty(), 0.8);

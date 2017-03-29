@@ -24,7 +24,7 @@ package com.github.vatbub.tictactoe.view;
 import javafx.animation.Interpolator;
 
 /**
- * {@code Interpolator} for cubic 1d interpolation
+ * EASE-OUT-{@code Interpolator} with custom ease out point and ease out slope
  */
 @SuppressWarnings("WeakerAccess")
 public class CustomEaseOutInterpolator extends Interpolator {
