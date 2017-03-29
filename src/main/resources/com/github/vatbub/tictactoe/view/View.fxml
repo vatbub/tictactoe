@@ -107,7 +107,7 @@
                   <Image url="@girl.png" />
                </image>
                <effect>
-                  <DropShadow color="WHITE" height="40.0" radius="19.5" width="40.0" />
+                  <DropShadow height="40.0" offsetX="3.0" offsetY="3.0" radius="19.5" width="40.0" />
                </effect>
             </ImageView>
             <AnchorPane fx:id="winMessage" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="80.0">
