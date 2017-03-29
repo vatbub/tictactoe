@@ -45,6 +45,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -577,7 +578,7 @@ public class Main extends Application {
     }
 
     private void addWinLineOnWin(Board.WinnerInfo winnerInfo, Runnable onFinished) {
-        final Paint color = Color.YELLOW;
+        final Paint color = new Color(1.0, 145.0 / 255.0, 30.0 / 255.0, 1.0);
 
         Line originLine = new Line(0, 0, 0, 0);
         winLineGroup.getChildren().add(originLine);
@@ -596,31 +597,34 @@ public class Main extends Application {
         winLine.centerLine.strokeWidthProperty().bind(winLine.startArc.radiusXProperty().multiply(2));
         winLineGroup.getChildren().addAll(winLine.getAll());
 
+        blurNode(gamePane, 4);
+
         winLineGroup.setOpacity(0);
-        // GaussianBlur blur = new GaussianBlur(7);
-        // winLineGroup.setEffect(blur);
+        GaussianBlur blur = new GaussianBlur(100);
+        winLineGroup.setEffect(blur);
+        winLineGroup.setBlendMode(BlendMode.DARKEN);
         winLineGroup.setVisible(true);
         KeyValue stretchKeyValue1x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX());
         KeyValue stretchKeyValue1y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY());
         KeyFrame stretchKeyFrame1 = new KeyFrame(Duration.millis(0), stretchKeyValue1x, stretchKeyValue1y);
 
-        KeyValue stretchKeyValue2x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX());
-        KeyValue stretchKeyValue2y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY());
-        KeyFrame stretchKeyFrame2 = new KeyFrame(Duration.millis(200), stretchKeyValue2x, stretchKeyValue2y);
+        KeyValue stretchKeyValue2x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX(), Interpolator.EASE_BOTH);
+        KeyValue stretchKeyValue2y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY(), Interpolator.EASE_BOTH);
+        KeyFrame stretchKeyFrame2 = new KeyFrame(Duration.millis(100), stretchKeyValue2x, stretchKeyValue2y);
 
-        KeyValue stretchKeyValue3x = new KeyValue(winLine.endArc.centerXProperty(), winLineEndX);
-        KeyValue stretchKeyValue3y = new KeyValue(winLine.endArc.centerYProperty(), winLineEndY);
-        KeyFrame stretchKeyFrame3 = new KeyFrame(Duration.millis(1200), stretchKeyValue3x, stretchKeyValue3y);
+        KeyValue stretchKeyValue3x = new KeyValue(winLine.endArc.centerXProperty(), winLineEndX, Interpolator.EASE_BOTH);
+        KeyValue stretchKeyValue3y = new KeyValue(winLine.endArc.centerYProperty(), winLineEndY, Interpolator.EASE_BOTH);
+        KeyFrame stretchKeyFrame3 = new KeyFrame(Duration.millis(800), stretchKeyValue3x, stretchKeyValue3y);
 
-        KeyValue opacityKeyValue1 = new KeyValue(winLineGroup.opacityProperty(), 0.5);
-        KeyFrame opacityKeyFrame1 = new KeyFrame(Duration.millis(200), opacityKeyValue1);
+        KeyValue opacityKeyValue1 = new KeyValue(winLineGroup.opacityProperty(), 0.8);
+        KeyFrame opacityKeyFrame1 = new KeyFrame(Duration.millis(400), opacityKeyValue1);
 
         Timeline timeline = new Timeline();
         timeline.getKeyFrames().addAll(stretchKeyFrame1, stretchKeyFrame2, stretchKeyFrame3, opacityKeyFrame1);
         timeline.play();
 
         timeline.setOnFinished((event) -> {
-            blurNode(winLineGroup, 7);
+            // blurNode(winLineGroup, 7);
             onFinished.run();
         });
     }
@@ -743,6 +747,7 @@ public class Main extends Application {
 
     private void fadeWinLineGroup() {
         fadeNode(winLineGroup, 0, () -> {
+            winLineGroup.setBlendMode(BlendMode.SRC_OVER);
             //noinspection SuspiciousMethodCalls
             refreshedNodes.removeAll(winLineGroup.getChildren());
             winLineGroup.getChildren().clear();
