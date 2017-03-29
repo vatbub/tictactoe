@@ -627,10 +627,7 @@ public class Main extends Application {
         timeline.getKeyFrames().addAll(stretchKeyFrame1, stretchKeyFrame2, stretchKeyFrame3, opacityKeyFrame1);
         timeline.play();
 
-        timeline.setOnFinished((event) -> {
-            // blurNode(winLineGroup, 7);
-            onFinished.run();
-        });
+        timeline.setOnFinished((event) -> onFinished.run());
     }
 
     private void showTie() {
@@ -994,8 +991,6 @@ public class Main extends Application {
             endArc.setRadiusY(geometry.winLineWidth);
             endArc.setStartAngle(tempStartAngle);
             endArc.setLength(180);
-
-            //internalRefresh(geometry.startX, geometry.startY, geometry.endX, geometry.endY, geometry.winLineWidth, geometry.startAngle);
         }
     }
 }
