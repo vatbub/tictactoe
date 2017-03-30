@@ -95,7 +95,7 @@
                   <Image url="@tie.png" />
                </image>
                <effect>
-                  <DropShadow color="WHITE" height="40.0" radius="19.5" width="40.0" />
+                  <DropShadow height="40.0" offsetX="4.0" offsetY="3.0" radius="19.5" width="40.0" />
                </effect>
             </ImageView>
          </children></AnchorPane>
