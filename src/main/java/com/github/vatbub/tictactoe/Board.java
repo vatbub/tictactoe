@@ -23,6 +23,10 @@ package com.github.vatbub.tictactoe;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A classic tic tac toe board.
@@ -38,6 +42,7 @@ public class Board {
     private final ObjectProperty<GameEndRunnable> gameEndCallback = new SimpleObjectProperty<>();
     private Player player1;
     private Player player2;
+    private Move lastMove;
 
     /**
      * Initializes a new 3*3 game board
@@ -91,6 +96,13 @@ public class Board {
         board[row][col].setCurrentPlayer(player);
     }
 
+    /**
+     * Returns the {@link Player} that currently occupies the specified cell or {@code null} if the cell is free.
+     *
+     * @param row The row of the cell to get the player for
+     * @param col The column of the cell to get the player for
+     * @return The {@link Player} that currently occupies the specified cell or {@code null} if the cell is free.
+     */
     public Player getPlayerAt(int row, int col) {
         return board[row][col].getCurrentPlayer();
     }
@@ -127,18 +139,24 @@ public class Board {
         return currentPlayer;
     }
 
-    public void doTurn(int row, int col) {
+    public void doTurn(Move move) {
+        doTurn(move, false);
+    }
+
+    public void doTurn(Move move, boolean ignoreAI) {
+        lastMove = move;
+
         if (getCurrentPlayer() == null) {
             currentPlayerProperty().set(getPlayer1());
         }
 
-        if (getPlayerAt(row, col) != null) {
+        if (getPlayerAt(move.getRow(), move.getColumn()) != null) {
             throw new IllegalStateException("Cell is already taken by a player");
         }
 
-        this.setPlayerAt(row, col, getCurrentPlayer());
+        this.setPlayerAt(move.getRow(), move.getColumn(), getCurrentPlayer());
 
-        WinnerInfo winnerInfo = getWinner(row, col);
+        WinnerInfo winnerInfo = getWinner(move.getRow(), move.getColumn());
         if (winnerInfo.winningPlayer != null) {
             if (getGameEndCallback() != null) {
                 getGameEndCallback().run(winnerInfo);
@@ -148,7 +166,7 @@ public class Board {
 
         currentPlayerProperty().set(getOpponent(getCurrentPlayer()));
 
-        if (getCurrentPlayer().isAi()) {
+        if (getCurrentPlayer().isAi() && !ignoreAI) {
             getCurrentPlayer().doAiTurn(this, getOpponent(getCurrentPlayer()));
         }
     }
@@ -330,27 +348,41 @@ public class Board {
         return res;
     }
 
+    public List<Move> getAvailableMoves() {
+        List<Move> res = new ArrayList<>();
+        for (int row = 0; row < getRowCount(); row++) {
+            for (int column = 0; column < getColumnCount(); column++) {
+                if (getPlayerAt(row, column) == null) {
+                    // cell is empty so it is a valid move
+                    res.add(new Move(row, column));
+                }
+            }
+        }
+
+        return res;
+    }
+
     @Override
     public String toString() {
-        String res = "";
+        StringBuilder res = new StringBuilder();
 
         for (int r = 0; r < this.getRowCount(); r++) {
             for (int c = 0; c < this.getColumnCount(); c++) {
                 if (getPlayerAt(r, c) == null) {
-                    res = res + "-";
+                    res.append("-");
                 } else if (getPlayerAt(r, c) == getPlayer1()) {
-                    res = res + "1";
+                    res.append("1");
                 } else if (getPlayerAt(r, c) == getPlayer2()) {
-                    res = res + "2";
+                    res.append("2");
                 }
 
                 if (c < getColumnCount() - 1) {
-                    res = res + ", ";
+                    res.append(", ");
                 }
             }
 
             if (r < getRowCount() - 1) {
-                res = res + "; ";
+                res.append("; ");
             }
         }
 
@@ -368,6 +400,58 @@ public class Board {
     @SuppressWarnings("unused")
     public ObjectProperty<GameEndRunnable> gameEndCallbackProperty() {
         return gameEndCallback;
+    }
+
+    /**
+     * Returns the last {@link Move} that was done on this board.
+     *
+     * @return The last {@link Move} that was done on this board or {@code null} if no move was performed on this board so far.
+     */
+    @Nullable
+    public Move getLastMove() {
+        return lastMove;
+    }
+
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public Board clone() {
+        Board res = new Board(getRowCount(), getColumnCount(), getPlayer1(), getPlayer2());
+        res.currentPlayerProperty().set(this.getCurrentPlayer());
+        res.lastMove = this.lastMove;
+
+        for (int row = 0; row < getRowCount(); row++) {
+            for (int column = 0; column < getColumnCount(); column++) {
+                res.setPlayerAt(row, column, this.getPlayerAt(row, column));
+            }
+        }
+
+        return res;
+    }
+
+    public static class Move {
+        private int column;
+        private int row;
+
+        public Move(int row, int column) {
+            setColumn(column);
+            setRow(row);
+        }
+
+        public int getColumn() {
+            return column;
+        }
+
+        public void setColumn(int column) {
+            this.column = column;
+        }
+
+        public int getRow() {
+            return row;
+        }
+
+        public void setRow(int row) {
+            this.row = row;
+        }
     }
 
     public class WinnerInfo {
@@ -402,6 +486,17 @@ public class Board {
 
         public boolean isTie() {
             return winningPlayer == Player.TIE_PLAYER;
+        }
+
+        public double getHeuristicValue(Player maximizingPlayer) {
+            if (winningPlayer == maximizingPlayer) {
+                return 15;
+            } else if (winningPlayer == getOpponent(maximizingPlayer)) {
+                return -15;
+            } else {
+                // tie
+                return 0;
+            }
         }
     }
 }

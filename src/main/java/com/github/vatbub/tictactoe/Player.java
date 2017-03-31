@@ -21,12 +21,18 @@ package com.github.vatbub.tictactoe;
  */
 
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * A Player entity in the game
  */
 public class Player {
     /**
      * A Player that represents a finished game with no winner
+     *
      * @see Board#getWinner(int, int)
      */
     public static final Player TIE_PLAYER = new Player(false, "tie");
@@ -60,19 +66,148 @@ public class Player {
     }
 
     public void doAiTurn(Board currentBoard, Player opponent) {
-        // will be a mini max algorithm with alpha beta pruning
-        int r;
-        int c;
-        do {
-            r = (int) Math.round(Math.random() * (currentBoard.getRowCount() - 1));
-            c = (int) Math.round(Math.random() * (currentBoard.getColumnCount() - 1));
-        } while (currentBoard.getPlayerAt(r, c) != null);
+        AlphaBetaResult alphaBetaResult = alphabeta(currentBoard, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, true);
 
-        currentBoard.doTurn(r, c);
+        currentBoard.doTurn(alphaBetaResult.bestMove);
+    }
+
+    /**
+     * Performs the MiniMax algorithm with alpha-beta-pruning on the specified game board.
+     *
+     * @param node             The node to evaluate
+     * @param alpha            The current alpha value
+     * @param beta             The current beta value
+     * @param maximizingPlayer {@code true} if it is currently the maximizing player's turn
+     * @return Either the heuristic value of the node if the node is a terminal node (Someone won, lost or it's a tie), {@code alpha} from the maximizing player or {@code beta} from the minimizing player.
+     */
+    private AlphaBetaResult alphabeta(Board node, double alpha, double beta, boolean maximizingPlayer) {
+        AlphaBetaResult res = new AlphaBetaResult();
+        res.alpha = alpha;
+        res.beta = beta;
+
+        // evaluate the current situation
+        Board.Move lastMove = node.getLastMove();
+        if (lastMove == null) {
+            lastMove = new Board.Move(0, 0);
+        }
+        Board.WinnerInfo winnerInfo = node.getWinner(lastMove.getRow(), lastMove.getColumn());
+
+        // base case
+        if (winnerInfo.isFinished()) {
+            res.heuristicNodeValue = winnerInfo.getHeuristicValue(this);
+            res.returnType = ReturnType.heuristicValue;
+            return res;
+        }
+
+        if (maximizingPlayer) {
+            for (Board.Move move : node.getAvailableMoves()) {
+                Board child = node.clone();
+                child.doTurn(move, true);
+                double previousAlpha = alpha;
+                alpha = Math.max(alpha, alphabeta(child, alpha, beta, false).getResultValue());
+                if (previousAlpha < alpha) {
+                    res.bestMove = move;
+                }
+                res.moveScores.put(move, alpha);
+                if (alpha >= beta) {
+                    // prune
+                    break;
+                }
+            }
+
+            res.alpha = alpha;
+            res.returnType = ReturnType.alpha;
+            return res;
+        } else {
+            for (Board.Move move : node.getAvailableMoves()) {
+                Board child = node.clone();
+                child.doTurn(move, true);
+                double previousBeta = beta;
+                beta = Math.min(beta, alphabeta(child, alpha, beta, true).getResultValue());
+                if (previousBeta > beta) {
+                    res.bestMove = move;
+                }
+                res.moveScores.put(move, beta);
+                if (alpha >= beta) {
+                    // prune
+                    break;
+                }
+            }
+
+            res.beta = beta;
+            res.returnType = ReturnType.beta;
+            return res;
+        }
     }
 
     @Override
     public String toString() {
         return getName();
+    }
+
+    private enum ReturnType {
+        alpha, beta, heuristicValue
+    }
+
+    private class AlphaBetaResult {
+        Map<Board.Move, Double> moveScores = new HashMap<>();
+        Board.Move bestMove;
+        double heuristicNodeValue;
+        double alpha;
+        double beta;
+        ReturnType returnType;
+
+        double getResultValue() {
+            switch (returnType) {
+                case alpha:
+                    return alpha;
+                case beta:
+                    return beta;
+                case heuristicValue:
+                    return heuristicNodeValue;
+                default:
+                    // nothing was specified as a return type, not going to happen except if I forgot to specify it somewhere
+                    throw new IllegalStateException("No return type specified. This is a bug of the AI, not your fault.");
+            }
+        }
+
+        /*
+         * Makes the ai less perfect
+         */
+        Board.Move getBestMove() {
+            double optimalScore;
+            System.out.print(returnType.toString() + ", ");
+            switch (returnType) {
+                default:
+                case alpha:
+                    optimalScore = Double.NEGATIVE_INFINITY;
+                    for (Map.Entry<Board.Move, Double> entry : moveScores.entrySet()) {
+                        if (entry.getValue() > optimalScore) {
+                            optimalScore = entry.getValue();
+                        }
+                    }
+                    break;
+                case beta:
+                    optimalScore = Double.POSITIVE_INFINITY;
+                    for (Map.Entry<Board.Move, Double> entry : moveScores.entrySet()) {
+                        if (entry.getValue() < optimalScore) {
+                            optimalScore = entry.getValue();
+                        }
+                    }
+            }
+
+            // get all the moves that have the optimal score and pick a random one among those
+            List<Board.Move> optimalMoves = new ArrayList<>();
+
+            for (Map.Entry<Board.Move, Double> entry : moveScores.entrySet()) {
+                if (entry.getValue() == optimalScore) {
+                    optimalMoves.add(entry.getKey());
+                }
+            }
+
+            int random = (int) Math.round(Math.random() * (optimalMoves.size() - 1));
+            System.out.println(random);
+            return optimalMoves.get(random);
+        }
     }
 }

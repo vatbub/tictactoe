@@ -425,7 +425,7 @@ public class Main extends Application {
 
                         cell.setOnMouseClicked(event -> {
                             if (board.getPlayerAt(cell.getIndex(), gameTable.getColumns().indexOf(col)) == null) {
-                                board.doTurn(cell.getIndex(), gameTable.getColumns().indexOf(col));
+                                board.doTurn(new Board.Move(cell.getIndex(), gameTable.getColumns().indexOf(col)));
                                 updateCurrentPlayerLabel();
                                 renderRows();
                             }
