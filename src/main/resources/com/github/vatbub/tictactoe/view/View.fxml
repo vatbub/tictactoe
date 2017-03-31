@@ -90,7 +90,7 @@
                   </VBox>
                </children>
             </AnchorPane>
-            <ImageView fx:id="bowTie" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" rotate="28.2" visible="false" x="370.0" y="-150.0">
+            <ImageView fx:id="bowTie" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" rotate="28.2" x="370.0" y="-150.0" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="90.0">
                <image>
                   <Image url="@tie.png" />
                </image>

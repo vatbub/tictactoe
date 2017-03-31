@@ -632,20 +632,25 @@ public class Main extends Application {
 
     private void showTie() {
         guiAnimationQueue.submitWaitForUnlock(() -> {
-            double endX = tiePane.getWidth() - 230;
+            /*double endX = tiePane.getWidth() - 230;
             double endY = 90;
 
             AnchorPane.clearConstraints(bowTie);
             bowTie.setX(endX);
-            bowTie.setY(-150);
+            bowTie.setY(-150);*/
 
             blurGamePane();
             tieMessage.setOpacity(0);
             tiePane.setOpacity(1);
-            tiePane.setVisible(true);
-            bowTie.setVisible(true);
 
-            Timeline timeline = new Timeline();
+            Rectangle bowTieClip1 = new Rectangle(tiePane.getWidth() - 150, 119, 100, 100);
+            bowTieClip1.setRotate(bowTie.getRotate());
+            bowTie.setClip(bowTieClip1);
+            //tiePane.getChildren().add(bowTieClip1);
+
+            tiePane.setVisible(true);
+
+            /*Timeline timeline = new Timeline();
             double S4 = 1.45;
             double x0 = 0.33;
             KeyValue keyValue1x = new KeyValue(bowTie.xProperty(), endX, new CustomEaseOutInterpolator(S4, x0));
@@ -658,7 +663,7 @@ public class Main extends Application {
                 AnchorPane.setTopAnchor(bowTie, endY);
             }));
 
-            timeline.play();
+            timeline.play();*/
         });
     }
 
