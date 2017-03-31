@@ -174,6 +174,7 @@ public class Player {
         /*
          * Makes the ai less perfect
          */
+        @SuppressWarnings("unused")
         Board.Move getBestMove() {
             double optimalScore;
             System.out.print(returnType.toString() + ", ");
