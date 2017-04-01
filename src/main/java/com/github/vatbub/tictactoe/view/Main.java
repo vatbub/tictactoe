@@ -85,7 +85,7 @@ public class Main extends Application {
     private String suggestedAIName2;
     private Board board;
     private ObjectProperty<Font> rowFont;
-    private Map<String, Timer> loadTimerMap = new HashMap<>();
+    private final Map<String, Timer> loadTimerMap = new HashMap<>();
 
     @FXML
     private AnchorPane root;
@@ -889,11 +889,11 @@ public class Main extends Application {
     }
 
     private class WinLineGeometry {
-        double winLineWidth;
-        double startX;
-        double startY;
-        double endX;
-        double endY;
+        final double winLineWidth;
+        final double startX;
+        final double startY;
+        final double endX;
+        final double endY;
         double startAngle;
 
         WinLineGeometry(Board.WinnerInfo winnerInfo, double newHeight, double newWidth) {
@@ -915,7 +915,7 @@ public class Main extends Application {
         final Line rightLine;
         final Arc endArc;
         final Rectangle clipRectangle = new Rectangle();
-        private Board.WinnerInfo winnerInfo;
+        private final Board.WinnerInfo winnerInfo;
         private double lastWinLineWidth = 0;
 
         WinLine(Board.WinnerInfo winnerInfo) {

@@ -144,24 +144,17 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
 
     @SuppressWarnings("UnusedReturnValue")
     public Future<?> submitWaitForUnlock(Runnable task) {
-        Runnable effectiveTask = () -> {
-            // PrintStreams magically don't make the wait loop hang
-            PrintStream nullStream = new PrintStream(new OutputStream() {
-                public void write(int b) {
-                    //DO NOTHING
-                }
-            });
-            while (isBlocked()){
-                nullStream.println("Waiting...");
-            }
-            // run
-            Platform.runLater(task);
-        };
+        Runnable effectiveTask = cerateEffectiveWaitingTask(task);
         return super.schedule(effectiveTask, 0, NANOSECONDS);
     }
 
     public <T> Future<T> submitWaitForUnlock(Runnable task, T result) {
-        Runnable effectiveTask = () -> {
+        Runnable effectiveTask = cerateEffectiveWaitingTask(task);
+        return super.schedule(Executors.callable(effectiveTask, result), 0, NANOSECONDS);
+    }
+
+    private Runnable cerateEffectiveWaitingTask(Runnable task){
+        return () -> {
             // PrintStreams magically don't make the wait loop hang
             PrintStream nullStream = new PrintStream(new OutputStream() {
                 public void write(int b) {
@@ -174,7 +167,6 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
             // run
             Platform.runLater(task);
         };
-        return super.schedule(Executors.callable(effectiveTask, result), 0, NANOSECONDS);
     }
 
     public <T> Future<T> submitWaitForUnlock(Callable<T> task) {

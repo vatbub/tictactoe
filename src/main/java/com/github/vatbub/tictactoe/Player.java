@@ -66,7 +66,7 @@ public class Player {
     }
 
     public void doAiTurn(Board currentBoard, Player opponent) {
-        AlphaBetaResult alphaBetaResult = alphabeta(currentBoard, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, true);
+        AlphaBetaResult alphaBetaResult = alphaBeta(currentBoard, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, true);
 
         currentBoard.doTurn(alphaBetaResult.bestMove);
     }
@@ -80,7 +80,7 @@ public class Player {
      * @param maximizingPlayer {@code true} if it is currently the maximizing player's turn
      * @return Either the heuristic value of the node if the node is a terminal node (Someone won, lost or it's a tie), {@code alpha} from the maximizing player or {@code beta} from the minimizing player.
      */
-    private AlphaBetaResult alphabeta(Board node, double alpha, double beta, boolean maximizingPlayer) {
+    private AlphaBetaResult alphaBeta(Board node, double alpha, double beta, boolean maximizingPlayer) {
         AlphaBetaResult res = new AlphaBetaResult();
         res.alpha = alpha;
         res.beta = beta;
@@ -104,7 +104,7 @@ public class Player {
                 Board child = node.clone();
                 child.doTurn(move, true);
                 double previousAlpha = alpha;
-                alpha = Math.max(alpha, alphabeta(child, alpha, beta, false).getResultValue());
+                alpha = Math.max(alpha, alphaBeta(child, alpha, beta, false).getResultValue());
                 if (previousAlpha < alpha) {
                     res.bestMove = move;
                 }
@@ -123,7 +123,7 @@ public class Player {
                 Board child = node.clone();
                 child.doTurn(move, true);
                 double previousBeta = beta;
-                beta = Math.min(beta, alphabeta(child, alpha, beta, true).getResultValue());
+                beta = Math.min(beta, alphaBeta(child, alpha, beta, true).getResultValue());
                 if (previousBeta > beta) {
                     res.bestMove = move;
                 }
@@ -150,7 +150,7 @@ public class Player {
     }
 
     private class AlphaBetaResult {
-        Map<Board.Move, Double> moveScores = new HashMap<>();
+        final Map<Board.Move, Double> moveScores = new HashMap<>();
         Board.Move bestMove;
         double heuristicNodeValue;
         double alpha;
