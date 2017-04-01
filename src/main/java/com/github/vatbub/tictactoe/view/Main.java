@@ -156,6 +156,12 @@ public class Main extends Application {
     @FXML
     private ImageView bowTie;
 
+    @FXML
+    private Slider aiLevelSlider;
+
+    @FXML
+    private Label aiLevelLabel;
+
     public static void main(String[] args) {
         Common.setAppName("tictactoev2");
         FOKLogger.enableLoggingOfUncaughtExceptions();
@@ -278,6 +284,8 @@ public class Main extends Application {
         confetti.fitHeightProperty().addListener((observable, oldValue, newValue) -> reloadImage(confetti, getClass().getResource("confetti.png").toString(), confetti.getFitWidth(), newValue.doubleValue()));
         confetti.fitWidthProperty().addListener((observable, oldValue, newValue) -> reloadImage(confetti, getClass().getResource("confetti.png").toString(), newValue.doubleValue(), confetti.getFitWidth()));
 
+        aiLevelSlider.valueProperty().addListener((observable, oldValue, newValue) -> updateAILevelLabel());
+
         initBoard();
         initNewGame();
     }
@@ -314,6 +322,31 @@ public class Main extends Application {
 
     }
 
+    /*@FXML
+    void aiLevelSliderOnMouseMoved(MouseEvent event){
+        updateAILevelLabel();
+    }*/
+
+    private void updateAILevelLabel() {
+        // get the slider position
+        int sliderPos = (int) Math.round(aiLevelSlider.getValue() * 3.0 / 100.0);
+
+        switch (sliderPos){
+            case 0:
+                aiLevelLabel.setText("Completely stupid");
+                break;
+            case 1:
+                aiLevelLabel.setText("Somewhat good");
+                break;
+            case 2:
+                aiLevelLabel.setText("Good");
+                break;
+            case 3:
+                aiLevelLabel.setText("Unbeatable");
+                break;
+        }
+    }
+
     private void initNewGame() {
         guiAnimationQueue.submit(() -> {
             suggestedAIName1 = NameList.getNextAIName();
@@ -334,6 +367,7 @@ public class Main extends Application {
                 blurWinPane();
             }
 
+            updateAILevelLabel();
             if (!isMenuShown()) {
                 showMenu();
             }

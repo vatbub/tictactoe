@@ -168,6 +168,13 @@
                                  </children>
                               </HBox>
                               <Button defaultButton="true" maxWidth="271.0" mnemonicParsing="false" onAction="#startButtonOnAction" text="Start" />
+                              <Label text="AI Level">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Label>
+                              <Slider fx:id="aiLevelSlider" blockIncrement="25.0" majorTickUnit="33.0" minorTickCount="0" snapToTicks="true" value="100.0" />
+                              <Label fx:id="aiLevelLabel" text="Label" />
                            </children>
                         </VBox>
                      </children>
