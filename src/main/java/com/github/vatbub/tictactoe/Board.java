@@ -27,6 +27,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -361,6 +362,7 @@ public class Board {
             }
         }
 
+        Collections.shuffle(res);
         return res;
     }
 
