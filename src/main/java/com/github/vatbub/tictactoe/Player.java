@@ -66,9 +66,30 @@ public class Player {
     }
 
     public void doAiTurn(Board currentBoard, Player opponent) {
-        AlphaBetaResult alphaBetaResult = alphaBeta(currentBoard, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, true);
+        switch (currentBoard.getAiLevel()) {
+            case COMPLETELY_STUPID:
+                int r;
+                int c;
+                do {
+                    r = (int) Math.round(Math.random() * (currentBoard.getRowCount() - 1));
+                    c = (int) Math.round(Math.random() * (currentBoard.getColumnCount() - 1));
+                } while (currentBoard.getPlayerAt(r, c) != null);
 
-        currentBoard.doTurn(alphaBetaResult.bestMove);
+                currentBoard.doTurn(new Board.Move(r, c));
+                break;
+            case SOMEWHAT_GOOD:
+                AlphaBetaResult alphaBetaResult2 = alphaBeta(currentBoard, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, true);
+                currentBoard.doTurn(alphaBetaResult2.getBestMoveWithRandomness());
+                break;
+            case GOOD:
+                AlphaBetaResult alphaBetaResult1 = alphaBeta(currentBoard, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, 5, true);
+                currentBoard.doTurn(alphaBetaResult1.bestMove);
+                break;
+            case UNBEATABLE:
+                AlphaBetaResult alphaBetaResult3 = alphaBeta(currentBoard, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, true);
+                currentBoard.doTurn(alphaBetaResult3.bestMove);
+                break;
+        }
     }
 
     /**
@@ -80,7 +101,7 @@ public class Player {
      * @param maximizingPlayer {@code true} if it is currently the maximizing player's turn
      * @return Either the heuristic value of the node if the node is a terminal node (Someone won, lost or it's a tie), {@code alpha} from the maximizing player or {@code beta} from the minimizing player.
      */
-    private AlphaBetaResult alphaBeta(Board node, double alpha, double beta, boolean maximizingPlayer) {
+    private AlphaBetaResult alphaBeta(Board node, double alpha, double beta, double maxDepth, boolean maximizingPlayer) {
         AlphaBetaResult res = new AlphaBetaResult();
         res.alpha = alpha;
         res.beta = beta;
@@ -93,8 +114,12 @@ public class Player {
         Board.WinnerInfo winnerInfo = node.getWinner(lastMove.getRow(), lastMove.getColumn());
 
         // base case
-        if (winnerInfo.isFinished()) {
-            res.heuristicNodeValue = winnerInfo.getHeuristicValue(this);
+        if (winnerInfo.isFinished() || maxDepth == 0) {
+            if (winnerInfo.isFinished()) {
+                res.heuristicNodeValue = winnerInfo.getHeuristicValue(this);
+            } else {
+                res.heuristicNodeValue = 0;
+            }
             res.returnType = ReturnType.heuristicValue;
             return res;
         }
@@ -104,7 +129,7 @@ public class Player {
                 Board child = node.clone();
                 child.doTurn(move, true);
                 double previousAlpha = alpha;
-                alpha = Math.max(alpha, alphaBeta(child, alpha, beta, false).getResultValue());
+                alpha = Math.max(alpha, alphaBeta(child, alpha, beta, maxDepth - 1, false).getResultValue());
                 if (previousAlpha < alpha) {
                     res.bestMove = move;
                 }
@@ -123,7 +148,7 @@ public class Player {
                 Board child = node.clone();
                 child.doTurn(move, true);
                 double previousBeta = beta;
-                beta = Math.min(beta, alphaBeta(child, alpha, beta, true).getResultValue());
+                beta = Math.min(beta, alphaBeta(child, alpha, beta, maxDepth - 1, true).getResultValue());
                 if (previousBeta > beta) {
                     res.bestMove = move;
                 }
@@ -174,8 +199,7 @@ public class Player {
         /*
          * Makes the ai less perfect
          */
-        @SuppressWarnings("unused")
-        Board.Move getBestMove() {
+        Board.Move getBestMoveWithRandomness() {
             double optimalScore;
             System.out.print(returnType.toString() + ", ");
             switch (returnType) {

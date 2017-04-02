@@ -428,6 +428,24 @@ public class Main extends Application {
     private void initBoard() {
         guiAnimationQueue.submit(() -> {
             board = new Board(gameRows, gameCols);
+            // set the ai level
+            int sliderPos = (int) Math.round(aiLevelSlider.getValue() * 3.0 / 100.0);
+
+            switch (sliderPos) {
+                case 0:
+                    board.setAiLevel(AILevel.COMPLETELY_STUPID);
+                    break;
+                case 1:
+                    board.setAiLevel(AILevel.SOMEWHAT_GOOD);
+                    break;
+                case 2:
+                    board.setAiLevel(AILevel.GOOD);
+                    break;
+                case 3:
+                    board.setAiLevel(AILevel.UNBEATABLE);
+                    break;
+            }
+
             board.setGameEndCallback((winnerInfo) -> guiAnimationQueue.submit(() -> {
                 System.out.println("The winner is: " + winnerInfo.winningPlayer.getName());
                 if (winnerInfo.isTie()) {

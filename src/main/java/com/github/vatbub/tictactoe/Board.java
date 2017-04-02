@@ -21,6 +21,7 @@ package com.github.vatbub.tictactoe;
  */
 
 
+import com.github.vatbub.tictactoe.view.AILevel;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.jetbrains.annotations.Nullable;
@@ -40,6 +41,7 @@ public class Board {
     private final int dimCols;
     private final ObjectProperty<Player> currentPlayer = new SimpleObjectProperty<>();
     private final ObjectProperty<GameEndRunnable> gameEndCallback = new SimpleObjectProperty<>();
+    private AILevel aiLevel;
     private Player player1;
     private Player player2;
     private Move lastMove;
@@ -418,6 +420,7 @@ public class Board {
         Board res = new Board(getRowCount(), getColumnCount(), getPlayer1(), getPlayer2());
         res.currentPlayerProperty().set(this.getCurrentPlayer());
         res.lastMove = this.lastMove;
+        res.aiLevel = this.aiLevel;
 
         for (int row = 0; row < getRowCount(); row++) {
             for (int column = 0; column < getColumnCount(); column++) {
@@ -426,6 +429,14 @@ public class Board {
         }
 
         return res;
+    }
+
+    public AILevel getAiLevel() {
+        return aiLevel;
+    }
+
+    public void setAiLevel(AILevel aiLevel) {
+        this.aiLevel = aiLevel;
     }
 
     public static class Move {
