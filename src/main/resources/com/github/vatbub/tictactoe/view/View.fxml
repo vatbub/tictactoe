@@ -141,7 +141,7 @@
                <children>
                   <AnchorPane style="-fx-background-color: #DDDDDD;">
                      <children>
-                        <VBox alignment="CENTER" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                        <VBox fx:id="menuSubBox" alignment="TOP_CENTER" minHeight="0.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
                            <children>
                               <Label text="Player 1">
                                  <font>
@@ -168,13 +168,13 @@
                                  </children>
                               </HBox>
                               <Button defaultButton="true" maxWidth="271.0" mnemonicParsing="false" onAction="#startButtonOnAction" text="Start" />
-                              <Label text="AI Level">
+                              <Label fx:id="aiLevelTitleLabel" prefHeight="21.0" text="AI Level">
                                  <font>
                                     <Font name="System Bold" size="15.0" />
                                  </font>
                               </Label>
-                              <Slider fx:id="aiLevelSlider" blockIncrement="25.0" majorTickUnit="33.0" minorTickCount="0" snapToTicks="true" value="100.0" />
-                              <Label fx:id="aiLevelLabel" text="Label" />
+                              <Slider fx:id="aiLevelSlider" blockIncrement="25.0" majorTickUnit="33.0" minorTickCount="0" prefHeight="18.0" snapToTicks="true" value="100.0" />
+                              <Label fx:id="aiLevelLabel" prefHeight="21.0" text="Label" />
                            </children>
                         </VBox>
                      </children>

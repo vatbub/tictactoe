@@ -79,14 +79,13 @@ public class Main extends Application {
     final StringProperty style = new SimpleStringProperty("");
     private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
     private final RefreshableNodeList refreshedNodes = new RefreshableNodeList();
+    private final Map<String, Timer> loadTimerMap = new HashMap<>();
     private String suggestedHumanName1;
     private String suggestedHumanName2;
     private String suggestedAIName1;
     private String suggestedAIName2;
     private Board board;
     private ObjectProperty<Font> rowFont;
-    private final Map<String, Timer> loadTimerMap = new HashMap<>();
-
     @FXML
     private AnchorPane root;
 
@@ -161,6 +160,11 @@ public class Main extends Application {
 
     @FXML
     private Label aiLevelLabel;
+
+    @FXML
+    private Label aiLevelTitleLabel;
+    @FXML
+    private VBox menuSubBox;
 
     public static void main(String[] args) {
         Common.setAppName("tictactoev2");
@@ -241,11 +245,13 @@ public class Main extends Application {
         gameTable.widthProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(oldValue.doubleValue(), gameTable.getHeight(), newValue.doubleValue(), gameTable.getHeight()));
 
         player1AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            showHideAILevelSlider(newValue, player2AIToggle.isSelected());
             if ((oldValue && player1Name.getText().equals(suggestedAIName1)) || (!oldValue && player1Name.getText().equals(suggestedHumanName1))) {
                 player1SetSampleName();
             }
         });
         player2AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            showHideAILevelSlider(player1AIToggle.isSelected(), newValue);
             if ((oldValue && player2Name.getText().equals(suggestedAIName2)) || (!oldValue && player2Name.getText().equals(suggestedHumanName2))) {
                 player2SetSampleName();
             }
@@ -312,6 +318,11 @@ public class Main extends Application {
         startGame();
     }
 
+    /*@FXML
+    void aiLevelSliderOnMouseMoved(MouseEvent event){
+        updateAILevelLabel();
+    }*/
+
     @FXML
     void newGameOnAction(ActionEvent event) {
         initNewGame();
@@ -322,16 +333,11 @@ public class Main extends Application {
 
     }
 
-    /*@FXML
-    void aiLevelSliderOnMouseMoved(MouseEvent event){
-        updateAILevelLabel();
-    }*/
-
     private void updateAILevelLabel() {
         // get the slider position
         int sliderPos = (int) Math.round(aiLevelSlider.getValue() * 3.0 / 100.0);
 
-        switch (sliderPos){
+        switch (sliderPos) {
             case 0:
                 aiLevelLabel.setText("Completely stupid");
                 break;
@@ -841,6 +847,82 @@ public class Main extends Application {
 
             timeline.play();
         });
+    }
+
+    /**
+     * Shows or hides the ai level slider according to the current ai configuration
+     */
+    private void showHideAILevelSlider(boolean player1IsAI, boolean player2IsAI) {
+        if ((player1IsAI || player2IsAI) && !aiLevelSlider.isVisible()) {
+            fadeAILevelSliderIn();
+        } else if (!player1IsAI && !player2IsAI && aiLevelSlider.isVisible()) {
+            fadeAILevelSliderOut();
+        }
+    }
+
+    private void fadeAILevelSliderOut() {
+        menuSubBox.setPrefHeight(menuSubBox.getHeight());
+
+        guiAnimationQueue.submitWaitForUnlock(() -> {
+            guiAnimationQueue.setBlocked(true);
+            fadeNode(aiLevelTitleLabel, 0, false, () -> {
+                menuSubBox.getChildren().remove(aiLevelTitleLabel);
+            });
+            fadeNode(aiLevelSlider, 0, false, () -> {
+                menuSubBox.getChildren().remove(aiLevelSlider);
+            });
+            fadeNode(aiLevelLabel, 0, false, () -> {
+                menuSubBox.getChildren().remove(aiLevelLabel);
+                updateMenuHeight(false);
+            });
+        });
+    }
+
+    private void fadeAILevelSliderIn() {
+        menuSubBox.setPrefHeight(menuSubBox.getHeight());
+        guiAnimationQueue.submitWaitForUnlock(() -> updateMenuHeight(true));
+    }
+
+    private void updateMenuHeight(boolean includeAILevelSlider) {
+        if (includeAILevelSlider) {
+            guiAnimationQueue.setBlocked(true);
+        }
+
+        double toHeight = 0;
+        int effectiveChildCount = 0;
+        for (Node child : menuSubBox.getChildren()) {
+            if (child.isVisible()) {
+                toHeight = toHeight + child.getBoundsInParent().getHeight();
+                effectiveChildCount = effectiveChildCount + 1;
+            }
+        }
+
+        if (includeAILevelSlider) {
+            toHeight = toHeight + aiLevelLabel.getPrefHeight();
+            toHeight = toHeight + aiLevelSlider.getPrefHeight();
+            toHeight = toHeight + aiLevelTitleLabel.getPrefHeight();
+            effectiveChildCount = effectiveChildCount + 3;
+        }
+
+        toHeight = toHeight + menuSubBox.getSpacing() * (effectiveChildCount - 1);
+
+        Timeline timeline = new Timeline();
+        KeyValue keyValue0 = new KeyValue(menuSubBox.prefHeightProperty(), toHeight, Interpolator.EASE_BOTH);
+        KeyFrame keyFrame0 = new KeyFrame(Duration.seconds(animationSpeed), keyValue0);
+        timeline.getKeyFrames().add(keyFrame0);
+
+        if (includeAILevelSlider) {
+            timeline.setOnFinished((event) -> {
+                menuSubBox.getChildren().addAll(aiLevelTitleLabel, aiLevelSlider, aiLevelLabel);
+                fadeNode(aiLevelTitleLabel, 1, true);
+                fadeNode(aiLevelSlider, 1);
+                fadeNode(aiLevelLabel, 1);
+            });
+        } else {
+            timeline.setOnFinished((event -> guiAnimationQueue.setBlocked(false)));
+        }
+
+        timeline.play();
     }
 
     private void fadeNode(Node node, double toValue) {
