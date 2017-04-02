@@ -865,12 +865,8 @@ public class Main extends Application {
 
         guiAnimationQueue.submitWaitForUnlock(() -> {
             guiAnimationQueue.setBlocked(true);
-            fadeNode(aiLevelTitleLabel, 0, false, () -> {
-                menuSubBox.getChildren().remove(aiLevelTitleLabel);
-            });
-            fadeNode(aiLevelSlider, 0, false, () -> {
-                menuSubBox.getChildren().remove(aiLevelSlider);
-            });
+            fadeNode(aiLevelTitleLabel, 0, false, () -> menuSubBox.getChildren().remove(aiLevelTitleLabel));
+            fadeNode(aiLevelSlider, 0, false, () -> menuSubBox.getChildren().remove(aiLevelSlider));
             fadeNode(aiLevelLabel, 0, false, () -> {
                 menuSubBox.getChildren().remove(aiLevelLabel);
                 updateMenuHeight(false);
