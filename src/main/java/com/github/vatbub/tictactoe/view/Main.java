@@ -334,6 +334,8 @@ public class Main extends Application {
         board.setAiLevel(AILevel.UNBEATABLE);
         board.getCurrentPlayer().doAiTurn(board);
         board.setAiLevel(previousAILevel);
+        updateCurrentPlayerLabel();
+        renderRows();
     }
 
     private void updateAILevelLabel() {
