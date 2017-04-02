@@ -135,6 +135,10 @@ public class Board {
     }
 
     public Player getCurrentPlayer() {
+        if (currentPlayerProperty().get() == null) {
+            currentPlayerProperty().set(getPlayer1());
+        }
+
         return currentPlayer.get();
     }
 
@@ -148,10 +152,6 @@ public class Board {
 
     public void doTurn(Move move, boolean ignoreAI) {
         lastMove = move;
-
-        if (getCurrentPlayer() == null) {
-            currentPlayerProperty().set(getPlayer1());
-        }
 
         if (getPlayerAt(move.getRow(), move.getColumn()) != null) {
             throw new IllegalStateException("Cell is already taken by a player");
