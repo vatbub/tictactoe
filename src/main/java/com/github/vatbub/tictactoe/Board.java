@@ -170,7 +170,7 @@ public class Board {
         currentPlayerProperty().set(getOpponent(getCurrentPlayer()));
 
         if (getCurrentPlayer().isAi() && !ignoreAI) {
-            getCurrentPlayer().doAiTurn(this, getOpponent(getCurrentPlayer()));
+            getCurrentPlayer().doAiTurn(this);
         }
     }
 

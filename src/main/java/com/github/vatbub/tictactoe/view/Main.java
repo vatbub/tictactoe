@@ -330,7 +330,10 @@ public class Main extends Application {
 
     @FXML
     void thinkOnAction(ActionEvent event) {
-
+        AILevel previousAILevel = board.getAiLevel();
+        board.setAiLevel(AILevel.UNBEATABLE);
+        board.getCurrentPlayer().doAiTurn(board);
+        board.setAiLevel(previousAILevel);
     }
 
     private void updateAILevelLabel() {
@@ -409,7 +412,7 @@ public class Main extends Application {
             updateCurrentPlayerLabel();
 
             if (board.getPlayer1().isAi()) {
-                board.getPlayer1().doAiTurn(board, board.getPlayer2());
+                board.getPlayer1().doAiTurn(board);
             }
         });
     }

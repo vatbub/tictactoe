@@ -65,7 +65,7 @@ public class Player {
         this.ai = ai;
     }
 
-    public void doAiTurn(Board currentBoard, Player opponent) {
+    public void doAiTurn(Board currentBoard) {
         switch (currentBoard.getAiLevel()) {
             case COMPLETELY_STUPID:
                 int r;
