@@ -330,10 +330,7 @@ public class Main extends Application {
 
     @FXML
     void thinkOnAction(ActionEvent event) {
-        AILevel previousAILevel = board.getAiLevel();
-        board.setAiLevel(AILevel.UNBEATABLE);
-        board.getCurrentPlayer().doAiTurn(board);
-        board.setAiLevel(previousAILevel);
+        board.getCurrentPlayer().doAiTurn(board, AILevel.UNBEATABLE);
         updateCurrentPlayerLabel();
         renderRows();
     }

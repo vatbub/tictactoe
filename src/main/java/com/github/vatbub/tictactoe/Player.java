@@ -21,6 +21,8 @@ package com.github.vatbub.tictactoe;
  */
 
 
+import com.github.vatbub.tictactoe.view.AILevel;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +68,11 @@ public class Player {
     }
 
     public void doAiTurn(Board currentBoard) {
-        switch (currentBoard.getAiLevel()) {
+        doAiTurn(currentBoard, currentBoard.getAiLevel());
+    }
+
+    public void doAiTurn(Board currentBoard, AILevel aiLevel) {
+        switch (aiLevel) {
             case COMPLETELY_STUPID:
                 int r;
                 int c;
