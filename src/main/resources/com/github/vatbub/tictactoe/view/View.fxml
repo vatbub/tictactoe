@@ -186,5 +186,13 @@
             </HBox>
          </children>
       </VBox>
+      <AnchorPane layoutY="616.0" style="-fx-background-color: #DDDDDD; -fx-background-radius: 0 13 0 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+         <children>
+            <Hyperlink onAction="#aboutLinkOnAction" text="About" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+         </children>
+         <effect>
+            <DropShadow height="12.0" radius="5.5" width="12.0" />
+         </effect>
+      </AnchorPane>
    </children>
 </AnchorPane>

@@ -44,7 +44,9 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.*;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
@@ -55,6 +57,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.*;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -63,7 +67,13 @@ import logging.FOKLogger;
 import org.controlsfx.control.ToggleSwitch;
 import view.ExceptionAlert;
 
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
+import java.util.List;
+import java.util.logging.Level;
 
 /**
  * The main game view
@@ -352,6 +362,15 @@ public class Main extends Application {
             case 3:
                 aiLevelLabel.setText("Unbeatable");
                 break;
+        }
+    }
+
+    @FXML
+    void aboutLinkOnAction(ActionEvent event){
+        try {
+            Desktop.getDesktop().browse(new URI("https://github.com/vatbub/tictactoe#tictactoe"));
+        } catch (URISyntaxException | IOException e) {
+            FOKLogger.log(Main.class.getName(), Level.SEVERE, "Typo in a hardcoded value", e);
         }
     }
 
