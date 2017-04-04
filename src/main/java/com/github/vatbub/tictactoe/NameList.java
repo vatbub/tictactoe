@@ -36,26 +36,21 @@ public class NameList {
     static {
         // ai names
         aiNames = new ArrayList<>();
+        aiNames.add("The Mastermind");
         aiNames.add("The Engine");
-        aiNames.add("Joe");
         aiNames.add("MARAX");
         aiNames.add("EPICAC");
         aiNames.add("The Prime Radiant");
-        aiNames.add("Mark V");
-        aiNames.add("Karl");
-        aiNames.add("Mima");
         aiNames.add("Bossy");
         aiNames.add("The City Fathers");
         aiNames.add("Multivac");
         aiNames.add("The Central Computer");
         aiNames.add("Miniac");
-        aiNames.add("Cosmic AC");
+        aiNames.add("Cosmic AI");
         aiNames.add("Vulcan 2");
-        aiNames.add("Mycroft Holmes");
         aiNames.add("The Ox");
         aiNames.add("The Brain");
         aiNames.add("T.E.N.C.H. 889B");
-        aiNames.add("Minerva");
         aiNames.add("ZORAC");
         aiNames.add("The H2G2");
         aiNames.add("Deep Thought");
@@ -66,7 +61,6 @@ public class NameList {
         humanNames = Arrays.asList(("Adam Baum\n" +
                 "Adam Zapel\n" +
                 "Al Bino\n" +
-                "Al Dente\n" +
                 "Al Fresco\n" +
                 "Al K. Seltzer\n" +
                 "Alf A. Romeo\n" +
@@ -99,24 +93,16 @@ public class NameList {
                 "Annie Matter\n" +
                 "Aretha Holly\n" +
                 "Armand Hammer\n" +
-                "Art Major\n" +
-                "Art Painter\n" +
-                "Art Sellers\n" +
-                "Athol\n" +
-                "B.A. Ware\n" +
                 "Barb Dwyer\n" +
                 "Barb E. Dahl\n" +
                 "Barbara Seville\n" +
                 "Barry Cade\n" +
-                "Bea Minor and Dee Major\n" +
                 "Beau Archer\n" +
                 "Beau Tye\n" +
                 "Ben Dover\n" +
                 "Ben Down\n" +
                 "Eileen Dover\n" +
-                "Skip Dover\n" +
                 "Ben Marcata\n" +
-                "Bess Eaton\n" +
                 "Biff Wellington\n" +
                 "Bill Board\n" +
                 "Bill Ding\n" +
@@ -140,15 +126,12 @@ public class NameList {
                 "Bud Light\n" +
                 "Buster Cherry\n" +
                 "Buster Hyman\n" +
-                "C. Senor\n" +
-                "C. Worthy\n" +
                 "Cam Payne\n" +
                 "Candace Spencer\n" +
                 "Candy Barr\n" +
                 "Candy Baskett\n" +
                 "Candy Kane\n" +
                 "Candy Sweet\n" +
-                "Cara Van\n" +
                 "Carrie Dababi\n" +
                 "Carrie Oakey\n" +
                 "Casey Macy\n" +
@@ -169,13 +152,6 @@ public class NameList {
                 "Count Dunn\n" +
                 "Count Orff\n" +
                 "Craven Moorehead\n" +
-                "Crystal Claire Waters\n" +
-                "Crystal Glass\n" +
-                "Crystal Metheney\n" +
-                "Crystal Snow\n" +
-                "D. Kay\n" +
-                "DDS\n" +
-                "D. Liver\n" +
                 "Dan D. Lyons\n" +
                 "Dan Deline\n" +
                 "Dan Druff\n" +
@@ -184,13 +160,10 @@ public class NameList {
                 "Daryl Rhea\n" +
                 "Dick Burns\n" +
                 "Dick Face\n" +
-                "Dick Head\n" +
                 "Dick Hertz\n" +
                 "Dick Long\n" +
-                "Dick Mussell\n" +
                 "Dick Pound\n" +
                 "Dick Swett\n" +
-                "Dick Tator\n" +
                 "Dickson Yamada\n" +
                 "Dilbert Pickles\n" +
                 "Dinah Soares\n" +
@@ -201,29 +174,16 @@ public class NameList {
                 "Doris Open\n" +
                 "Doug Graves\n" +
                 "Doug Hole\n" +
-                "Doug & Phil Updegrave\n" +
+                "Doug Updegrave\n" +
+                "Phil Updegrave\n" +
                 "Doug Witherspoon\n" +
                 "Douglas Furr\n" +
-                "Dr. Croak\n" +
-                "Dr. Butcher\n" +
-                "Dr. DeKay\n" +
-                "Dr. E. Ville\n" +
-                "Dr. Gutstein\n" +
-                "Dr. Hanus\n" +
-                "Dr. Hymen\n" +
-                "Dr. Kauff\n" +
-                "Dr. Pullham\n" +
-                "Dr. Slaughter\n" +
                 "Duane Pipe\n" +
                 "Dusty Carr\n" +
                 "Dusty Rhodes\n" +
                 "Edna May\n" +
                 "Earl E. Bird\n" +
                 "Earl Lee Riser\n" +
-                "Easton West\n" +
-                "Weston East\n" +
-                "Eaton Wright\n" +
-                "Liv Good\n" +
                 "Edward Z. Filler\n" +
                 "Ella Vader\n" +
                 "Emma Royds\n" +
