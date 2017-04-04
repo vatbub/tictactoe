@@ -238,6 +238,9 @@ public class Main extends Application {
         System.exit(0);
     }
 
+    private boolean player1NameModified=false;
+    private boolean player2NameModified=false;
+
     @FXML
         // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -251,19 +254,35 @@ public class Main extends Application {
             Platform.runLater(() -> new ExceptionAlert(exception).showAndWait());
         });
 
+        suggestedAIName1 = NameList.getNextAIName();
+        suggestedAIName2 = NameList.getNextAIName();
+        suggestedHumanName1 = NameList.getNextHumanName();
+        suggestedHumanName2 = NameList.getNextHumanName();
+
         gameTable.heightProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(gameTable.getWidth(), oldValue.doubleValue(), gameTable.getWidth(), newValue.doubleValue()));
         gameTable.widthProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(oldValue.doubleValue(), gameTable.getHeight(), newValue.doubleValue(), gameTable.getHeight()));
 
         player1AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
             showHideAILevelSlider(newValue, player2AIToggle.isSelected());
-            if ((oldValue && player1Name.getText().equals(suggestedAIName1)) || (!oldValue && player1Name.getText().equals(suggestedHumanName1))) {
+            if (!player1NameModified){
                 player1SetSampleName();
             }
         });
         player2AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
             showHideAILevelSlider(player1AIToggle.isSelected(), newValue);
-            if ((oldValue && player2Name.getText().equals(suggestedAIName2)) || (!oldValue && player2Name.getText().equals(suggestedHumanName2))) {
+            if (!player2NameModified){
                 player2SetSampleName();
+            }
+        });
+
+        player1Name.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.equals(player1AIToggle.isSelected() ? suggestedAIName1 : suggestedHumanName1)){
+                player1NameModified=true;
+            }
+        });
+        player2Name.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.equals(player2AIToggle.isSelected() ? suggestedAIName2 : suggestedHumanName2)){
+                player2NameModified=true;
             }
         });
 
@@ -376,11 +395,6 @@ public class Main extends Application {
 
     private void initNewGame() {
         guiAnimationQueue.submit(() -> {
-            suggestedAIName1 = NameList.getNextAIName();
-            suggestedAIName2 = NameList.getNextAIName();
-            suggestedHumanName1 = NameList.getNextHumanName();
-            suggestedHumanName2 = NameList.getNextHumanName();
-
             player1SetSampleName();
             player2SetSampleName();
 
@@ -566,15 +580,15 @@ public class Main extends Application {
     }
 
     private void player1SetSampleName() {
-        if (board.getPlayer1() == null) {
+        // if (board.getPlayer1() == null) {
             player1Name.setText(player1AIToggle.isSelected() ? suggestedAIName1 : suggestedHumanName1);
-        }
+        // }
     }
 
     private void player2SetSampleName() {
-        if (board.getPlayer2() == null) {
+        // if (board.getPlayer2() == null) {
             player2Name.setText(player2AIToggle.isSelected() ? suggestedAIName2 : suggestedHumanName2);
-        }
+        // }
     }
 
     private boolean isMenuShown() {
