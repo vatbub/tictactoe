@@ -174,7 +174,23 @@
                                  </font>
                               </Label>
                               <Slider fx:id="aiLevelSlider" blockIncrement="25.0" majorTickUnit="33.0" minorTickCount="0" prefHeight="18.0" snapToTicks="true" value="100.0" />
-                              <Label fx:id="aiLevelLabel" prefHeight="21.0" text="Label" />
+                              <Pane fx:id="aiLevelLabelPane" prefHeight="21.0" prefWidth="0.0">
+                                 <children>
+                                    <HBox fx:id="aiLevelLabelHBox" spacing="5.0">
+                                       <children>
+                                          <Label text="Completely stupid" />
+                                          <Label text="Somewhat good" />
+                                          <Label text="Good" />
+                                          <Label text="Unbeatable" />
+                                       </children>
+                                    </HBox>
+                                    <Line fx:id="aiLevelCenterLine" endX="110.0" endY="20.0" startX="90.0" startY="20.0" stroke="#d72d2d">
+                                       <effect>
+                                          <GaussianBlur radius="2.0" />
+                                       </effect>
+                                    </Line>
+                                 </children>
+                              </Pane>
                            </children>
                         </VBox>
                      </children>

@@ -49,9 +49,11 @@ import javafx.scene.control.*;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.GaussianBlur;
+import javafx.scene.effect.MotionBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -64,6 +66,8 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import logging.FOKLogger;
+import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
+import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.controlsfx.control.ToggleSwitch;
 import view.ExceptionAlert;
 
@@ -96,6 +100,8 @@ public class Main extends Application {
     private String suggestedAIName2;
     private Board board;
     private ObjectProperty<Font> rowFont;
+    private Rectangle aiLevelLabelClipRectangle;
+
     @FXML
     private AnchorPane root;
 
@@ -169,12 +175,19 @@ public class Main extends Application {
     private Slider aiLevelSlider;
 
     @FXML
-    private Label aiLevelLabel;
+    private Pane aiLevelLabelPane;
+
+    @FXML
+    private HBox aiLevelLabelHBox;
 
     @FXML
     private Label aiLevelTitleLabel;
     @FXML
     private VBox menuSubBox;
+    private boolean player1NameModified = false;
+    private boolean player2NameModified = false;
+    @FXML
+    private Line aiLevelCenterLine;
 
     public static void main(String[] args) {
         Common.setAppName("tictactoev2");
@@ -238,9 +251,6 @@ public class Main extends Application {
         System.exit(0);
     }
 
-    private boolean player1NameModified=false;
-    private boolean player2NameModified=false;
-
     @FXML
         // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -254,6 +264,12 @@ public class Main extends Application {
             Platform.runLater(() -> new ExceptionAlert(exception).showAndWait());
         });
 
+        aiLevelLabelClipRectangle = new Rectangle(0, 0, 0, 0);
+        aiLevelLabelClipRectangle.setEffect(new MotionBlur(0, 10));
+        aiLevelLabelPane.setClip(aiLevelLabelClipRectangle);
+        aiLevelLabelClipRectangle.heightProperty().bind(aiLevelLabelPane.heightProperty());
+        aiLevelLabelPane.widthProperty().addListener((observable, oldValue, newValue) -> updateAILevelLabel());
+
         suggestedAIName1 = NameList.getNextAIName();
         suggestedAIName2 = NameList.getNextAIName();
         suggestedHumanName1 = NameList.getNextHumanName();
@@ -264,25 +280,25 @@ public class Main extends Application {
 
         player1AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
             showHideAILevelSlider(newValue, player2AIToggle.isSelected());
-            if (!player1NameModified){
+            if (!player1NameModified) {
                 player1SetSampleName();
             }
         });
         player2AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
             showHideAILevelSlider(player1AIToggle.isSelected(), newValue);
-            if (!player2NameModified){
+            if (!player2NameModified) {
                 player2SetSampleName();
             }
         });
 
         player1Name.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.equals(player1AIToggle.isSelected() ? suggestedAIName1 : suggestedHumanName1)){
-                player1NameModified=true;
+            if (!newValue.equals(player1AIToggle.isSelected() ? suggestedAIName1 : suggestedHumanName1)) {
+                player1NameModified = true;
             }
         });
         player2Name.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.equals(player2AIToggle.isSelected() ? suggestedAIName2 : suggestedHumanName2)){
-                player2NameModified=true;
+            if (!newValue.equals(player2AIToggle.isSelected() ? suggestedAIName2 : suggestedHumanName2)) {
+                player2NameModified = true;
             }
         });
 
@@ -342,15 +358,15 @@ public class Main extends Application {
         }, 300);
     }
 
-    @FXML
-    void startButtonOnAction(ActionEvent event) {
-        startGame();
-    }
-
     /*@FXML
     void aiLevelSliderOnMouseMoved(MouseEvent event){
         updateAILevelLabel();
     }*/
+
+    @FXML
+    void startButtonOnAction(ActionEvent event) {
+        startGame();
+    }
 
     @FXML
     void newGameOnAction(ActionEvent event) {
@@ -364,28 +380,48 @@ public class Main extends Application {
         renderRows();
     }
 
+    private double getAILevelLabelCenter(int labelIndex) {
+        double res = 0;
+
+        for (int i = 0; i < labelIndex; i++) {
+            res = res + ((Label) aiLevelLabelHBox.getChildren().get(i)).getWidth();
+        }
+        res = res + labelIndex * aiLevelLabelHBox.getSpacing();
+        res = res - aiLevelLabelPane.getWidth() / 2;
+        res = res + ((Label) aiLevelLabelHBox.getChildren().get(labelIndex)).getWidth() / 2;
+
+        return res;
+    }
+
     private void updateAILevelLabel() {
         // get the slider position
-        int sliderPos = (int) Math.round(aiLevelSlider.getValue() * 3.0 / 100.0);
-
-        switch (sliderPos) {
-            case 0:
-                aiLevelLabel.setText("Completely stupid");
-                break;
-            case 1:
-                aiLevelLabel.setText("Somewhat good");
-                break;
-            case 2:
-                aiLevelLabel.setText("Good");
-                break;
-            case 3:
-                aiLevelLabel.setText("Unbeatable");
-                break;
+        double[] xDouble = new double[]{0, 100.0 / 3.0, 200.0 / 3.0, 300.0 / 3.0};
+        double[] translationYDouble = new double[4];
+        double[] widthYDouble = new double[4];
+        double[] trueWidthYDouble = new double[4];
+        for (int i = 0; i < translationYDouble.length; i++) {
+            // {-getAILevelLabelCenter(0), -getAILevelLabelCenter(1), -getAILevelLabelCenter(2), -getAILevelLabelCenter(3)};
+            translationYDouble[i] = -getAILevelLabelCenter(i);
+            widthYDouble[i] = Math.max(90, ((Label) aiLevelLabelHBox.getChildren().get(i)).getWidth() + 8 * aiLevelLabelHBox.getSpacing());
+            trueWidthYDouble[i] = ((Label) aiLevelLabelHBox.getChildren().get(i)).getWidth();
         }
+
+        SplineInterpolator splineInterpolator = new SplineInterpolator();
+        PolynomialSplineFunction translateFunction = splineInterpolator.interpolate(xDouble, translationYDouble);
+        PolynomialSplineFunction widthFunction = splineInterpolator.interpolate(xDouble, widthYDouble);
+        PolynomialSplineFunction trueWidthFunction = splineInterpolator.interpolate(xDouble, trueWidthYDouble);
+
+        aiLevelLabelHBox.setLayoutX(translateFunction.value(aiLevelSlider.getValue()));
+        aiLevelLabelClipRectangle.setWidth(widthFunction.value(aiLevelSlider.getValue()));
+        aiLevelLabelClipRectangle.setX(aiLevelLabelPane.getWidth() / 2 - aiLevelLabelClipRectangle.getWidth() / 2);
+
+        double interpolatedLabelWidth = trueWidthFunction.value(aiLevelSlider.getValue());
+        aiLevelCenterLine.setStartX((aiLevelLabelPane.getWidth() - interpolatedLabelWidth) / 2);
+        aiLevelCenterLine.setEndX((aiLevelLabelPane.getWidth() + interpolatedLabelWidth) / 2);
     }
 
     @FXML
-    void aboutLinkOnAction(ActionEvent event){
+    void aboutLinkOnAction(ActionEvent event) {
         try {
             Desktop.getDesktop().browse(new URI("https://github.com/vatbub/tictactoe#tictactoe"));
         } catch (URISyntaxException | IOException e) {
@@ -581,13 +617,13 @@ public class Main extends Application {
 
     private void player1SetSampleName() {
         // if (board.getPlayer1() == null) {
-            player1Name.setText(player1AIToggle.isSelected() ? suggestedAIName1 : suggestedHumanName1);
+        player1Name.setText(player1AIToggle.isSelected() ? suggestedAIName1 : suggestedHumanName1);
         // }
     }
 
     private void player2SetSampleName() {
         // if (board.getPlayer2() == null) {
-            player2Name.setText(player2AIToggle.isSelected() ? suggestedAIName2 : suggestedHumanName2);
+        player2Name.setText(player2AIToggle.isSelected() ? suggestedAIName2 : suggestedHumanName2);
         // }
     }
 
@@ -920,8 +956,8 @@ public class Main extends Application {
             guiAnimationQueue.setBlocked(true);
             fadeNode(aiLevelTitleLabel, 0, false, () -> menuSubBox.getChildren().remove(aiLevelTitleLabel));
             fadeNode(aiLevelSlider, 0, false, () -> menuSubBox.getChildren().remove(aiLevelSlider));
-            fadeNode(aiLevelLabel, 0, false, () -> {
-                menuSubBox.getChildren().remove(aiLevelLabel);
+            fadeNode(aiLevelLabelPane, 0, false, () -> {
+                menuSubBox.getChildren().remove(aiLevelLabelPane);
                 updateMenuHeight(false);
             });
         });
@@ -947,7 +983,7 @@ public class Main extends Application {
         }
 
         if (includeAILevelSlider) {
-            toHeight = toHeight + aiLevelLabel.getPrefHeight();
+            toHeight = toHeight + aiLevelLabelPane.getPrefHeight();
             toHeight = toHeight + aiLevelSlider.getPrefHeight();
             toHeight = toHeight + aiLevelTitleLabel.getPrefHeight();
             effectiveChildCount = effectiveChildCount + 3;
@@ -962,10 +998,10 @@ public class Main extends Application {
 
         if (includeAILevelSlider) {
             timeline.setOnFinished((event) -> {
-                menuSubBox.getChildren().addAll(aiLevelTitleLabel, aiLevelSlider, aiLevelLabel);
+                menuSubBox.getChildren().addAll(aiLevelTitleLabel, aiLevelSlider, aiLevelLabelPane);
                 fadeNode(aiLevelTitleLabel, 1, true);
                 fadeNode(aiLevelSlider, 1);
-                fadeNode(aiLevelLabel, 1);
+                fadeNode(aiLevelLabelPane, 1);
             });
         } else {
             timeline.setOnFinished((event -> guiAnimationQueue.setBlocked(false)));
