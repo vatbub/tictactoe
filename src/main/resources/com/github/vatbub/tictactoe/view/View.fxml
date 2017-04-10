@@ -179,7 +179,7 @@
                                     <HBox fx:id="aiLevelLabelHBox" spacing="5.0">
                                        <children>
                                           <Label text="Completely stupid" />
-                                          <Label text="Somewhat good" />
+                                          <Label text="Medium" />
                                           <Label text="Good" />
                                           <Label text="Unbeatable" />
                                        </children>
