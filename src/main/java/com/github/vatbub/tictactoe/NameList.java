@@ -23,6 +23,7 @@ package com.github.vatbub.tictactoe;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -51,8 +52,8 @@ public class NameList {
             List<String> tempFirstNames = new ArrayList<>();
             List<String> tempLastNames = new ArrayList<>();
 
-            File firstNames = new File(NameList.class.getResource("firstnames.txt").toString().replace("file:\\", ""));
-            File lastNames = new File(NameList.class.getResource("lastnames.txt").toString().replace("file:\\", ""));
+            File firstNames = new File(NameList.class.getResource("firstnames.txt").toURI());
+            File lastNames = new File(NameList.class.getResource("lastnames.txt").toURI());
 
             System.out.println("Reading first names...");
             Scanner firstNameScanner = new Scanner(firstNames);
@@ -76,6 +77,8 @@ public class NameList {
             lastNameScanner.close();
             System.out.println("Reading completed!");
 
+            System.out.println("Read " + tempFirstNames.size() + " first names and " + tempLastNames.size() + " last names");
+
             // sort the names
             System.out.println("Sorting...");
             Collections.sort(tempFirstNames);
@@ -87,15 +90,22 @@ public class NameList {
             for (String firstName : tempFirstNames) {
                 firstNameWriter.write(firstName + "\n");
             }
+            firstNameWriter.flush();
             firstNameWriter.close();
 
-            System.out.println("Writing lat names...");
+            System.out.println("Writing last names...");
             FileWriter lastNameWriter = new FileWriter(lastNames);
             for (String lastName : tempLastNames) {
                 lastNameWriter.write(lastName + "\n");
             }
+            lastNameWriter.flush();
             lastNameWriter.close();
-        } catch (java.io.IOException e) {
+
+            System.out.println("Done!");
+            System.out.println("Files saved as:");
+            System.out.println(firstNames.getAbsolutePath());
+            System.out.println(lastNames.getAbsolutePath());
+        } catch (java.io.IOException | URISyntaxException e) {
             e.printStackTrace();
         }
     }
