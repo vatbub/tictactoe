@@ -23,8 +23,6 @@ package com.github.vatbub.tictactoe;
 
 import org.apache.commons.lang.WordUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 
 /**
@@ -41,36 +39,29 @@ public class NameList {
         firstNames = new ArrayList<>();
         lastNames = new ArrayList<>();
 
-        try {
-            // read from resource file
-            File firstNamesFile = new File(NameList.class.getResource("firstnames.txt").getFile());
-            File lastNamesFile = new File(NameList.class.getResource("lastnames.txt").getFile());
-
-            Scanner firstNameScanner = new Scanner(firstNamesFile);
-            while (firstNameScanner.hasNextLine()) {
-                String line = firstNameScanner.nextLine();
-                if (!firstNames.contains(line) && !line.equals("")) {
-                    firstNames.add(line);
-                }
+        // read from resource file
+        Scanner firstNameScanner = new Scanner(NameList.class.getResourceAsStream("firstnames.txt"));
+        while (firstNameScanner.hasNextLine()) {
+            String line = firstNameScanner.nextLine();
+            if (!firstNames.contains(line) && !line.equals("")) {
+                firstNames.add(line);
             }
-
-            Scanner lastNameScanner;
-            lastNameScanner = new Scanner(lastNamesFile);
-            while (lastNameScanner.hasNextLine()) {
-                String line = lastNameScanner.nextLine();
-                if (!lastNames.contains(line) && !line.equals("")) {
-                    lastNames.add(line);
-                }
-            }
-
-            firstNameScanner.close();
-            lastNameScanner.close();
-
-            // shuffle
-            shuffle();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         }
+
+        Scanner lastNameScanner;
+        lastNameScanner = new Scanner(NameList.class.getResourceAsStream("lastnames.txt"));
+        while (lastNameScanner.hasNextLine()) {
+            String line = lastNameScanner.nextLine();
+            if (!lastNames.contains(line) && !line.equals("")) {
+                lastNames.add(line);
+            }
+        }
+
+        firstNameScanner.close();
+        lastNameScanner.close();
+
+        // shuffle
+        shuffle();
     }
 
     private static void shuffle() {
@@ -102,7 +93,7 @@ public class NameList {
         return WordUtils.capitalize(lastNames.get(lastHumanIndex));
     }
 
-    public static String getNextName(){
+    public static String getNextName() {
         return getNextFirstName() + " " + getNextLastName();
     }
 
