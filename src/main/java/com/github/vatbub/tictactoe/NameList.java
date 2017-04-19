@@ -47,68 +47,6 @@ public class NameList {
         shuffleHumanNames();
     }
 
-    public static void main(String[] args) {
-        try {
-            List<String> tempFirstNames = new ArrayList<>();
-            List<String> tempLastNames = new ArrayList<>();
-
-            File firstNames = new File(NameList.class.getResource("firstnames.txt").toURI());
-            File lastNames = new File(NameList.class.getResource("lastnames.txt").toURI());
-
-            System.out.println("Reading first names...");
-            Scanner firstNameScanner = new Scanner(firstNames);
-            while (firstNameScanner.hasNextLine()) {
-                String line = firstNameScanner.nextLine();
-                if (!tempFirstNames.contains(line) && !line.equals("")) {
-                    tempFirstNames.add(line);
-                }
-            }
-
-            System.out.println("Reading last names...");
-            Scanner lastNameScanner = new Scanner(lastNames);
-            while (lastNameScanner.hasNextLine()) {
-                String line = lastNameScanner.nextLine();
-                if (!tempLastNames.contains(line) && !line.equals("")) {
-                    tempLastNames.add(line);
-                }
-            }
-
-            firstNameScanner.close();
-            lastNameScanner.close();
-            System.out.println("Reading completed!");
-
-            System.out.println("Read " + tempFirstNames.size() + " first names and " + tempLastNames.size() + " last names");
-
-            // sort the names
-            System.out.println("Sorting...");
-            Collections.sort(tempFirstNames);
-            Collections.sort(tempLastNames);
-
-            // write them back
-            System.out.println("Writing first names...");
-            FileWriter firstNameWriter = new FileWriter(firstNames);
-            for (String firstName : tempFirstNames) {
-                firstNameWriter.write(firstName + "\n");
-            }
-            firstNameWriter.flush();
-            firstNameWriter.close();
-
-            System.out.println("Writing last names...");
-            FileWriter lastNameWriter = new FileWriter(lastNames);
-            for (String lastName : tempLastNames) {
-                lastNameWriter.write(lastName + "\n");
-            }
-            lastNameWriter.flush();
-            lastNameWriter.close();
-
-            System.out.println("Done!");
-            System.out.println("Files saved as:");
-            System.out.println(firstNames.getAbsolutePath());
-            System.out.println(lastNames.getAbsolutePath());
-        } catch (java.io.IOException | URISyntaxException e) {
-            e.printStackTrace();
-        }
-    }
 
     private static void shuffleAINames() {
         long seed = System.nanoTime();
