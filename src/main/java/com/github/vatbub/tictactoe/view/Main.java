@@ -31,10 +31,7 @@ import common.Common;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -103,6 +100,7 @@ public class Main extends Application {
     private final ObjectProperty<Color> player1BackgroundProperty = new SimpleObjectProperty<>();
     private final ObjectProperty<Color> player2BackgroundProperty = new SimpleObjectProperty<>();
     private final ObjectProperty<Color> player2ColorProperty = new SimpleObjectProperty<>();
+    private final DoubleProperty aiLevelLabelPositionProperty = new SimpleDoubleProperty();
     private String suggestedHumanName1;
     private String suggestedHumanName2;
     private String suggestedAIName1;
@@ -110,6 +108,7 @@ public class Main extends Application {
     private Board board;
     private ObjectProperty<Font> rowFont;
     private Rectangle aiLevelLabelClipRectangle;
+
     @FXML
     private AnchorPane root;
     @FXML
@@ -275,7 +274,7 @@ public class Main extends Application {
         aiLevelLabelClipRectangle.setEffect(new MotionBlur(0, 10));
         aiLevelLabelPane.setClip(aiLevelLabelClipRectangle);
         aiLevelLabelClipRectangle.heightProperty().bind(aiLevelLabelPane.heightProperty());
-        aiLevelLabelPane.widthProperty().addListener((observable, oldValue, newValue) -> updateAILevelLabel());
+        aiLevelLabelPane.widthProperty().addListener((observable, oldValue, newValue) -> updateAILevelLabel(true));
 
         suggestedAIName1 = NameList.getNextAIName();
         suggestedAIName2 = NameList.getNextAIName();
@@ -494,30 +493,57 @@ public class Main extends Application {
     }
 
     private void updateAILevelLabel() {
-        // get the slider position
-        double[] xDouble = new double[]{0, 100.0 / 3.0, 200.0 / 3.0, 300.0 / 3.0};
-        double[] translationYDouble = new double[4];
-        double[] widthYDouble = new double[4];
-        double[] trueWidthYDouble = new double[4];
-        for (int i = 0; i < translationYDouble.length; i++) {
-            // {-getAILevelLabelCenter(0), -getAILevelLabelCenter(1), -getAILevelLabelCenter(2), -getAILevelLabelCenter(3)};
-            translationYDouble[i] = -getAILevelLabelCenter(i);
-            widthYDouble[i] = Math.max(90, ((Label) aiLevelLabelHBox.getChildren().get(i)).getWidth() + 8 * aiLevelLabelHBox.getSpacing());
-            trueWidthYDouble[i] = ((Label) aiLevelLabelHBox.getChildren().get(i)).getWidth();
+        updateAILevelLabel(false);
+    }
+
+    private void updateAILevelLabel(boolean forceUpdate) {
+        double sliderPos = 100 * Math.round(aiLevelSlider.getValue() * 3.0 / 100.0) / 3.0;
+
+        if (sliderPos != aiLevelLabelPositionProperty.get() || forceUpdate) {
+            aiLevelLabelPositionProperty.set(sliderPos);
+
+            // get the slider position
+            double[] xDouble = new double[]{0, 100.0 / 3.0, 200.0 / 3.0, 300.0 / 3.0};
+            double[] translationYDouble = new double[4];
+            double[] widthYDouble = new double[4];
+            double[] trueWidthYDouble = new double[4];
+            for (int i = 0; i < translationYDouble.length; i++) {
+                // {-getAILevelLabelCenter(0), -getAILevelLabelCenter(1), -getAILevelLabelCenter(2), -getAILevelLabelCenter(3)};
+                translationYDouble[i] = -getAILevelLabelCenter(i);
+                widthYDouble[i] = Math.max(90, ((Label) aiLevelLabelHBox.getChildren().get(i)).getWidth() + 8 * aiLevelLabelHBox.getSpacing());
+                trueWidthYDouble[i] = ((Label) aiLevelLabelHBox.getChildren().get(i)).getWidth();
+            }
+
+            SplineInterpolator splineInterpolator = new SplineInterpolator();
+            PolynomialSplineFunction translateFunction = splineInterpolator.interpolate(xDouble, translationYDouble);
+            PolynomialSplineFunction widthFunction = splineInterpolator.interpolate(xDouble, widthYDouble);
+            PolynomialSplineFunction trueWidthFunction = splineInterpolator.interpolate(xDouble, trueWidthYDouble);
+
+            KeyValue hBoxLayoutXKeyValue1 = new KeyValue(aiLevelLabelHBox.layoutXProperty(), aiLevelLabelHBox.getLayoutX(), Interpolator.EASE_BOTH);
+            KeyValue aiLevelLabelClipRectangleWidthKeyValue1 = new KeyValue(aiLevelLabelClipRectangle.widthProperty(), aiLevelLabelClipRectangle.getWidth(), Interpolator.EASE_BOTH);
+            KeyValue aiLevelLabelClipRectangleXKeyValue1 = new KeyValue(aiLevelLabelClipRectangle.xProperty(), aiLevelLabelClipRectangle.getX(), Interpolator.EASE_BOTH);
+            KeyValue aiLevelCenterLineStartXKeyValue1 = new KeyValue(aiLevelCenterLine.startXProperty(), aiLevelCenterLine.getStartX(), Interpolator.EASE_BOTH);
+            KeyValue aiLevelCenterLineEndXKeyValue1 = new KeyValue(aiLevelCenterLine.endXProperty(), aiLevelCenterLine.getEndX(), Interpolator.EASE_BOTH);
+            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(0), hBoxLayoutXKeyValue1, aiLevelLabelClipRectangleWidthKeyValue1, aiLevelLabelClipRectangleXKeyValue1, aiLevelCenterLineStartXKeyValue1, aiLevelCenterLineEndXKeyValue1);
+
+            /*aiLevelLabelHBox.setLayoutX(translateFunction.value(aiLevelSlider.getValue()));
+            aiLevelLabelClipRectangle.setWidth(widthFunction.value(aiLevelSlider.getValue()));
+            aiLevelLabelClipRectangle.setX(aiLevelLabelPane.getWidth() / 2 - aiLevelLabelClipRectangle.getWidth() / 2);*/
+
+            double interpolatedLabelWidth = trueWidthFunction.value(sliderPos);
+            // aiLevelCenterLine.setStartX((aiLevelLabelPane.getWidth() - interpolatedLabelWidth) / 2);
+            // aiLevelCenterLine.setEndX((aiLevelLabelPane.getWidth() + interpolatedLabelWidth) / 2);
+
+            KeyValue hBoxLayoutXKeyValue2 = new KeyValue(aiLevelLabelHBox.layoutXProperty(), translateFunction.value(sliderPos), Interpolator.EASE_BOTH);
+            KeyValue aiLevelLabelClipRectangleWidthKeyValue2 = new KeyValue(aiLevelLabelClipRectangle.widthProperty(), widthFunction.value(sliderPos), Interpolator.EASE_BOTH);
+            KeyValue aiLevelLabelClipRectangleXKeyValue2 = new KeyValue(aiLevelLabelClipRectangle.xProperty(), aiLevelLabelPane.getWidth() / 2 - widthFunction.value(sliderPos) / 2, Interpolator.EASE_BOTH);
+            KeyValue aiLevelCenterLineStartXKeyValue2 = new KeyValue(aiLevelCenterLine.startXProperty(), (aiLevelLabelPane.getWidth() - interpolatedLabelWidth) / 2, Interpolator.EASE_BOTH);
+            KeyValue aiLevelCenterLineEndXKeyValue2 = new KeyValue(aiLevelCenterLine.endXProperty(), (aiLevelLabelPane.getWidth() + interpolatedLabelWidth) / 2, Interpolator.EASE_BOTH);
+            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed * 0.8), hBoxLayoutXKeyValue2, aiLevelLabelClipRectangleWidthKeyValue2, aiLevelLabelClipRectangleXKeyValue2, aiLevelCenterLineStartXKeyValue2, aiLevelCenterLineEndXKeyValue2);
+
+            Timeline timeline = new Timeline(keyFrame1, keyFrame2);
+            timeline.play();
         }
-
-        SplineInterpolator splineInterpolator = new SplineInterpolator();
-        PolynomialSplineFunction translateFunction = splineInterpolator.interpolate(xDouble, translationYDouble);
-        PolynomialSplineFunction widthFunction = splineInterpolator.interpolate(xDouble, widthYDouble);
-        PolynomialSplineFunction trueWidthFunction = splineInterpolator.interpolate(xDouble, trueWidthYDouble);
-
-        aiLevelLabelHBox.setLayoutX(translateFunction.value(aiLevelSlider.getValue()));
-        aiLevelLabelClipRectangle.setWidth(widthFunction.value(aiLevelSlider.getValue()));
-        aiLevelLabelClipRectangle.setX(aiLevelLabelPane.getWidth() / 2 - aiLevelLabelClipRectangle.getWidth() / 2);
-
-        double interpolatedLabelWidth = trueWidthFunction.value(aiLevelSlider.getValue());
-        aiLevelCenterLine.setStartX((aiLevelLabelPane.getWidth() - interpolatedLabelWidth) / 2);
-        aiLevelCenterLine.setEndX((aiLevelLabelPane.getWidth() + interpolatedLabelWidth) / 2);
     }
 
     @FXML
@@ -544,7 +570,7 @@ public class Main extends Application {
                 blurWinPane();
             }
 
-            updateAILevelLabel();
+            updateAILevelLabel(true);
             if (!isMenuShown()) {
                 showMenu();
             }
