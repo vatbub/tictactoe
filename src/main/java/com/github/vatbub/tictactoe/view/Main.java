@@ -335,11 +335,6 @@ public class Main extends Application {
         }, 300);
     }
 
-    /*@FXML
-    void aiLevelSliderOnMouseMoved(MouseEvent event){
-        updateAILevelLabel();
-    }*/
-
     @FXML
     void startButtonOnAction(ActionEvent event) {
         startGame();
@@ -404,13 +399,7 @@ public class Main extends Application {
             KeyValue aiLevelCenterLineEndXKeyValue1 = new KeyValue(aiLevelCenterLine.endXProperty(), aiLevelCenterLine.getEndX(), Interpolator.EASE_BOTH);
             KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(0), hBoxLayoutXKeyValue1, aiLevelLabelClipRectangleWidthKeyValue1, aiLevelLabelClipRectangleXKeyValue1, aiLevelCenterLineStartXKeyValue1, aiLevelCenterLineEndXKeyValue1);
 
-            /*aiLevelLabelHBox.setLayoutX(translateFunction.value(aiLevelSlider.getValue()));
-            aiLevelLabelClipRectangle.setWidth(widthFunction.value(aiLevelSlider.getValue()));
-            aiLevelLabelClipRectangle.setX(aiLevelLabelPane.getWidth() / 2 - aiLevelLabelClipRectangle.getWidth() / 2);*/
-
             double interpolatedLabelWidth = trueWidthFunction.value(sliderPos);
-            // aiLevelCenterLine.setStartX((aiLevelLabelPane.getWidth() - interpolatedLabelWidth) / 2);
-            // aiLevelCenterLine.setEndX((aiLevelLabelPane.getWidth() + interpolatedLabelWidth) / 2);
 
             KeyValue hBoxLayoutXKeyValue2 = new KeyValue(aiLevelLabelHBox.layoutXProperty(), translateFunction.value(sliderPos), Interpolator.EASE_BOTH);
             KeyValue aiLevelLabelClipRectangleWidthKeyValue2 = new KeyValue(aiLevelLabelClipRectangle.widthProperty(), widthFunction.value(sliderPos), Interpolator.EASE_BOTH);

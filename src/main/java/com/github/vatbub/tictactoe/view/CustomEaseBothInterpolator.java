@@ -38,7 +38,6 @@ public class CustomEaseBothInterpolator extends Interpolator {
     @Override
     protected double curve(double t) {
         // See the SMIL 3.1 specification for details on this calculation
-        // acceleration = 0.2, deceleration = 0.2
         double a1 = -1 / (getX1() * (-getX2() - 1) + Math.pow(getX1(), 2));
         double a2 = -2 / (-getX2() + getX1() - 1);
         double b2 = getX1() / (-getX2() + getX1() - 1);
