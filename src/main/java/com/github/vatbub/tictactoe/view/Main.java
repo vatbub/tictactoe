@@ -539,7 +539,7 @@ public class Main extends Application {
             KeyValue aiLevelLabelClipRectangleXKeyValue2 = new KeyValue(aiLevelLabelClipRectangle.xProperty(), aiLevelLabelPane.getWidth() / 2 - widthFunction.value(sliderPos) / 2, Interpolator.EASE_BOTH);
             KeyValue aiLevelCenterLineStartXKeyValue2 = new KeyValue(aiLevelCenterLine.startXProperty(), (aiLevelLabelPane.getWidth() - interpolatedLabelWidth) / 2, Interpolator.EASE_BOTH);
             KeyValue aiLevelCenterLineEndXKeyValue2 = new KeyValue(aiLevelCenterLine.endXProperty(), (aiLevelLabelPane.getWidth() + interpolatedLabelWidth) / 2, Interpolator.EASE_BOTH);
-            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed * 0.8), hBoxLayoutXKeyValue2, aiLevelLabelClipRectangleWidthKeyValue2, aiLevelLabelClipRectangleXKeyValue2, aiLevelCenterLineStartXKeyValue2, aiLevelCenterLineEndXKeyValue2);
+            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed * 0.9), hBoxLayoutXKeyValue2, aiLevelLabelClipRectangleWidthKeyValue2, aiLevelLabelClipRectangleXKeyValue2, aiLevelCenterLineStartXKeyValue2, aiLevelCenterLineEndXKeyValue2);
 
             Timeline timeline = new Timeline(keyFrame1, keyFrame2);
             timeline.play();
