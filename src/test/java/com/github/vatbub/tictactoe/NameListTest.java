@@ -28,9 +28,9 @@ import org.junit.Test;
  */
 public class NameListTest {
     @Test
-    public void aiNamesOverflowTest(){
-        for(int i = 0; i<2*NameList.getNumberOfAvailableAINames(); i++){
-            System.out.println(NameList.getNextAIName());
+    public void firstNamesOverflowTest(){
+        for(int i = 0; i<2*NameList.getNumberOfAvailableFirstNames(); i++){
+            System.out.println(NameList.getNextFirstName());
         }
 
         // everything went good
@@ -38,9 +38,9 @@ public class NameListTest {
     }
 
     @Test
-    public void humanNamesOverflowTest(){
-        for(int i = 0; i<2*NameList.getNumberOfAvailableHumanNames(); i++){
-            System.out.println(NameList.getNextHumanName());
+    public void lastNamesOverflowTest(){
+        for(int i = 0; i<2*NameList.getNumberOfAvailableLastNames(); i++){
+            System.out.println(NameList.getNextLastName());
         }
 
         // everything went good

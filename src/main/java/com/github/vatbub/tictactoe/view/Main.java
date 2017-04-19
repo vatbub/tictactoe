@@ -87,27 +87,16 @@ public class Main extends Application {
     private static final String player1Letter = "X";
     private static final String player2Letter = "O";
 
-    private static Color aiTextFieldBackgroundColor = new Color(0.7, 0.7, 0.7, 1);
-    private static Color aiTextFieldFontColor = Color.BLACK;
-    private static Color humanTextFieldBackgroundColor = Color.WHITE;
-    private static Color humanTextFieldFontColor = Color.BLACK;
-
     final StringProperty style = new SimpleStringProperty("");
     private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
     private final RefreshableNodeList refreshedNodes = new RefreshableNodeList();
     private final Map<String, Timer> loadTimerMap = new HashMap<>();
-    private final ObjectProperty<Color> player1ColorProperty = new SimpleObjectProperty<>();
-    private final ObjectProperty<Color> player1BackgroundProperty = new SimpleObjectProperty<>();
-    private final ObjectProperty<Color> player2BackgroundProperty = new SimpleObjectProperty<>();
-    private final ObjectProperty<Color> player2ColorProperty = new SimpleObjectProperty<>();
     private final DoubleProperty aiLevelLabelPositionProperty = new SimpleDoubleProperty();
-    private String suggestedHumanName1;
-    private String suggestedHumanName2;
-    private String suggestedAIName1;
-    private String suggestedAIName2;
     private Board board;
     private ObjectProperty<Font> rowFont;
     private Rectangle aiLevelLabelClipRectangle;
+    private String player1SampleName = NameList.getNextName();
+    private String player2SampleName = NameList.getNextName();
 
     @FXML
     private AnchorPane root;
@@ -182,8 +171,7 @@ public class Main extends Application {
     private Label aiLevelTitleLabel;
     @FXML
     private VBox menuSubBox;
-    private boolean player1NameModified = false;
-    private boolean player2NameModified = false;
+
     @FXML
     private Line aiLevelCenterLine;
 
@@ -262,119 +250,25 @@ public class Main extends Application {
             Platform.runLater(() -> new ExceptionAlert(exception).showAndWait());
         });
 
-        player1ColorProperty.set(player1AIToggle.isSelected() ? aiTextFieldFontColor : humanTextFieldFontColor);
-        player1BackgroundProperty.set(player1AIToggle.isSelected() ? aiTextFieldBackgroundColor : humanTextFieldBackgroundColor);
-        player2ColorProperty.set(player2AIToggle.isSelected() ? aiTextFieldFontColor : humanTextFieldFontColor);
-        player2BackgroundProperty.set(player2AIToggle.isSelected() ? aiTextFieldBackgroundColor : humanTextFieldBackgroundColor);
-
-        updateNodeStyle(player1Name, player1ColorProperty.get(), player1BackgroundProperty.get());
-        updateNodeStyle(player2Name, player2ColorProperty.get(), player2BackgroundProperty.get());
-
         aiLevelLabelClipRectangle = new Rectangle(0, 0, 0, 0);
         aiLevelLabelClipRectangle.setEffect(new MotionBlur(0, 10));
         aiLevelLabelPane.setClip(aiLevelLabelClipRectangle);
         aiLevelLabelClipRectangle.heightProperty().bind(aiLevelLabelPane.heightProperty());
         aiLevelLabelPane.widthProperty().addListener((observable, oldValue, newValue) -> updateAILevelLabel(true));
 
-        suggestedAIName1 = NameList.getNextAIName();
-        suggestedAIName2 = NameList.getNextAIName();
-        suggestedHumanName1 = NameList.getNextHumanName();
-        suggestedHumanName2 = NameList.getNextHumanName();
+        player1SetSampleName();
+        player2SetSampleName();
 
         gameTable.heightProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(gameTable.getWidth(), oldValue.doubleValue(), gameTable.getWidth(), newValue.doubleValue()));
         gameTable.widthProperty().addListener((observable, oldValue, newValue) -> refreshedNodes.refreshAll(oldValue.doubleValue(), gameTable.getHeight(), newValue.doubleValue(), gameTable.getHeight()));
 
-        player1ColorProperty.addListener((observable, oldValue, newValue) -> updateNodeStyle(player1Name, newValue, player1BackgroundProperty.get()));
-        player2ColorProperty.addListener((observable, oldValue, newValue) -> updateNodeStyle(player2Name, newValue, player2BackgroundProperty.get()));
-        player1BackgroundProperty.addListener((observable, oldValue, newValue) -> updateNodeStyle(player1Name, player1ColorProperty.get(), newValue));
-        player2BackgroundProperty.addListener((observable, oldValue, newValue) -> updateNodeStyle(player2Name, player2ColorProperty.get(), newValue));
-
         player1AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
             showHideAILevelSlider(newValue, player2AIToggle.isSelected());
-            if (!player1NameModified) {
-                Platform.runLater(() -> new Thread(() -> {
-                    try {
-                        Thread.sleep((long) Duration.seconds(animationSpeed / 2).toMillis());
-                    } catch (InterruptedException e) {
-                        FOKLogger.log(Main.class.getName(), Level.SEVERE, "An error occurred", e);
-                    } finally {
-                        player1SetSampleName();
-                    }
-                }).start());
-            }
-
-            Color fontToColor;
-            Color backgroundToColor;
-
-            if (player1AIToggle.isSelected()) {
-                // player 1 is a ai
-                fontToColor = aiTextFieldFontColor;
-                backgroundToColor = aiTextFieldBackgroundColor;
-            } else {
-                fontToColor = humanTextFieldFontColor;
-                backgroundToColor = humanTextFieldBackgroundColor;
-            }
-
-            KeyValue keyValueBackground1 = new KeyValue(player1BackgroundProperty, player1BackgroundProperty.get());
-            KeyValue keyValueFont1 = new KeyValue(player1ColorProperty, player1ColorProperty.get());
-            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(0), keyValueBackground1, keyValueFont1);
-
-            KeyValue keyValueBackground2 = new KeyValue(player1BackgroundProperty, backgroundToColor);
-            KeyValue keyValueFont2 = new KeyValue(player1ColorProperty, fontToColor);
-
-            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed), keyValueBackground2, keyValueFont2);
-
-            Timeline timeline = new Timeline(keyFrame1, keyFrame2);
-            timeline.play();
+            player1SetSampleName();
         });
         player2AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
             showHideAILevelSlider(player1AIToggle.isSelected(), newValue);
-            if (!player2NameModified) {
-                Platform.runLater(() -> new Thread(() -> {
-                    try {
-                        Thread.sleep((long) Duration.seconds(animationSpeed / 2).toMillis());
-                    } catch (InterruptedException e) {
-                        FOKLogger.log(Main.class.getName(), Level.SEVERE, "An error occurred", e);
-                    } finally {
-                        player2SetSampleName();
-                    }
-                }).start());
-            }
-
-            Color fontToColor;
-            Color backgroundToColor;
-
-            if (player2AIToggle.isSelected()) {
-                // player 2 is a ai
-                fontToColor = aiTextFieldFontColor;
-                backgroundToColor = aiTextFieldBackgroundColor;
-            } else {
-                fontToColor = humanTextFieldFontColor;
-                backgroundToColor = humanTextFieldBackgroundColor;
-            }
-
-            KeyValue keyValueBackground1 = new KeyValue(player2BackgroundProperty, player2BackgroundProperty.get());
-            KeyValue keyValueFont1 = new KeyValue(player2ColorProperty, player2ColorProperty.get());
-            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(0), keyValueBackground1, keyValueFont1);
-
-            KeyValue keyValueBackground2 = new KeyValue(player2BackgroundProperty, backgroundToColor);
-            KeyValue keyValueFont2 = new KeyValue(player2ColorProperty, fontToColor);
-
-            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed), keyValueBackground2, keyValueFont2);
-
-            Timeline timeline = new Timeline(keyFrame1, keyFrame2);
-            timeline.play();
-        });
-
-        player1Name.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.equals(player1AIToggle.isSelected() ? suggestedAIName1 : suggestedHumanName1)) {
-                player1NameModified = true;
-            }
-        });
-        player2Name.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue.equals(player2AIToggle.isSelected() ? suggestedAIName2 : suggestedHumanName2)) {
-                player2NameModified = true;
-            }
+            player2SetSampleName();
         });
 
         gameTable.setSelectionModel(null);
@@ -416,29 +310,13 @@ public class Main extends Application {
         initNewGame();
     }
 
-    private void updateNodeStyle(Node node, Color newFontColor, Color newBackgroundColor) {
-        if (node != null && newFontColor != null && newBackgroundColor != null) {
-            // uncomment to preserve the default 3d-like style for human players
-            /*if (newFontColor.equals(humanTextFieldFontColor) && newBackgroundColor.equals(humanTextFieldBackgroundColor)) {
-                node.setStyle("");
-            } else {*/
-            node.setStyle("-fx-text-fill: " + toRgbString(newFontColor) + "; -fx-control-inner-background: " + toRgbString(newBackgroundColor) + ";");
-            //}
-        }
+    private void player1SetSampleName() {
+        player1Name.setPromptText(player1AIToggle.isSelected() ? player1SampleName + " (AI)" : player1SampleName);
     }
 
-    private String toRgbString(Color c) {
-        return "rgb("
-                + to255Int(c.getRed())
-                + "," + to255Int(c.getGreen())
-                + "," + to255Int(c.getBlue())
-                + ")";
+    private void player2SetSampleName() {
+        player2Name.setPromptText(player2AIToggle.isSelected() ? player2SampleName + " (AI)" : player2SampleName);
     }
-
-    private int to255Int(double d) {
-        return (int) (d * 255);
-    }
-
 
     private void reloadImage(ImageView imageView, String imageURL, double newWidth, double newHeight) {
         if (loadTimerMap.get(imageURL) != null) {
@@ -557,9 +435,6 @@ public class Main extends Application {
 
     private void initNewGame() {
         guiAnimationQueue.submit(() -> {
-            player1SetSampleName();
-            player2SetSampleName();
-
             if (looserPane.isVisible()) {
                 blurLooserPane();
             }
@@ -592,13 +467,13 @@ public class Main extends Application {
         fadeWinLineGroup();
         guiAnimationQueue.submit(() -> {
             String finalPlayerName1 = player1Name.getText();
-            if (player1AIToggle.isSelected()) {
-                finalPlayerName1 = finalPlayerName1 + " (AI)";
+            if (finalPlayerName1.equals("")) {
+                finalPlayerName1 = player1Name.getPromptText();
             }
 
             String finalPlayerName2 = player2Name.getText();
-            if (player2AIToggle.isSelected()) {
-                finalPlayerName2 = finalPlayerName2 + " (AI)";
+            if (finalPlayerName2.equals("")) {
+                finalPlayerName2 = player2Name.getPromptText();
             }
 
             board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1));
@@ -739,14 +614,6 @@ public class Main extends Application {
             style.set("-fx-font-size:" + fontSize + "px; -fx-padding: 0;");
             gameTable.refresh();
         });
-    }
-
-    private void player1SetSampleName() {
-        player1Name.setText(player1AIToggle.isSelected() ? suggestedAIName1 : suggestedHumanName1);
-    }
-
-    private void player2SetSampleName() {
-        player2Name.setText(player2AIToggle.isSelected() ? suggestedAIName2 : suggestedHumanName2);
     }
 
     private boolean isMenuShown() {

@@ -21,8 +21,10 @@ package com.github.vatbub.tictactoe;
  */
 
 
+import org.apache.commons.lang.WordUtils;
+
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -40,49 +42,72 @@ public class NameList {
         firstNames = new ArrayList<>();
         lastNames = new ArrayList<>();
 
-        // read from resource file
+        try {
+            // read from resource file
+            File firstNamesFile = new File(NameList.class.getResource("firstnames.txt").toURI());
+            File lastNamesFile = new File(NameList.class.getResource("lastnames.txt").toURI());
 
-        // shuffle
-        shuffleAINames();
-        shuffleHumanNames();
+            Scanner firstNameScanner = new Scanner(firstNamesFile);
+            while (firstNameScanner.hasNextLine()) {
+                String line = firstNameScanner.nextLine();
+                if (!firstNames.contains(line) && !line.equals("")) {
+                    firstNames.add(line);
+                }
+            }
+
+            Scanner lastNameScanner;
+            lastNameScanner = new Scanner(lastNamesFile);
+            while (lastNameScanner.hasNextLine()) {
+                String line = lastNameScanner.nextLine();
+                if (!lastNames.contains(line) && !line.equals("")) {
+                    lastNames.add(line);
+                }
+            }
+
+            firstNameScanner.close();
+            lastNameScanner.close();
+
+            // shuffle
+            shuffle();
+        } catch (FileNotFoundException | URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
 
-
-    private static void shuffleAINames() {
-        long seed = System.nanoTime();
-        Collections.shuffle(firstNames, new Random(seed));
+    private static void shuffle() {
+        Collections.shuffle(firstNames, new Random(System.nanoTime()));
+        Collections.shuffle(lastNames, new Random(System.nanoTime()));
     }
 
-    private static void shuffleHumanNames() {
-        long seed = System.nanoTime();
-        Collections.shuffle(lastNames, new Random(seed));
-    }
-
-    public static String getNextAIName() {
+    public static String getNextFirstName() {
         lastAIIndex++;
         if (lastAIIndex >= firstNames.size()) {
-            shuffleAINames();
+            shuffle();
             lastAIIndex = 0;
         }
 
-        return firstNames.get(lastAIIndex);
+        return WordUtils.capitalize(firstNames.get(lastAIIndex));
     }
 
-    public static int getNumberOfAvailableAINames() {
+    public static int getNumberOfAvailableFirstNames() {
         return firstNames.size();
     }
 
-    public static String getNextHumanName() {
+    public static String getNextLastName() {
         lastHumanIndex++;
         if (lastHumanIndex >= lastNames.size()) {
-            shuffleHumanNames();
+            shuffle();
             lastHumanIndex = 0;
         }
 
-        return lastNames.get(lastHumanIndex);
+        return WordUtils.capitalize(lastNames.get(lastHumanIndex));
     }
 
-    public static int getNumberOfAvailableHumanNames() {
+    public static String getNextName(){
+        return getNextFirstName() + " " + getNextLastName();
+    }
+
+    public static int getNumberOfAvailableLastNames() {
         return lastNames.size();
     }
 }

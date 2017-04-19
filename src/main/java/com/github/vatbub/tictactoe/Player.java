@@ -43,7 +43,7 @@ public class Player {
     private boolean ai;
 
     public Player(boolean ai) {
-        this(ai, ai ? NameList.getNextAIName() : NameList.getNextHumanName());
+        this(ai, NameList.getNextName());
     }
 
     public Player(boolean ai, String name) {
