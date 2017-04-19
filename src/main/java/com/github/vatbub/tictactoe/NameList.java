@@ -25,7 +25,6 @@ import org.apache.commons.lang.WordUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
 import java.util.*;
 
 /**
@@ -44,8 +43,8 @@ public class NameList {
 
         try {
             // read from resource file
-            File firstNamesFile = new File(NameList.class.getResource("firstnames.txt").toURI());
-            File lastNamesFile = new File(NameList.class.getResource("lastnames.txt").toURI());
+            File firstNamesFile = new File(NameList.class.getResource("firstnames.txt").getFile());
+            File lastNamesFile = new File(NameList.class.getResource("lastnames.txt").getFile());
 
             Scanner firstNameScanner = new Scanner(firstNamesFile);
             while (firstNameScanner.hasNextLine()) {
@@ -69,7 +68,7 @@ public class NameList {
 
             // shuffle
             shuffle();
-        } catch (FileNotFoundException | URISyntaxException e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
