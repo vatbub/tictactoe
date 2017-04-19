@@ -423,7 +423,7 @@ public class Main extends Application {
             /*if (newFontColor.equals(humanTextFieldFontColor) && newBackgroundColor.equals(humanTextFieldBackgroundColor)) {
                 node.setStyle("");
             } else {*/
-                node.setStyle("-fx-text-fill: " + toRgbString(newFontColor) + "; -fx-background-color: " + toRgbString(newBackgroundColor) + ";");
+            node.setStyle("-fx-text-fill: " + toRgbString(newFontColor) + "; -fx-control-inner-background: " + toRgbString(newBackgroundColor) + ";");
             //}
         }
     }
