@@ -504,48 +504,6 @@ public class Main extends Application {
         guiAnimationQueue.submitWaitForUnlock(() -> {
             guiAnimationQueue.setBlocked(true);
 
-            /*double currentTranslateX = currentPlayerLabel.getTranslateX();
-            double currentTranslateY = currentPlayerLabel.getTranslateY();
-
-            double dX = currentPlayerLabel.getWidth() + AnchorPane.getRightAnchor(currentPlayerLabel);
-            double dY = currentPlayerLabel.getHeight() + AnchorPane.getBottomAnchor(currentPlayerLabel);
-
-            TranslateTransition translateTransition1 = new TranslateTransition(Duration.seconds(animationSpeed), currentPlayerLabel);
-            translateTransition1.setByX(dX);
-            translateTransition1.setOnFinished(event -> {
-                setCurrentPlayerValue();
-
-                currentPlayerLabel.setTranslateX(currentTranslateX);
-                currentPlayerLabel.setTranslateY(currentTranslateY + dY);
-                TranslateTransition translateTransition2 = new TranslateTransition(Duration.seconds(animationSpeed), currentPlayerLabel);
-                translateTransition2.setByY(-dY);
-
-                translateTransition2.setOnFinished(event1 -> guiAnimationQueue.setBlocked(false));
-                translateTransition2.play();
-            });
-            translateTransition1.play();*/
-
-            /*double currentTranslateX = currentPlayerLabelAnchorPane.getTranslateX();
-            double currentTranslateY = currentPlayerLabelAnchorPane.getTranslateY();
-
-            double dX = currentPlayerLabelAnchorPane.getWidth() + AnchorPane.getRightAnchor(currentPlayerLabelAnchorPane);
-            double dY = currentPlayerLabelAnchorPane.getHeight() + AnchorPane.getBottomAnchor(currentPlayerLabelAnchorPane);
-
-            TranslateTransition translateTransition1 = new TranslateTransition(Duration.seconds(animationSpeed), currentPlayerLabelAnchorPane);
-            translateTransition1.setByX(dX);
-            translateTransition1.setOnFinished(event -> {
-                setCurrentPlayerValue();
-
-                currentPlayerLabelAnchorPane.setTranslateX(currentTranslateX);
-                currentPlayerLabelAnchorPane.setTranslateY(currentTranslateY + dY);
-                TranslateTransition translateTransition2 = new TranslateTransition(Duration.seconds(animationSpeed), currentPlayerLabelAnchorPane);
-                translateTransition2.setByY(-dY);
-
-                translateTransition2.setOnFinished(event1 -> guiAnimationQueue.setBlocked(false));
-                translateTransition2.play();
-            });
-            translateTransition1.play();*/
-
             GaussianBlur blur = (GaussianBlur) currentPlayerLabel.getEffect();
             if (blur == null) {
                 blur = new GaussianBlur(0);
