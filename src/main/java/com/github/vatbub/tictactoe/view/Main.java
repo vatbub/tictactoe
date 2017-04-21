@@ -97,6 +97,10 @@ public class Main extends Application {
     private Rectangle aiLevelLabelClipRectangle;
     private String player1SampleName = NameList.getNextName();
     private String player2SampleName = NameList.getNextName();
+    /**
+     * We need to save this manually since {@code aiLevelSlider.isVisible} is delayed due to the animation
+     */
+    private boolean aiLevelSliderVisible = true;
 
     @FXML
     private AnchorPane root;
@@ -267,7 +271,6 @@ public class Main extends Application {
             player1SetSampleName();
         });
         player2AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            System.out.println("toggle2Value: " + newValue);
             showHideAILevelSlider(player1AIToggle.isSelected(), newValue);
             player2SetSampleName();
         });
@@ -923,9 +926,11 @@ public class Main extends Application {
      * Shows or hides the ai level slider according to the current ai configuration
      */
     private void showHideAILevelSlider(boolean player1IsAI, boolean player2IsAI) {
-        if ((player1IsAI || player2IsAI) && !(aiLevelSlider.isVisible() && aiLevelSlider.getOpacity() == 1)) {
+        if ((player1IsAI || player2IsAI) && !aiLevelSliderVisible) {
+            aiLevelSliderVisible = true;
             fadeAILevelSliderIn();
-        } else if (!player1IsAI && !player2IsAI && (aiLevelSlider.isVisible() && aiLevelSlider.getOpacity() == 1)) {
+        } else if (!player1IsAI && !player2IsAI && aiLevelSliderVisible) {
+            aiLevelSliderVisible = false;
             fadeAILevelSliderOut();
         }
     }
