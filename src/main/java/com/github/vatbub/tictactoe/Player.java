@@ -41,14 +41,20 @@ public class Player {
 
     private String name;
     private boolean ai;
+    private String letter;
 
     public Player(boolean ai) {
         this(ai, NameList.getNextName());
     }
 
     public Player(boolean ai, String name) {
+        this(ai, name, "");
+    }
+
+    public Player(boolean ai, String name, String letter) {
         this.setAi(ai);
         this.setName(name);
+        setLetter(letter);
     }
 
     public String getName() {
@@ -174,6 +180,14 @@ public class Player {
     @Override
     public String toString() {
         return getName();
+    }
+
+    public String getLetter() {
+        return letter;
+    }
+
+    public void setLetter(String letter) {
+        this.letter = letter;
     }
 
     private enum ReturnType {

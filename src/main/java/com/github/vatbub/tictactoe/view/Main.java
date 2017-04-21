@@ -501,8 +501,8 @@ public class Main extends Application {
                 finalPlayerName2 = player2Name.getPromptText();
             }
 
-            board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1));
-            board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2));
+            board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1, player1Letter));
+            board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2, player2Letter));
             updateCurrentPlayerLabel(true);
 
             if (board.getPlayer1().isAi()) {
@@ -516,54 +516,59 @@ public class Main extends Application {
     }
 
     public void updateCurrentPlayerLabel(@SuppressWarnings("SameParameterValue") boolean noAnimation) {
-        if (noAnimation) {
-            setCurrentPlayerValue();
-            return;
+        if (board.getCurrentPlayer() != null) {
+            if (!board.getCurrentPlayer().getLetter().equals(currentPlayerLabel.getText())) {
+                if (noAnimation) {
+                    setCurrentPlayerValue();
+                } else {
+                    guiAnimationQueue.submitWaitForUnlock(() -> {
+                        guiAnimationQueue.setBlocked(true);
+
+                        GaussianBlur blur = (GaussianBlur) currentPlayerLabel.getEffect();
+                        if (blur == null) {
+                            blur = new GaussianBlur(0);
+                        }
+
+                        Calendar changeLabelTextDate = Calendar.getInstance();
+                        changeLabelTextDate.add(Calendar.MILLISECOND, (int) (animationSpeed * 1000));
+                        runLaterTimer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                Platform.runLater(() -> setCurrentPlayerValue());
+                            }
+                        }, changeLabelTextDate.getTime());
+
+                        currentPlayerLabel.setEffect(blur);
+                        Timeline timeline = new Timeline();
+                        KeyValue keyValue1 = new KeyValue(blur.radiusProperty(), 20);
+                        KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(animationSpeed), keyValue1);
+
+                        KeyValue keyValue2 = new KeyValue(blur.radiusProperty(), 0);
+                        KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(2 * animationSpeed), keyValue2);
+
+                        timeline.getKeyFrames().addAll(keyFrame1, keyFrame2);
+
+                        timeline.setOnFinished((event) -> {
+                            currentPlayerLabel.setEffect(null);
+                            guiAnimationQueue.setBlocked(false);
+                            setBlockedForInput(false);
+                        });
+
+                        timeline.play();
+                    });
+                    return;
+                }
+            }
         }
 
-        guiAnimationQueue.submitWaitForUnlock(() -> {
-            guiAnimationQueue.setBlocked(true);
-
-            GaussianBlur blur = (GaussianBlur) currentPlayerLabel.getEffect();
-            if (blur == null) {
-                blur = new GaussianBlur(0);
-            }
-
-            Calendar changeLabelTextDate = Calendar.getInstance();
-            changeLabelTextDate.add(Calendar.MILLISECOND, (int) (animationSpeed * 1000));
-            runLaterTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    Platform.runLater(() -> setCurrentPlayerValue());
-                }
-            }, changeLabelTextDate.getTime());
-
-            currentPlayerLabel.setEffect(blur);
-            Timeline timeline = new Timeline();
-            KeyValue keyValue1 = new KeyValue(blur.radiusProperty(), 20);
-            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(animationSpeed), keyValue1);
-
-            KeyValue keyValue2 = new KeyValue(blur.radiusProperty(), 0);
-            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(2 * animationSpeed), keyValue2);
-
-            timeline.getKeyFrames().addAll(keyFrame1, keyFrame2);
-
-            timeline.setOnFinished((event) -> {
-                currentPlayerLabel.setEffect(null);
-                guiAnimationQueue.setBlocked(false);
-                setBlockedForInput(false);
-            });
-
-            timeline.play();
-        });
+        guiAnimationQueue.setBlocked(false);
+        setBlockedForInput(false);
     }
 
     private void setCurrentPlayerValue() {
         Player currentPlayer = board.getCurrentPlayer();
-        if (currentPlayer == board.getPlayer1() || currentPlayer == null) {
-            currentPlayerLabel.setText(player1Letter);
-        } else if (currentPlayer == board.getPlayer2()) {
-            currentPlayerLabel.setText(player2Letter);
+        if (currentPlayer != null) {
+            currentPlayerLabel.setText(currentPlayer.getLetter());
         }
     }
 
