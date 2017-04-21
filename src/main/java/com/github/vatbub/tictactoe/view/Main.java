@@ -81,12 +81,12 @@ import java.util.logging.Level;
  */
 @SuppressWarnings("JavaDoc")
 public class Main extends Application {
-    private static final double animationSpeed = 0.3;
+    public static final double animationSpeed = 0.3;
     private static final int gameRows = 3;
     private static final int gameCols = 3;
     private static final String player1Letter = "X";
     private static final String player2Letter = "O";
-
+    public static Main currentMainWindowInstance;
     final StringProperty style = new SimpleStringProperty("");
     private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
     private final RefreshableNodeList refreshedNodes = new RefreshableNodeList();
@@ -97,6 +97,9 @@ public class Main extends Application {
     private Rectangle aiLevelLabelClipRectangle;
     private String player1SampleName = NameList.getNextName();
     private String player2SampleName = NameList.getNextName();
+    private boolean blockedForInput;
+    private Timer runLaterTimer = new Timer();
+
     /**
      * We need to save this manually since {@code aiLevelSlider.isVisible} is delayed due to the animation
      */
@@ -178,6 +181,13 @@ public class Main extends Application {
 
     @FXML
     private Line aiLevelCenterLine;
+    @FXML
+    private AnchorPane currentPlayerLabelAnchorPane;
+
+    public Main() {
+        super();
+        currentMainWindowInstance = this;
+    }
 
     public static void main(String[] args) {
         Common.setAppName("tictactoev2");
@@ -332,7 +342,6 @@ public class Main extends Application {
         loadTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                FOKLogger.info(Main.class.getName(), "Loaded '" + imageURL + "', h:" + newHeight + ", w:" + newWidth);
                 Image image = new Image(imageURL, newWidth, newHeight, false, true);
                 Platform.runLater(() -> imageView.setImage(image));
             }
@@ -351,9 +360,12 @@ public class Main extends Application {
 
     @FXML
     void thinkOnAction(ActionEvent event) {
-        board.getCurrentPlayer().doAiTurn(board, AILevel.UNBEATABLE);
-        updateCurrentPlayerLabel();
-        renderRows();
+        if (!isBlockedForInput()) {
+            setBlockedForInput(true);
+            board.getCurrentPlayer().doAiTurn(board, AILevel.UNBEATABLE);
+            updateCurrentPlayerLabel();
+            renderRows();
+        }
     }
 
     private double getAILevelLabelCenter(int labelIndex) {
@@ -471,7 +483,7 @@ public class Main extends Application {
 
             board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1));
             board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2));
-            updateCurrentPlayerLabel();
+            updateCurrentPlayerLabel(true);
 
             if (board.getPlayer1().isAi()) {
                 board.getPlayer1().doAiTurn(board);
@@ -479,15 +491,102 @@ public class Main extends Application {
         });
     }
 
-    private void updateCurrentPlayerLabel() {
-        guiAnimationQueue.submit(() -> {
-            Player currentPlayer = board.getCurrentPlayer();
-            if (currentPlayer == board.getPlayer1() || currentPlayer == null) {
-                currentPlayerLabel.setText(player1Letter);
-            } else if (currentPlayer == board.getPlayer2()) {
-                currentPlayerLabel.setText(player2Letter);
+    public void updateCurrentPlayerLabel() {
+        updateCurrentPlayerLabel(false);
+    }
+
+    public void updateCurrentPlayerLabel(@SuppressWarnings("SameParameterValue") boolean noAnimation) {
+        if (noAnimation) {
+            setCurrentPlayerValue();
+            return;
+        }
+
+        guiAnimationQueue.submitWaitForUnlock(() -> {
+            guiAnimationQueue.setBlocked(true);
+
+            /*double currentTranslateX = currentPlayerLabel.getTranslateX();
+            double currentTranslateY = currentPlayerLabel.getTranslateY();
+
+            double dX = currentPlayerLabel.getWidth() + AnchorPane.getRightAnchor(currentPlayerLabel);
+            double dY = currentPlayerLabel.getHeight() + AnchorPane.getBottomAnchor(currentPlayerLabel);
+
+            TranslateTransition translateTransition1 = new TranslateTransition(Duration.seconds(animationSpeed), currentPlayerLabel);
+            translateTransition1.setByX(dX);
+            translateTransition1.setOnFinished(event -> {
+                setCurrentPlayerValue();
+
+                currentPlayerLabel.setTranslateX(currentTranslateX);
+                currentPlayerLabel.setTranslateY(currentTranslateY + dY);
+                TranslateTransition translateTransition2 = new TranslateTransition(Duration.seconds(animationSpeed), currentPlayerLabel);
+                translateTransition2.setByY(-dY);
+
+                translateTransition2.setOnFinished(event1 -> guiAnimationQueue.setBlocked(false));
+                translateTransition2.play();
+            });
+            translateTransition1.play();*/
+
+            /*double currentTranslateX = currentPlayerLabelAnchorPane.getTranslateX();
+            double currentTranslateY = currentPlayerLabelAnchorPane.getTranslateY();
+
+            double dX = currentPlayerLabelAnchorPane.getWidth() + AnchorPane.getRightAnchor(currentPlayerLabelAnchorPane);
+            double dY = currentPlayerLabelAnchorPane.getHeight() + AnchorPane.getBottomAnchor(currentPlayerLabelAnchorPane);
+
+            TranslateTransition translateTransition1 = new TranslateTransition(Duration.seconds(animationSpeed), currentPlayerLabelAnchorPane);
+            translateTransition1.setByX(dX);
+            translateTransition1.setOnFinished(event -> {
+                setCurrentPlayerValue();
+
+                currentPlayerLabelAnchorPane.setTranslateX(currentTranslateX);
+                currentPlayerLabelAnchorPane.setTranslateY(currentTranslateY + dY);
+                TranslateTransition translateTransition2 = new TranslateTransition(Duration.seconds(animationSpeed), currentPlayerLabelAnchorPane);
+                translateTransition2.setByY(-dY);
+
+                translateTransition2.setOnFinished(event1 -> guiAnimationQueue.setBlocked(false));
+                translateTransition2.play();
+            });
+            translateTransition1.play();*/
+
+            GaussianBlur blur = (GaussianBlur) currentPlayerLabel.getEffect();
+            if (blur == null) {
+                blur = new GaussianBlur(0);
             }
+
+            Calendar changeLabelTextDate = Calendar.getInstance();
+            changeLabelTextDate.add(Calendar.MILLISECOND, (int) (animationSpeed * 1000));
+            runLaterTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    Platform.runLater(() -> setCurrentPlayerValue());
+                }
+            }, changeLabelTextDate.getTime());
+
+            currentPlayerLabel.setEffect(blur);
+            Timeline timeline = new Timeline();
+            KeyValue keyValue1 = new KeyValue(blur.radiusProperty(), 20);
+            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(animationSpeed), keyValue1);
+
+            KeyValue keyValue2 = new KeyValue(blur.radiusProperty(), 0);
+            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(2 * animationSpeed), keyValue2);
+
+            timeline.getKeyFrames().addAll(keyFrame1, keyFrame2);
+
+            timeline.setOnFinished((event) -> {
+                currentPlayerLabel.setEffect(null);
+                guiAnimationQueue.setBlocked(false);
+                setBlockedForInput(false);
+            });
+
+            timeline.play();
         });
+    }
+
+    private void setCurrentPlayerValue() {
+        Player currentPlayer = board.getCurrentPlayer();
+        if (currentPlayer == board.getPlayer1() || currentPlayer == null) {
+            currentPlayerLabel.setText(player1Letter);
+        } else if (currentPlayer == board.getPlayer2()) {
+            currentPlayerLabel.setText(player2Letter);
+        }
     }
 
     private void initBoard() {
@@ -547,7 +646,8 @@ public class Main extends Application {
                         };
 
                         cell.setOnMouseClicked(event -> {
-                            if (board.getPlayerAt(cell.getIndex(), gameTable.getColumns().indexOf(col)) == null) {
+                            if (board.getPlayerAt(cell.getIndex(), gameTable.getColumns().indexOf(col)) == null && !isBlockedForInput()) {
+                                setBlockedForInput(true);
                                 board.doTurn(new Board.Move(cell.getIndex(), gameTable.getColumns().indexOf(col)));
                                 updateCurrentPlayerLabel();
                                 renderRows();
@@ -565,7 +665,7 @@ public class Main extends Application {
         });
     }
 
-    private void renderRows() {
+    public void renderRows() {
         guiAnimationQueue.submit(() -> {
             ObservableList<Row> generatedRows = FXCollections.observableArrayList();
 
@@ -1039,6 +1139,14 @@ public class Main extends Application {
 
             fadeTransition.play();
         });
+    }
+
+    public boolean isBlockedForInput() {
+        return blockedForInput;
+    }
+
+    public void setBlockedForInput(boolean blockedForInput) {
+        this.blockedForInput = blockedForInput;
     }
 
     private class WinLineGeometry {

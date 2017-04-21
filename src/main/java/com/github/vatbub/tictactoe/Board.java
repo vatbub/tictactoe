@@ -22,13 +22,18 @@ package com.github.vatbub.tictactoe;
 
 
 import com.github.vatbub.tictactoe.view.AILevel;
+import com.github.vatbub.tictactoe.view.Main;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import logging.FOKLogger;
+import org.apache.commons.io.output.NullOutputStream;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * A classic tic tac toe board.
@@ -170,7 +175,26 @@ public class Board {
         currentPlayerProperty().set(getOpponent(getCurrentPlayer()));
 
         if (getCurrentPlayer().isAi() && !ignoreAI) {
-            getCurrentPlayer().doAiTurn(this);
+            final Board thisCopy = this;
+            Thread aiWaitThread = new Thread(() -> {
+                PrintStream nullPrintStream = new PrintStream(new NullOutputStream());
+                while (Main.currentMainWindowInstance.isBlockedForInput()) {
+                    // wait
+                    nullPrintStream.println("Waiting...");
+                }
+
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    FOKLogger.log(Board.class.getName(), Level.SEVERE, "An error occurred", e);
+                }
+
+                getCurrentPlayer().doAiTurn(thisCopy);
+                Main.currentMainWindowInstance.updateCurrentPlayerLabel();
+                Main.currentMainWindowInstance.renderRows();
+            });
+            aiWaitThread.setName("aiWaitThread");
+            aiWaitThread.start();
         }
     }
 

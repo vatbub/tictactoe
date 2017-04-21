@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+<?import org.controlsfx.control.*?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Hyperlink?>
@@ -22,7 +31,7 @@
 
 <!--suppress ALL -->
 
-<AnchorPane fx:id="root" prefHeight="645.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.vatbub.tictactoe.view.Main">
+<AnchorPane fx:id="root" prefHeight="645.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.vatbub.tictactoe.view.Main">
    <children>
       <AnchorPane fx:id="gamePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -38,11 +47,18 @@
               </items>
             </ToolBar>
             <Group fx:id="winLineGroup" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="45.0" />
-            <Label fx:id="currentPlayerLabel" text="X" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
-               <font>
-                  <Font size="36.0" />
-               </font>
-            </Label>
+            <AnchorPane fx:id="currentPlayerLabelAnchorPane" layoutX="568.0" layoutY="592.0" prefHeight="55.0" prefWidth="45.0" style="-fx-background-color: #DDDDDD; -fx-background-radius: 13 0 0 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <children>
+                  <Label fx:id="currentPlayerLabel" text="X" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="10.0">
+                     <font>
+                        <Font size="36.0" />
+                     </font>
+                  </Label>
+               </children>
+               <effect>
+                  <DropShadow height="12.0" radius="5.5" width="12.0" />
+               </effect>
+            </AnchorPane>
          </children>
          <effect>
             <GaussianBlur />
