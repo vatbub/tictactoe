@@ -22,6 +22,7 @@ package com.github.vatbub.tictactoe.view;
 
 
 import javafx.application.Platform;
+import org.apache.commons.io.output.NullOutputStream;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.OutputStream;
@@ -144,23 +145,19 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
 
     @SuppressWarnings("UnusedReturnValue")
     public Future<?> submitWaitForUnlock(Runnable task) {
-        Runnable effectiveTask = cerateEffectiveWaitingTask(task);
+        Runnable effectiveTask = createEffectiveWaitingTask(task);
         return super.schedule(effectiveTask, 0, NANOSECONDS);
     }
 
     public <T> Future<T> submitWaitForUnlock(Runnable task, T result) {
-        Runnable effectiveTask = cerateEffectiveWaitingTask(task);
+        Runnable effectiveTask = createEffectiveWaitingTask(task);
         return super.schedule(Executors.callable(effectiveTask, result), 0, NANOSECONDS);
     }
 
-    private Runnable cerateEffectiveWaitingTask(Runnable task){
+    private Runnable createEffectiveWaitingTask(Runnable task){
         return () -> {
             // PrintStreams magically don't make the wait loop hang
-            PrintStream nullStream = new PrintStream(new OutputStream() {
-                public void write(int b) {
-                    //DO NOTHING
-                }
-            });
+            PrintStream nullStream = new PrintStream(new NullOutputStream());
             while (isBlocked()){
                 nullStream.println("Waiting...");
             }
