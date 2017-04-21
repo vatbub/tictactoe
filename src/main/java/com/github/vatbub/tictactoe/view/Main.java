@@ -44,11 +44,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.*;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.Blend;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.effect.MotionBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -319,6 +321,24 @@ public class Main extends Application {
         confetti.fitWidthProperty().addListener((observable, oldValue, newValue) -> reloadImage(confetti, getClass().getResource("confetti.png").toString(), newValue.doubleValue(), confetti.getFitWidth()));
 
         aiLevelSlider.valueProperty().addListener((observable, oldValue, newValue) -> updateAILevelLabel());
+
+        // Kunami code
+        root.setOnKeyPressed(event -> {
+            if (KunamiCode.isCompleted(event.getCode())) {
+                if (root.getEffect() != null && root.getEffect() instanceof Blend) {
+                    BlendMode currentMode = ((Blend) root.getEffect()).getMode();
+                    BlendMode nextMode;
+                    if (currentMode == BlendMode.values()[BlendMode.values().length - 1]) {
+                        nextMode = BlendMode.values()[0];
+                    } else {
+                        nextMode = BlendMode.values()[Arrays.asList(BlendMode.values()).indexOf(currentMode) + 1];
+                    }
+                    ((Blend) root.getEffect()).setMode(nextMode);
+                } else {
+                    root.setEffect(new Blend(BlendMode.EXCLUSION));
+                }
+            }
+        });
 
         initBoard();
         initNewGame();
@@ -1105,6 +1125,29 @@ public class Main extends Application {
 
     public void setBlockedForInput(boolean blockedForInput) {
         this.blockedForInput = blockedForInput;
+    }
+
+    private static class KunamiCode {
+        private static KeyCode[] kunamiCodes = {KeyCode.U, KeyCode.U, KeyCode.D, KeyCode.D, KeyCode.L, KeyCode.R, KeyCode.L, KeyCode.R, KeyCode.B, KeyCode.A};
+        private static int currentIndex = 0;
+
+        private static boolean isCompleted(KeyCode nextKeyCode) {
+            if (nextKeyCode.equals(kunamiCodes[currentIndex])) {
+                if (currentIndex == kunamiCodes.length - 1) {
+                    // we're at the end
+                    currentIndex = 0;
+                    return true;
+                } else {
+                    // The key was correct but we're not yet at the end
+                    currentIndex++;
+                    return false;
+                }
+            } else {
+                // the key was false
+                currentIndex = 0;
+                return false;
+            }
+        }
     }
 
     private class WinLineGeometry {

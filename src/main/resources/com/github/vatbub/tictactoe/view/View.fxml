@@ -59,6 +59,7 @@
                   <DropShadow height="12.0" radius="5.5" width="12.0" />
                </effect>
             </AnchorPane>
+            <Label text="U U D D L R L R B A" textFill="#b9b9b9" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="12.0" />
          </children>
          <effect>
             <GaussianBlur />
