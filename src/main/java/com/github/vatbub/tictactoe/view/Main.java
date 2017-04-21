@@ -267,6 +267,7 @@ public class Main extends Application {
             player1SetSampleName();
         });
         player2AIToggle.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            System.out.println("toggle2Value: " + newValue);
             showHideAILevelSlider(player1AIToggle.isSelected(), newValue);
             player2SetSampleName();
         });
@@ -587,22 +588,22 @@ public class Main extends Application {
             long fontSize = Math.round((effectiveHeight - 250) / board.getRowCount());
 
             // get letter widths;
-            System.out.println(rowFont==null);
-            System.out.println(rowFont.getName());
-            Font font = new Font(rowFont.getName(), fontSize);
-            double player1SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player1Letter, font);
-            double player2SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player2Letter, font);
+            if (rowFont != null) {
+                Font font = new Font(rowFont.getName(), fontSize);
+                double player1SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player1Letter, font);
+                double player2SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player2Letter, font);
 
-            // make the font smaller so that it fits the cell even if the width is very small
-            while (player1SymbolWidth > (gameTable.getWidth() / board.getColumnCount()) || player2SymbolWidth + 10 > (gameTable.getWidth() / board.getColumnCount())) {
-                fontSize = fontSize - 1;
-                font = new Font(rowFont.getName(), fontSize);
-                player1SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player1Letter, font);
-                player2SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player2Letter, font);
+                // make the font smaller so that it fits the cell even if the width is very small
+                while (player1SymbolWidth > (gameTable.getWidth() / board.getColumnCount()) || player2SymbolWidth + 10 > (gameTable.getWidth() / board.getColumnCount())) {
+                    fontSize = fontSize - 1;
+                    font = new Font(rowFont.getName(), fontSize);
+                    player1SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player1Letter, font);
+                    player2SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player2Letter, font);
+                }
+                style.set("-fx-font-size:" + fontSize + "px; -fx-padding: 0;");
             }
 
             gameTable.setFixedCellSize(effectiveHeight / board.getRowCount());
-            style.set("-fx-font-size:" + fontSize + "px; -fx-padding: 0;");
             gameTable.refresh();
         });
     }
@@ -922,9 +923,9 @@ public class Main extends Application {
      * Shows or hides the ai level slider according to the current ai configuration
      */
     private void showHideAILevelSlider(boolean player1IsAI, boolean player2IsAI) {
-        if ((player1IsAI || player2IsAI) && !aiLevelSlider.isVisible()) {
+        if ((player1IsAI || player2IsAI) && !(aiLevelSlider.isVisible() && aiLevelSlider.getOpacity() == 1)) {
             fadeAILevelSliderIn();
-        } else if (!player1IsAI && !player2IsAI && aiLevelSlider.isVisible()) {
+        } else if (!player1IsAI && !player2IsAI && (aiLevelSlider.isVisible() && aiLevelSlider.getOpacity() == 1)) {
             fadeAILevelSliderOut();
         }
     }
