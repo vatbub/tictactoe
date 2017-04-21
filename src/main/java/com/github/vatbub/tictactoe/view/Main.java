@@ -587,6 +587,8 @@ public class Main extends Application {
             long fontSize = Math.round((effectiveHeight - 250) / board.getRowCount());
 
             // get letter widths;
+            System.out.println(rowFont==null);
+            System.out.println(rowFont.getName());
             Font font = new Font(rowFont.getName(), fontSize);
             double player1SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player1Letter, font);
             double player2SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player2Letter, font);
