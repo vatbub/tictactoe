@@ -332,7 +332,7 @@ public class Main extends Application {
         loadTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                System.out.println("Loaded '" + imageURL + "', h:" + newHeight + ", w:" + newWidth);
+                FOKLogger.info(Main.class.getName(), "Loaded '" + imageURL + "', h:" + newHeight + ", w:" + newWidth);
                 Image image = new Image(imageURL, newWidth, newHeight, false, true);
                 Platform.runLater(() -> imageView.setImage(image));
             }
@@ -512,7 +512,7 @@ public class Main extends Application {
             }
 
             board.setGameEndCallback((winnerInfo) -> guiAnimationQueue.submit(() -> {
-                System.out.println("The winner is: " + winnerInfo.winningPlayer.getName());
+                FOKLogger.info(Main.class.getName(), "The winner is: " + winnerInfo.winningPlayer.getName());
                 if (winnerInfo.isTie()) {
                     showTie();
                 } else if (!winnerInfo.winningPlayer.isAi() && board.getOpponent(winnerInfo.winningPlayer).isAi()) {
