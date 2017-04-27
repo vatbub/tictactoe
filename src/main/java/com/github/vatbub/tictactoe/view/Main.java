@@ -409,7 +409,6 @@ public class Main extends Application {
             double[] widthYDouble = new double[4];
             double[] trueWidthYDouble = new double[4];
             for (int i = 0; i < translationYDouble.length; i++) {
-                // {-getAILevelLabelCenter(0), -getAILevelLabelCenter(1), -getAILevelLabelCenter(2), -getAILevelLabelCenter(3)};
                 translationYDouble[i] = -getAILevelLabelCenter(i);
                 widthYDouble[i] = Math.max(90, ((Label) aiLevelLabelHBox.getChildren().get(i)).getWidth() + 8 * aiLevelLabelHBox.getSpacing());
                 trueWidthYDouble[i] = ((Label) aiLevelLabelHBox.getChildren().get(i)).getWidth();
