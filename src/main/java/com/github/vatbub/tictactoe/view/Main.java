@@ -420,6 +420,13 @@ public class Main extends Application {
             PolynomialSplineFunction widthFunction = splineInterpolator.interpolate(xDouble, widthYDouble);
             PolynomialSplineFunction trueWidthFunction = splineInterpolator.interpolate(xDouble, trueWidthYDouble);
 
+            KeyValue hBoxLayoutXKeyValue1 = new KeyValue(aiLevelLabelHBox.layoutXProperty(), aiLevelLabelHBox.getLayoutX(), Interpolator.EASE_BOTH);
+            KeyValue aiLevelLabelClipRectangleWidthKeyValue1 = new KeyValue(aiLevelLabelClipRectangle.widthProperty(), aiLevelLabelClipRectangle.getWidth(), Interpolator.EASE_BOTH);
+            KeyValue aiLevelLabelClipRectangleXKeyValue1 = new KeyValue(aiLevelLabelClipRectangle.xProperty(), aiLevelLabelClipRectangle.getX(), Interpolator.EASE_BOTH);
+            KeyValue aiLevelCenterLineStartXKeyValue1 = new KeyValue(aiLevelCenterLine.startXProperty(), aiLevelCenterLine.getStartX(), Interpolator.EASE_BOTH);
+            KeyValue aiLevelCenterLineEndXKeyValue1 = new KeyValue(aiLevelCenterLine.endXProperty(), aiLevelCenterLine.getEndX(), Interpolator.EASE_BOTH);
+            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(0), hBoxLayoutXKeyValue1, aiLevelLabelClipRectangleWidthKeyValue1, aiLevelLabelClipRectangleXKeyValue1, aiLevelCenterLineStartXKeyValue1, aiLevelCenterLineEndXKeyValue1);
+
             double interpolatedLabelWidth = trueWidthFunction.value(sliderPos);
 
             KeyValue hBoxLayoutXKeyValue2 = new KeyValue(aiLevelLabelHBox.layoutXProperty(), translateFunction.value(sliderPos), Interpolator.EASE_BOTH);
@@ -429,7 +436,7 @@ public class Main extends Application {
             KeyValue aiLevelCenterLineEndXKeyValue2 = new KeyValue(aiLevelCenterLine.endXProperty(), (aiLevelLabelPane.getWidth() + interpolatedLabelWidth) / 2, Interpolator.EASE_BOTH);
             KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed * 0.9), hBoxLayoutXKeyValue2, aiLevelLabelClipRectangleWidthKeyValue2, aiLevelLabelClipRectangleXKeyValue2, aiLevelCenterLineStartXKeyValue2, aiLevelCenterLineEndXKeyValue2);
 
-            Timeline timeline = new Timeline(keyFrame2);
+            Timeline timeline = new Timeline(keyFrame1, keyFrame2);
             timeline.play();
         }
     }
@@ -454,7 +461,7 @@ public class Main extends Application {
                     KeyValue fontSizeKeyValue = new KeyValue(currentPlayerLabelFontSize, currentCellFontSize, interpolator);
                     KeyValue xKeyValue = new KeyValue(currentPlayerLabel.layoutXProperty(), newMouseX - (currentPlayerLabel.getWidth() / 2), interpolator);
                     KeyValue yKeyValue = new KeyValue(currentPlayerLabel.layoutYProperty(), newMouseY - (currentPlayerLabel.getHeight() / 4), interpolator);
-                    KeyValue opacityKeyValue = new KeyValue(currentPlayerLabel.opacityProperty(), 0.7);
+                    KeyValue opacityKeyValue = new KeyValue(currentPlayerLabel.opacityProperty(), 0.6);
                     KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed * 0.7), fontSizeKeyValue, xKeyValue, yKeyValue, opacityKeyValue);
 
                     Timeline timeline = new Timeline(keyFrame2);
@@ -924,6 +931,10 @@ public class Main extends Application {
         double winLineAnimationX1 = 0.2;
         double winLineAnimationX2 = 0.5;
 
+        KeyValue stretchKeyValue1x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX());
+        KeyValue stretchKeyValue1y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY());
+        KeyFrame stretchKeyFrame1 = new KeyFrame(Duration.millis(0), stretchKeyValue1x, stretchKeyValue1y);
+
         KeyValue stretchKeyValue2x = new KeyValue(winLine.endArc.centerXProperty(), winLine.startArc.getCenterX(), new CustomEaseBothInterpolator(winLineAnimationX1, winLineAnimationX2));
         KeyValue stretchKeyValue2y = new KeyValue(winLine.endArc.centerYProperty(), winLine.startArc.getCenterY(), new CustomEaseBothInterpolator(winLineAnimationX1, winLineAnimationX2));
         KeyFrame stretchKeyFrame2 = new KeyFrame(Duration.millis(100), stretchKeyValue2x, stretchKeyValue2y);
@@ -936,7 +947,7 @@ public class Main extends Application {
         KeyFrame opacityKeyFrame1 = new KeyFrame(Duration.millis(400), opacityKeyValue1);
 
         Timeline timeline = new Timeline();
-        timeline.getKeyFrames().addAll(stretchKeyFrame2, stretchKeyFrame3, opacityKeyFrame1);
+        timeline.getKeyFrames().addAll(stretchKeyFrame1, stretchKeyFrame2, stretchKeyFrame3, opacityKeyFrame1);
         timeline.play();
 
         timeline.setOnFinished((event) -> onFinished.run());
