@@ -90,7 +90,6 @@ public class Main extends Application {
     private static final String player2Letter = "O";
     public static Main currentMainWindowInstance;
     final StringProperty style = new SimpleStringProperty("");
-    final DoubleProperty currentPlayerLabelFontSize = new SimpleDoubleProperty();
     private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
     private final RefreshableNodeList refreshedNodes = new RefreshableNodeList();
     private final Map<String, Timer> loadTimerMap = new HashMap<>();
@@ -100,14 +99,14 @@ public class Main extends Application {
     private Rectangle aiLevelLabelClipRectangle;
     private String player1SampleName = NameList.getNextName();
     private String player2SampleName = NameList.getNextName();
-    private SimpleBooleanProperty blockedForInput = new SimpleBooleanProperty(this, "blockedForInput");
+    private boolean blockedForInput;
     private Timer runLaterTimer = new Timer();
-    private long currentCellFontSize;
-    private boolean currentPlayerLabelCurrentlyAnimated;
+
     /**
      * We need to save this manually since {@code aiLevelSlider.isVisible} is delayed due to the animation
      */
     private boolean aiLevelSliderVisible = true;
+
     @FXML
     private AnchorPane root;
     @FXML
@@ -128,47 +127,65 @@ public class Main extends Application {
     private ToggleSwitch player2AIToggle;
     @FXML
     private Group winLineGroup;
+
     @FXML
     private AnchorPane looserPane;
+
     @FXML
     private ImageView looseImage;
+
     @FXML
     private AnchorPane looseMessage;
+
     @FXML
     private AnchorPane tieMessage;
+
     @FXML
     private Label looserText;
+
     @FXML
     private Label currentPlayerLabel;
+
     @FXML
     private AnchorPane tiePane;
+
     @FXML
     private AnchorPane winPane;
+
     @FXML
     private ImageView confetti;
+
     @FXML
     private ImageView winningGirl;
+
     @FXML
     private AnchorPane winMessage;
+
     @FXML
     private Label winnerText;
+
     @FXML
     private ImageView bowTie;
+
     @FXML
     private Slider aiLevelSlider;
+
     @FXML
     private Pane aiLevelLabelPane;
+
     @FXML
     private HBox aiLevelLabelHBox;
+
     @FXML
     private Label aiLevelTitleLabel;
     @FXML
     private VBox menuSubBox;
+
     @FXML
     private Line aiLevelCenterLine;
     @FXML
     private AnchorPane currentPlayerLabelAnchorPane;
-    private Timeline currentPlayerWobbelingTimeline;
+
     public Main() {
         super();
         currentMainWindowInstance = this;
@@ -323,15 +340,6 @@ public class Main extends Application {
             }
         });
 
-        currentPlayerLabelFontSize.addListener((observable, oldValue, newValue) -> currentPlayerLabel.setStyle("-fx-font-size: " + newValue));
-        blockedForInputProperty().addListener((observable, oldValue, newValue) -> updateCurrentPlayerLabelAnimationStatus());
-        currentPlayerLabel.setMouseTransparent(true);
-
-        // update the currentPlayerLabel
-        gameTable.setOnMouseMoved(event -> updateAnimatedNextTurnPlayerLabel(event.getX(), event.getY()));
-        gameTable.setOnMouseEntered(event -> updateCurrentPlayerLabelAnimationStatus());
-        gameTable.setOnMouseExited(event -> unanimateCurrentPlayerLabel());
-
         initBoard();
         initNewGame();
     }
@@ -439,141 +447,6 @@ public class Main extends Application {
             Timeline timeline = new Timeline(keyFrame1, keyFrame2);
             timeline.play();
         }
-    }
-
-    private void updateAnimatedNextTurnPlayerLabel(double newMouseX, double newMouseY) {
-        updateCurrentPlayerLabelAnimationStatus();
-
-        Interpolator interpolator = new CustomEaseBothInterpolator(0.8, 0.81);
-
-        if (currentPlayerLabelCurrentlyAnimated) {
-            if (currentPlayerWobbelingTimeline == null) {
-                startWobbelingAnimation();
-            }
-
-            int maxPixelDiffForNoAnimation = 30;
-            if (currentPlayerLabelFontSize.get() != currentCellFontSize ||
-                    Math.abs(currentPlayerLabel.getLayoutX() - (newMouseX - (currentPlayerLabel.getWidth() / 2))) > maxPixelDiffForNoAnimation ||
-                    Math.abs(currentPlayerLabel.getLayoutY() - (newMouseY - (currentPlayerLabel.getHeight() / 4))) > maxPixelDiffForNoAnimation) {
-
-                guiAnimationQueue.submitWaitForUnlock(() -> {
-                    guiAnimationQueue.setBlocked(true);
-                    KeyValue fontSizeKeyValue = new KeyValue(currentPlayerLabelFontSize, currentCellFontSize, interpolator);
-                    KeyValue xKeyValue = new KeyValue(currentPlayerLabel.layoutXProperty(), newMouseX - (currentPlayerLabel.getWidth() / 2), interpolator);
-                    KeyValue yKeyValue = new KeyValue(currentPlayerLabel.layoutYProperty(), newMouseY - (currentPlayerLabel.getHeight() / 4), interpolator);
-                    KeyValue opacityKeyValue = new KeyValue(currentPlayerLabel.opacityProperty(), 0.6);
-                    KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed * 0.7), fontSizeKeyValue, xKeyValue, yKeyValue, opacityKeyValue);
-
-                    Timeline timeline = new Timeline(keyFrame2);
-                    timeline.setOnFinished(event -> guiAnimationQueue.setBlocked(false));
-                    timeline.play();
-                });
-            } else {
-                currentPlayerLabel.setLayoutX(newMouseX - (currentPlayerLabel.getWidth() / 2));
-                currentPlayerLabel.setLayoutY(newMouseY - (currentPlayerLabel.getHeight() / 4));
-            }
-        }
-    }
-
-    private void updateCurrentPlayerLabelAnimationStatus() {
-        if (currentPlayerLabelCurrentlyAnimated) {
-            if (isBlockedForInput() || board.getCurrentPlayer() == null || board.getCurrentPlayer().isAi()) {
-                // label is shown but needs to be hidden
-                unanimateCurrentPlayerLabel();
-            }
-        } else {
-            if (board.getCurrentPlayer() != null) {
-                if (!isBlockedForInput() && !board.getCurrentPlayer().isAi()) {
-                    // label is hidden and needs to be shown
-                    animateCurrentPlayerLabel();
-                }
-            }
-        }
-    }
-
-    private void unanimateCurrentPlayerLabel() {
-        currentPlayerLabelCurrentlyAnimated = false;
-
-        guiAnimationQueue.submitWaitForUnlock(() -> {
-            if (currentPlayerWobbelingTimeline != null) {
-                currentPlayerWobbelingTimeline.stop();
-                currentPlayerWobbelingTimeline = null;
-                KeyValue xScaleReturnKeyValue = new KeyValue(currentPlayerLabel.scaleXProperty(), 1);
-                KeyValue yScaleReturnKeyValue = new KeyValue(currentPlayerLabel.scaleYProperty(), 1);
-                KeyValue translateXReturnKeyValue = new KeyValue(currentPlayerLabel.translateXProperty(), 0);
-                KeyValue translateYReturnKeyValue = new KeyValue(currentPlayerLabel.translateYProperty(), 0);
-                KeyFrame returnKeyFrame = new KeyFrame(Duration.seconds(0.1), xScaleReturnKeyValue, yScaleReturnKeyValue, translateXReturnKeyValue, translateYReturnKeyValue);
-
-                new Timeline(returnKeyFrame).play();
-            }
-            guiAnimationQueue.setBlocked(true);
-
-            KeyValue fontSizeKeyValue = new KeyValue(currentPlayerLabelFontSize, 36);
-            KeyValue xKeyValue = new KeyValue(currentPlayerLabel.layoutXProperty(), gamePane.getWidth() - currentPlayerLabelAnchorPane.getWidth() + 13);
-            KeyValue yKeyValue = new KeyValue(currentPlayerLabel.layoutYProperty(), gamePane.getHeight() - currentPlayerLabelAnchorPane.getHeight() + 2);
-            KeyValue opacityKeyValue = new KeyValue(currentPlayerLabel.opacityProperty(), 1);
-
-            KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), fontSizeKeyValue, xKeyValue, yKeyValue, opacityKeyValue);
-
-            Timeline timeline = new Timeline(keyFrame);
-            timeline.setOnFinished(event -> {
-                // gamePane.getChildren().remove(currentPlayerLabel);
-                currentPlayerLabel.setLayoutX(0);
-                currentPlayerLabel.setLayoutY(0);
-                // currentPlayerLabelAnchorPane.getChildren().add(currentPlayerLabel);
-                AnchorPane.setBottomAnchor(currentPlayerLabel, 0.0);
-                AnchorPane.setRightAnchor(currentPlayerLabel, 10.0);
-                guiAnimationQueue.setBlocked(false);
-            });
-            timeline.play();
-        });
-    }
-
-    private void animateCurrentPlayerLabel() {
-        currentPlayerLabelCurrentlyAnimated = true;
-        AnchorPane.clearConstraints(currentPlayerLabel);
-    }
-
-    private void startWobbelingAnimation() {
-        double minScale = 0.9;
-        double maxScale = 1.1;
-        double minTranslate = -10;
-        double maxTranslate = 10;
-
-        double durationDiff = 0.3;
-
-        KeyValue xScaleKeyValue = new KeyValue(currentPlayerLabel.scaleXProperty(), randomInRange(minScale, maxScale));
-        KeyValue yScaleKeyValue = new KeyValue(currentPlayerLabel.scaleYProperty(), randomInRange(minScale, maxScale));
-        KeyValue translateXKeyValue = new KeyValue(currentPlayerLabel.translateXProperty(), randomInRange(minTranslate, maxTranslate));
-        KeyValue translateYKeyValue = new KeyValue(currentPlayerLabel.translateYProperty(), randomInRange(minTranslate, maxTranslate));
-
-        KeyFrame xScaleKeyFrame = new KeyFrame(Duration.seconds(1 + 1 * durationDiff), xScaleKeyValue);
-        KeyFrame yScaleKeyFrame = new KeyFrame(Duration.seconds(1 + 2 * durationDiff), yScaleKeyValue);
-        KeyFrame translateXKeyFrame = new KeyFrame(Duration.seconds(1 + 3 * durationDiff), translateXKeyValue);
-        KeyFrame translateYKeyFrame = new KeyFrame(Duration.seconds(1 + 4 * durationDiff), translateYKeyValue);
-
-
-        currentPlayerWobbelingTimeline = new Timeline(xScaleKeyFrame, yScaleKeyFrame, translateXKeyFrame, translateYKeyFrame);
-        currentPlayerWobbelingTimeline.setOnFinished(event -> {
-            if (currentPlayerLabelCurrentlyAnimated) {
-                startWobbelingAnimation();
-            }
-        });
-        currentPlayerWobbelingTimeline.play();
-    }
-
-    /**
-     * Returns a random double value in the specified range.
-     *
-     * @param from The lower bound of the random range
-     * @param to   The higher bound of the random range
-     * @return A random double in that range
-     */
-    private double randomInRange(double from, double to) {
-        if (to < from) {
-            throw new IllegalArgumentException("to must be lower than from");
-        }
-        return (Math.random() * (to - from)) + from;
     }
 
     @FXML
@@ -798,22 +671,22 @@ public class Main extends Application {
             gameTable.setItems(generatedRows);
 
             double effectiveHeight = gameTable.getHeight() - 5;
-            currentCellFontSize = Math.round((effectiveHeight - 250) / board.getRowCount());
+            long fontSize = Math.round((effectiveHeight - 250) / board.getRowCount());
 
             // get letter widths;
             if (rowFont != null) {
-                Font font = new Font(rowFont.getName(), currentCellFontSize);
+                Font font = new Font(rowFont.getName(), fontSize);
                 double player1SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player1Letter, font);
                 double player2SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player2Letter, font);
 
                 // make the font smaller so that it fits the cell even if the width is very small
                 while (player1SymbolWidth > (gameTable.getWidth() / board.getColumnCount()) || player2SymbolWidth + 10 > (gameTable.getWidth() / board.getColumnCount())) {
-                    currentCellFontSize = currentCellFontSize - 1;
-                    font = new Font(rowFont.getName(), currentCellFontSize);
+                    fontSize = fontSize - 1;
+                    font = new Font(rowFont.getName(), fontSize);
                     player1SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player1Letter, font);
                     player2SymbolWidth = Toolkit.getToolkit().getFontLoader().computeStringWidth(player2Letter, font);
                 }
-                style.set("-fx-font-size:" + currentCellFontSize + "px; -fx-padding: 0;");
+                style.set("-fx-font-size:" + fontSize + "px; -fx-padding: 0;");
             }
 
             gameTable.setFixedCellSize(effectiveHeight / board.getRowCount());
@@ -1079,12 +952,10 @@ public class Main extends Application {
     }
 
     private void blurGamePane() {
-        setBlockedForInput(true);
         blurGamePane(7.0);
     }
 
     private void unblurGamePane() {
-        setBlockedForInput(false);
         blurGamePane(0.0);
     }
 
@@ -1254,15 +1125,11 @@ public class Main extends Application {
     }
 
     public boolean isBlockedForInput() {
-        return blockedForInput.get();
+        return blockedForInput;
     }
 
     public void setBlockedForInput(boolean blockedForInput) {
-        this.blockedForInput.set(blockedForInput);
-    }
-
-    public BooleanProperty blockedForInputProperty() {
-        return blockedForInput;
+        this.blockedForInput = blockedForInput;
     }
 
     private static class KunamiCode {

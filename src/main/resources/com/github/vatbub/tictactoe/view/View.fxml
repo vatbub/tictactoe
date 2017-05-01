@@ -48,15 +48,17 @@
             </ToolBar>
             <Group fx:id="winLineGroup" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="45.0" />
             <AnchorPane fx:id="currentPlayerLabelAnchorPane" layoutX="568.0" layoutY="592.0" prefHeight="55.0" prefWidth="45.0" style="-fx-background-color: #DDDDDD; -fx-background-radius: 13 0 0 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <children>
+                  <Label fx:id="currentPlayerLabel" text="X" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="10.0">
+                     <font>
+                        <Font size="36.0" />
+                     </font>
+                  </Label>
+               </children>
                <effect>
                   <DropShadow height="12.0" radius="5.5" width="12.0" />
                </effect>
             </AnchorPane>
-            <Label fx:id="currentPlayerLabel" text="X" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="10.0">
-               <font>
-                  <Font size="36.0" />
-               </font>
-            </Label>
             <Label text="U U D D L R L R B A" textFill="#dadada" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="12.0" />
          </children>
          <effect>
