@@ -28,22 +28,7 @@ import org.junit.Test;
  */
 public class NameListTest {
     @Test
-    public void firstNamesOverflowTest(){
-        for(int i = 0; i<2*NameList.getNumberOfAvailableFirstNames(); i++){
-            System.out.println(NameList.getNextFirstName());
-        }
-
-        // everything went good
-        assert true;
-    }
-
-    @Test
-    public void lastNamesOverflowTest(){
-        for(int i = 0; i<2*NameList.getNumberOfAvailableLastNames(); i++){
-            System.out.println(NameList.getNextLastName());
-        }
-
-        // everything went good
+    public void dummyTest(){
         assert true;
     }
 }

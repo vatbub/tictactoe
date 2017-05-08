@@ -21,83 +21,22 @@ package com.github.vatbub.tictactoe;
  */
 
 
+import com.github.vatbub.randomusers.Generator;
+import com.github.vatbub.randomusers.internal.InternalNationality;
+import com.github.vatbub.randomusers.result.RandomUser;
 import org.apache.commons.lang.WordUtils;
 
-import java.util.*;
+import java.util.Collections;
 
 /**
  * A list of firstNames for ai players
  */
 @SuppressWarnings("WeakerAccess")
 public class NameList {
-    private static final List<String> firstNames;
-    private static final List<String> lastNames;
-    private static int lastAIIndex = -1;
-    private static int lastHumanIndex = -1;
-
-    static {
-        firstNames = new ArrayList<>();
-        lastNames = new ArrayList<>();
-
-        // read from resource file
-        Scanner firstNameScanner = new Scanner(NameList.class.getResourceAsStream("firstnames.txt"));
-        while (firstNameScanner.hasNextLine()) {
-            String line = firstNameScanner.nextLine();
-            if (!firstNames.contains(line) && !line.equals("")) {
-                firstNames.add(line);
-            }
-        }
-
-        Scanner lastNameScanner;
-        lastNameScanner = new Scanner(NameList.class.getResourceAsStream("lastnames.txt"));
-        while (lastNameScanner.hasNextLine()) {
-            String line = lastNameScanner.nextLine();
-            if (!lastNames.contains(line) && !line.equals("")) {
-                lastNames.add(line);
-            }
-        }
-
-        firstNameScanner.close();
-        lastNameScanner.close();
-
-        // shuffle
-        shuffle();
-    }
-
-    private static void shuffle() {
-        Collections.shuffle(firstNames, new Random(System.nanoTime()));
-        Collections.shuffle(lastNames, new Random(System.nanoTime()));
-    }
-
-    public static String getNextFirstName() {
-        lastAIIndex++;
-        if (lastAIIndex >= firstNames.size()) {
-            shuffle();
-            lastAIIndex = 0;
-        }
-
-        return WordUtils.capitalize(firstNames.get(lastAIIndex));
-    }
-
-    public static int getNumberOfAvailableFirstNames() {
-        return firstNames.size();
-    }
-
-    public static String getNextLastName() {
-        lastHumanIndex++;
-        if (lastHumanIndex >= lastNames.size()) {
-            shuffle();
-            lastHumanIndex = 0;
-        }
-
-        return WordUtils.capitalize(lastNames.get(lastHumanIndex));
-    }
-
     public static String getNextName() {
-        return getNextFirstName() + " " + getNextLastName();
-    }
-
-    public static int getNumberOfAvailableLastNames() {
-        return lastNames.size();
+        RandomUser.RandomUserSpec randomUserSpec = new RandomUser.RandomUserSpec();
+        randomUserSpec.setNationalities(Collections.singletonList(InternalNationality.getFromCurrentDefaultLocale()));
+        RandomUser randomUser = Generator.generateRandomUser(randomUserSpec);
+        return WordUtils.capitalize(randomUser.getName().getFirstName() +" " + randomUser.getName().getLastName());
     }
 }

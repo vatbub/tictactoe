@@ -68,6 +68,11 @@
             <version>0.0.24-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.github.vatbub</groupId>
+            <artifactId>randomusers</artifactId>
+            <version>LATEST</version>
+        </dependency>
+        <dependency>
             <groupId>org.controlsfx</groupId>
             <artifactId>controlsfx</artifactId>
             <version>8.40.12</version>
