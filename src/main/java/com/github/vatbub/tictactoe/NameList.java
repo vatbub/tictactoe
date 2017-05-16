@@ -22,7 +22,7 @@ package com.github.vatbub.tictactoe;
 
 
 import com.github.vatbub.randomusers.Generator;
-import com.github.vatbub.randomusers.internal.InternalNationality;
+import com.github.vatbub.randomusers.result.Nationality;
 import com.github.vatbub.randomusers.result.RandomUser;
 import org.apache.commons.lang.WordUtils;
 
@@ -35,7 +35,7 @@ import java.util.Collections;
 public class NameList {
     public static String getNextName() {
         RandomUser.RandomUserSpec randomUserSpec = new RandomUser.RandomUserSpec();
-        randomUserSpec.setNationalities(Collections.singletonList(InternalNationality.getFromCurrentDefaultLocale()));
+        randomUserSpec.setNationalities(Collections.singletonList(Nationality.getFromCurrentDefaultLocale()));
         RandomUser randomUser = Generator.generateRandomUser(randomUserSpec);
         return WordUtils.capitalize(randomUser.getName().getFirstName() +" " + randomUser.getName().getLastName());
     }
