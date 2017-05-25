@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+<?import org.controlsfx.control.*?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.effect.GaussianBlur?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.text.Font?>
+<?import org.controlsfx.control.ToggleSwitch?>
+
+<!--suppress ALL -->
+
+<AnchorPane fx:id="root" prefHeight="645.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.vatbub.tictactoe.view.Main">
+   <children>
+      <AnchorPane fx:id="gamePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <TableView fx:id="gameTable" editable="true" layoutX="74.0" layoutY="219.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="45.0">
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TableView>
+            <ToolBar layoutX="8.0" layoutY="8.0" prefHeight="45.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <items>
+                <Button mnemonicParsing="false" onAction="#newGameOnAction" text="New game" />
+                  <Button mnemonicParsing="false" onAction="#thinkOnAction" text="Think for me" />
+              </items>
+            </ToolBar>
+            <Group fx:id="winLineGroup" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="45.0" />
+            <AnchorPane fx:id="currentPlayerLabelAnchorPane" layoutX="568.0" layoutY="592.0" prefHeight="55.0" prefWidth="45.0" style="-fx-background-color: #DDDDDD; -fx-background-radius: 13 0 0 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <children>
+                  <Label fx:id="currentPlayerLabel" text="X" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="10.0">
+                     <font>
+                        <Font size="36.0" />
+                     </font>
+                  </Label>
+               </children>
+               <effect>
+                  <DropShadow height="12.0" radius="5.5" width="12.0" />
+               </effect>
+            </AnchorPane>
+            <Label text="U U D D L R L R B A" textFill="#dadada" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="12.0" />
+         </children>
+         <effect>
+            <GaussianBlur />
+         </effect>
+      </AnchorPane>
+      <AnchorPane fx:id="looserPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <ImageView fx:id="looseImage" pickOnBounds="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            <AnchorPane fx:id="looseMessage" layoutX="1.0" layoutY="380.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="100.0">
+               <children>
+                  <AnchorPane layoutX="-9.0" layoutY="-9.0" opacity="0.6" style="-fx-background-color: #FFFFFF;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-9.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <children>
+                        <AnchorPane layoutX="9.0" layoutY="9.0" opacity="0.2" style="-fx-background-color: #DDDDDD;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                     </children>
+                     <effect>
+                        <DropShadow />
+                     </effect>
+                  </AnchorPane>
+                  <VBox alignment="CENTER" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <children>
+                        <Label fx:id="looserText" text="You lost :(">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Label>
+                        <Button mnemonicParsing="false" onAction="#newGameOnAction" text="New Game" />
+                     </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+         </children>
+      </AnchorPane>
+      <AnchorPane fx:id="tiePane" prefHeight="200.0" prefWidth="200.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <AnchorPane fx:id="tieMessage" layoutX="142.0" layoutY="347.0" AnchorPane.bottomAnchor="216.0" AnchorPane.leftAnchor="142.0">
+               <children>
+                  <AnchorPane layoutX="-9.0" layoutY="-9.0" opacity="0.6" style="-fx-background-color: #FFFFFF;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-9.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <children>
+                        <AnchorPane layoutX="9.0" layoutY="9.0" opacity="0.2" style="-fx-background-color: #DDDDDD;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                     </children>
+                     <effect>
+                        <DropShadow />
+                     </effect>
+                  </AnchorPane>
+                  <VBox alignment="CENTER" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <children>
+                        <Label text="It's a (bow) tie">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Label>
+                        <Button mnemonicParsing="false" onAction="#newGameOnAction" text="New Game" />
+                     </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+            <ImageView fx:id="bowTie" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" rotate="28.2" visible="false" x="370.0" y="-150.0">
+               <image>
+                  <Image url="@tie.png" />
+               </image>
+               <effect>
+                  <DropShadow height="40.0" offsetX="4.0" offsetY="3.0" radius="19.5" width="40.0" />
+               </effect>
+            </ImageView>
+         </children></AnchorPane>
+      <AnchorPane fx:id="winPane" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <ImageView fx:id="confetti" fitWidth="600.0" pickOnBounds="true" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+            <ImageView fx:id="winningGirl" fitHeight="301.0" fitWidth="324.0" pickOnBounds="true" preserveRatio="true" x="72.0" y="350.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <image>
+                  <Image url="@girl.png" />
+               </image>
+               <effect>
+                  <DropShadow height="40.0" offsetX="3.0" offsetY="3.0" radius="19.5" width="40.0" />
+               </effect>
+            </ImageView>
+            <AnchorPane fx:id="winMessage" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="80.0">
+               <children>
+                  <AnchorPane layoutX="-9.0" layoutY="-9.0" opacity="0.6" style="-fx-background-color: #FFFFFF;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-9.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <children>
+                        <AnchorPane layoutX="9.0" layoutY="9.0" opacity="0.2" style="-fx-background-color: #DDDDDD;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                     </children>
+                     <effect>
+                        <DropShadow />
+                     </effect>
+                  </AnchorPane>
+                  <VBox alignment="CENTER" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <children>
+                        <Label fx:id="winnerText" text="You won :)">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Label>
+                        <Button mnemonicParsing="false" onAction="#newGameOnAction" text="New Game" />
+                     </children>
+                  </VBox>
+               </children>
+            </AnchorPane>
+         </children>
+      </AnchorPane>
+      <AnchorPane fx:id="menuBackground" opacity="0.12" style="-fx-background-color: gray;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <VBox fx:id="menuBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox alignment="CENTER">
+               <children>
+                  <AnchorPane style="-fx-background-color: #DDDDDD;">
+                     <children>
+                        <VBox fx:id="menuSubBox" alignment="TOP_CENTER" minHeight="0.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                           <children>
+                              <Label text="Player 1">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="player1Name" promptText="Type a fancy name" style="-fx-prompt-text-fill: #888888;" />
+                              <HBox alignment="CENTER" spacing="15.0">
+                                 <children>
+                                    <ToggleSwitch fx:id="player1AIToggle" contentDisplay="RIGHT" graphicTextGap="0.0" text="Human" />
+                                    <Label text="Computer" />
+                                 </children>
+                              </HBox>
+                              <Label text="Player 2">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="player2Name" promptText="Type a fancy name" style="-fx-prompt-text-fill: #888888;" />
+                              <HBox alignment="CENTER" spacing="15.0">
+                                 <children>
+                                    <ToggleSwitch fx:id="player2AIToggle" contentDisplay="RIGHT" graphicTextGap="0.0" selected="true" text="Human" />
+                                    <Label text="Computer" />
+                                 </children>
+                              </HBox>
+                              <Button defaultButton="true" maxWidth="271.0" mnemonicParsing="false" onAction="#startButtonOnAction" text="Start" />
+                              <Label fx:id="aiLevelTitleLabel" prefHeight="21.0" text="AI Level">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Label>
+                              <Slider fx:id="aiLevelSlider" blockIncrement="25.0" majorTickUnit="33.0" minorTickCount="0" prefHeight="18.0" snapToTicks="true" value="100.0" />
+                              <Pane fx:id="aiLevelLabelPane" prefHeight="21.0" prefWidth="0.0">
+                                 <children>
+                                    <HBox fx:id="aiLevelLabelHBox" spacing="5.0">
+                                       <children>
+                                          <Label text="Completely stupid" />
+                                          <Label text="Medium" />
+                                          <Label text="Good" />
+                                          <Label text="Unbeatable" />
+                                       </children>
+                                    </HBox>
+                                    <Line fx:id="aiLevelCenterLine" endX="110.0" endY="20.0" startX="90.0" startY="20.0" stroke="#d72d2d">
+                                       <effect>
+                                          <GaussianBlur radius="2.0" />
+                                       </effect>
+                                    </Line>
+                                 </children>
+                              </Pane>
+                           </children>
+                        </VBox>
+                     </children>
+                     <effect>
+                        <DropShadow height="25.0" radius="12.0" width="25.0" />
+                     </effect>
+                  </AnchorPane>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <AnchorPane layoutY="616.0" style="-fx-background-color: #DDDDDD; -fx-background-radius: 0 13 0 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+         <children>
+            <Hyperlink onAction="#aboutLinkOnAction" text="About" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+         </children>
+         <effect>
+            <DropShadow height="12.0" radius="5.5" width="12.0" />
+         </effect>
+      </AnchorPane>
+   </children>
+</AnchorPane>
