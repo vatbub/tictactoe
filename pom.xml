@@ -50,15 +50,19 @@
         <url>https://travis-ci.org/vatbub/${gitRepoName}</url>
     </ciManagement>
 
-    <artifactId>tictactoe</artifactId>
+    <artifactId>tictactoe-parent</artifactId>
     <version>0.0.2-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>pom</packaging>
+	
+	<modules>
+		<module>client</module>
+        <module>server</module>
+    </modules>
 
     <properties>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <gitRepoName>tictactoe</gitRepoName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mainClass>com.github.vatbub.tictactoe.view.Main</mainClass>
     </properties>
 
     <dependencies>
@@ -88,22 +92,4 @@
             <version>3.5</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <!-- Create the jar-with-dependencies -->
-                        <id>buildMainExecutableJar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>
