@@ -37,22 +37,23 @@ public class Player {
      *
      * @see Board#getWinner(int, int)
      */
-    public static final Player TIE_PLAYER = new Player(false, "tie");
+    public static final Player TIE_PLAYER = new Player(PlayerMode.localHuman, "tie");
 
     private String name;
-    private boolean ai;
+    private PlayerMode playerMode;
     private String letter;
+    private boolean connectedToInternetPlayer;
 
-    public Player(boolean ai) {
-        this(ai, NameList.getNextName());
+    public Player(PlayerMode playerMode) {
+        this(playerMode, NameList.getNextName());
     }
 
-    public Player(boolean ai, String name) {
-        this(ai, name, "");
+    public Player(PlayerMode playerMode, String name) {
+        this(playerMode, name, "");
     }
 
-    public Player(boolean ai, String name, String letter) {
-        this.setAi(ai);
+    public Player(PlayerMode playerMode, String name, String letter) {
+        this.setPlayerMode(playerMode);
         this.setName(name);
         setLetter(letter);
     }
@@ -65,12 +66,12 @@ public class Player {
         this.name = name;
     }
 
-    public boolean isAi() {
-        return ai;
+    public PlayerMode getPlayerMode() {
+        return this.playerMode;
     }
 
-    public void setAi(boolean ai) {
-        this.ai = ai;
+    public void setPlayerMode(PlayerMode playerMode) {
+        this.playerMode=playerMode;
     }
 
     public void doAiTurn(Board currentBoard) {
@@ -192,6 +193,24 @@ public class Player {
 
     private enum ReturnType {
         alpha, beta, heuristicValue
+    }
+
+    public boolean isConnectedToInternetPlayer(){
+        if (!getPlayerMode().equals(PlayerMode.internetHuman)){
+            throw new IllegalStateException("The player is not a internet player");
+        }
+        return connectedToInternetPlayer;
+    }
+
+    public boolean isAi(){
+        return getPlayerMode().equals(PlayerMode.ai);
+    }
+
+    public void connectToInternetPlayer(){
+        if (!getPlayerMode().equals(PlayerMode.internetHuman)){
+            throw new IllegalStateException("The player is not a internet player");
+        }
+
     }
 
     private class AlphaBetaResult {

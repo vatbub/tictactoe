@@ -24,8 +24,10 @@ package com.github.vatbub.tictactoe.server;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
+import com.github.vatbub.tictactoe.common.KryoCommon;
 import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequest;
 import com.github.vatbub.tictactoe.common.OnlineMultiplayerResponse;
+import common.Common;
 import logging.FOKLogger;
 
 import java.io.IOException;
@@ -35,12 +37,12 @@ import java.io.IOException;
  */
 public class Main {
     public static void main(String[] args) throws IOException {
+        Common.setAppName("tictactoeserver");
         Server server = new Server();
         server.start();
         FOKLogger.info(Main.class.getName(), "Binding to tcpPort " + System.getenv("PORT"));
         server.bind(Integer.parseInt(System.getenv("PORT")));
-        server.getKryo().register(OnlineMultiplayerRequest.class);
-        server.getKryo().register(OnlineMultiplayerResponse.class);
+        KryoCommon.registerRequiredClasses(server.getKryo());
         server.addListener(new Listener() {
             public void received (Connection connection, Object object) {
                 if (object instanceof OnlineMultiplayerRequest) {

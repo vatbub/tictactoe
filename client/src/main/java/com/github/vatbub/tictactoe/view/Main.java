@@ -21,17 +21,14 @@ package com.github.vatbub.tictactoe.view;
  */
 
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.KryoSerialization;
 import com.esotericsoftware.kryonet.Listener;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
+import com.github.vatbub.tictactoe.PlayerMode;
+import com.github.vatbub.tictactoe.common.KryoCommon;
 import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequest;
 import com.github.vatbub.tictactoe.common.OnlineMultiplayerResponse;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
@@ -82,7 +79,6 @@ import view.ExceptionAlert;
 
 import java.awt.*;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -112,12 +108,11 @@ public class Main extends Application {
     private String player2SampleName = NameList.getNextName();
     private boolean blockedForInput;
     private Timer runLaterTimer = new Timer();
-
+    private Client kryoClient;
     /**
      * We need to save this manually since {@code aiLevelSlider.isVisible} is delayed due to the animation
      */
     private boolean aiLevelSliderVisible = true;
-
     @FXML
     private AnchorPane root;
     @FXML
@@ -138,65 +133,46 @@ public class Main extends Application {
     private ToggleSwitch player2AIToggle;
     @FXML
     private Group winLineGroup;
-
     @FXML
     private AnchorPane looserPane;
-
     @FXML
     private ImageView looseImage;
-
     @FXML
     private AnchorPane looseMessage;
-
     @FXML
     private AnchorPane tieMessage;
-
     @FXML
     private Label looserText;
-
     @FXML
     private Label currentPlayerLabel;
-
     @FXML
     private AnchorPane tiePane;
-
     @FXML
     private AnchorPane winPane;
-
     @FXML
     private ImageView confetti;
-
     @FXML
     private ImageView winningGirl;
-
     @FXML
     private AnchorPane winMessage;
-
     @FXML
     private Label winnerText;
-
     @FXML
     private ImageView bowTie;
-
     @FXML
     private Slider aiLevelSlider;
-
     @FXML
     private Pane aiLevelLabelPane;
-
     @FXML
     private HBox aiLevelLabelHBox;
-
     @FXML
     private Label aiLevelTitleLabel;
     @FXML
     private VBox menuSubBox;
-
     @FXML
     private Line aiLevelCenterLine;
     @FXML
     private AnchorPane currentPlayerLabelAnchorPane;
-
     public Main() {
         super();
         currentMainWindowInstance = this;
@@ -228,6 +204,28 @@ public class Main extends Application {
         }
 
         launch(args);
+    }
+
+    public Client getKryoClient() throws IOException {
+        if (kryoClient == null) {
+            kryoClient = new Client();
+            kryoClient.start();
+            KryoCommon.registerRequiredClasses(kryoClient.getKryo());
+            kryoClient.setKeepAliveTCP(2500);
+            kryoClient.connect(5000, "localhost", 90);
+            kryoClient.addListener(new Listener() {
+                public void received(Connection connection, Object object) {
+                    if (object instanceof OnlineMultiplayerResponse) {
+                        OnlineMultiplayerResponse response = (OnlineMultiplayerResponse) object;
+                        System.out.println(response.text);
+                    }
+                }
+            });
+            OnlineMultiplayerRequest request = new OnlineMultiplayerRequest();
+            request.text = "Here is the request";
+            kryoClient.sendTCP(request);
+        }
+        return kryoClient;
     }
 
     /**
@@ -353,28 +351,6 @@ public class Main extends Application {
 
         initBoard();
         initNewGame();
-
-        try {
-            Client client = new Client();
-            client.start();
-            client.getKryo().register(OnlineMultiplayerRequest.class);
-            client.getKryo().register(OnlineMultiplayerResponse.class);
-            client.setKeepAliveTCP(2500);
-            client.connect(5000, "localhost", 90);
-            client.addListener(new Listener() {
-                public void received (Connection connection, Object object) {
-                    if (object instanceof OnlineMultiplayerResponse) {
-                        OnlineMultiplayerResponse response = (OnlineMultiplayerResponse)object;
-                        System.out.println(response.text);
-                    }
-                }
-            });
-            OnlineMultiplayerRequest request = new OnlineMultiplayerRequest();
-            request.text = "Here is the request";
-            client.sendTCP(request);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private void player1SetSampleName() {
@@ -534,8 +510,8 @@ public class Main extends Application {
                 finalPlayerName2 = player2Name.getPromptText();
             }
 
-            board.setPlayer1(new Player(player1AIToggle.isSelected(), finalPlayerName1, player1Letter));
-            board.setPlayer2(new Player(player2AIToggle.isSelected(), finalPlayerName2, player2Letter));
+            board.setPlayer1(new Player(player1AIToggle.isSelected() ? PlayerMode.ai : PlayerMode.localHuman, finalPlayerName1, player1Letter));
+            board.setPlayer2(new Player(player1AIToggle.isSelected() ? PlayerMode.ai : PlayerMode.localHuman, finalPlayerName2, player2Letter));
             updateCurrentPlayerLabel(true);
 
             if (board.getPlayer1().isAi()) {

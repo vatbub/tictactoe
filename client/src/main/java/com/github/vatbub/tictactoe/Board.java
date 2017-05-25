@@ -174,7 +174,7 @@ public class Board {
 
         currentPlayerProperty().set(getOpponent(getCurrentPlayer()));
 
-        if (getCurrentPlayer().isAi() && !ignoreAI) {
+        if (getCurrentPlayer().getPlayerMode().equals(PlayerMode.ai) && !ignoreAI) {
             final Board thisCopy = this;
             Thread aiWaitThread = new Thread(() -> {
                 PrintStream nullPrintStream = new PrintStream(new NullOutputStream());
