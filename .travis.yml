@@ -19,7 +19,15 @@ script:
 - mvn test jacoco:report coveralls:report --settings target/travis/settings.xml
 before_cache:
 - mvn site site:deploy --settings target/travis/settings.xml -DskipTests=true
+- cd common
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true
+- cd ..
+- cd client
+- mvn deploy --settings target/travis/settings.xml -DskipTests=true
+- cd ..
+- cd server
+- mvn clean heroku:deploy
+- cd ..
 after_success:
 - git checkout master
 - "\\curl -sSL https://get.rvm.io | bash -s stable --ruby"

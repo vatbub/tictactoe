@@ -21,9 +21,19 @@ package com.github.vatbub.tictactoe.view;
  */
 
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.KryoSerialization;
+import com.esotericsoftware.kryonet.Listener;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
+import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequest;
+import com.github.vatbub.tictactoe.common.OnlineMultiplayerResponse;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import com.sun.javafx.tk.Toolkit;
@@ -72,6 +82,7 @@ import view.ExceptionAlert;
 
 import java.awt.*;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -342,6 +353,28 @@ public class Main extends Application {
 
         initBoard();
         initNewGame();
+
+        try {
+            Client client = new Client();
+            client.start();
+            client.getKryo().register(OnlineMultiplayerRequest.class);
+            client.getKryo().register(OnlineMultiplayerResponse.class);
+            client.setKeepAliveTCP(2500);
+            client.connect(5000, "localhost", 90);
+            client.addListener(new Listener() {
+                public void received (Connection connection, Object object) {
+                    if (object instanceof OnlineMultiplayerResponse) {
+                        OnlineMultiplayerResponse response = (OnlineMultiplayerResponse)object;
+                        System.out.println(response.text);
+                    }
+                }
+            });
+            OnlineMultiplayerRequest request = new OnlineMultiplayerRequest();
+            request.text = "Here is the request";
+            client.sendTCP(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void player1SetSampleName() {
