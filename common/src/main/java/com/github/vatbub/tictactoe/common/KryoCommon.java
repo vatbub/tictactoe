@@ -7,7 +7,8 @@ import com.esotericsoftware.kryo.Kryo;
  */
 public class KryoCommon {
     public static void registerRequiredClasses(Kryo kryo){
-        kryo.register(OnlineMultiplayerRequest.class);
-        kryo.register(OnlineMultiplayerResponse.class);
+        kryo.register(OnlineMultiplayerRequestOpponentRequest.class);
+        kryo.register(OnlineMultiplayerRequestOpponentResponse.class);
+        kryo.register(OnlineMultiplayerRequestOpponentException.class);
     }
 }
