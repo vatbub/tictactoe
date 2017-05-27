@@ -6,8 +6,9 @@ import com.google.common.hash.Hashing;
 /**
  * Request sent bz the client to specify that it seeks a opponent
  */
+@SuppressWarnings("WeakerAccess")
 public class OnlineMultiplayerRequestOpponentRequest {
-    private final String salt = random(8);
+    private final String salt = generateSalt();
     private String clientIdentifier;
     private String desiredOpponentIdentifier;
     private Operation operation;
@@ -29,8 +30,9 @@ public class OnlineMultiplayerRequestOpponentRequest {
         setDesiredOpponentIdentifier(desiredOpponentIdentifier);
     }
 
-    private static String random(int length) {
+    private static String generateSalt() {
         String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        int length = 8;
         StringBuilder res = new StringBuilder();
 
         for (int i = 0; i < length; i++) {

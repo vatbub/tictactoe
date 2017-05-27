@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 /**
  * Created by Frederik on 27/05/2017.
  */
+@SuppressWarnings("WeakerAccess")
 public class OnlineMultiplayerRequestOpponentResponse {
     private ResponseCode responseCode;
     private InetSocketAddress opponentInetSocketAddress;
