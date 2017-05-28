@@ -1,24 +1,48 @@
 package com.github.vatbub.tictactoe.common;
 
+/*-
+ * #%L
+ * tictactoe.common
+ * %%
+ * Copyright (C) 2016 - 2017 Frederik Kammel
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
+
+import java.io.Serializable;
 
 /**
  * Request sent bz the client to specify that it seeks a opponent
  */
 @SuppressWarnings("WeakerAccess")
-public class OnlineMultiplayerRequestOpponentRequest {
+public class OnlineMultiplayerRequestOpponentRequest implements Serializable{
     private final String salt = generateSalt();
     private String clientIdentifier;
     private String desiredOpponentIdentifier;
-    private Operation operation;
+    private int operation;
 
-    public Operation getOperation() {
-        return operation;
-    }
+    /**
+     * For Kryo only
+     *
+     * @deprecated
+     */
+    /*public OnlineMultiplayerRequestOpponentRequest() {
 
-    public void setOperation(Operation operation) {
-        this.operation = operation;
     }
 
     public OnlineMultiplayerRequestOpponentRequest(String clientIdentifier) {
@@ -26,9 +50,14 @@ public class OnlineMultiplayerRequestOpponentRequest {
     }
 
     public OnlineMultiplayerRequestOpponentRequest(String clientIdentifier, String desiredOpponentIdentifier) {
+        this(clientIdentifier, desiredOpponentIdentifier, Operation.RequestOpponent);
+    }
+
+    public OnlineMultiplayerRequestOpponentRequest(String clientIdentifier, String desiredOpponentIdentifier, Operation operation) {
         setClientIdentifier(clientIdentifier);
         setDesiredOpponentIdentifier(desiredOpponentIdentifier);
-    }
+        setOperation(operation);
+    }*/
 
     private static String generateSalt() {
         String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
@@ -40,6 +69,14 @@ public class OnlineMultiplayerRequestOpponentRequest {
         }
 
         return res.toString();
+    }
+
+    public Operation getOperation() {
+        return Operation.values()[operation];
+    }
+
+    public void setOperation(Operation operation) {
+        this.operation = operation.ordinal();
     }
 
     public String getClientIdentifier() {
@@ -76,12 +113,8 @@ public class OnlineMultiplayerRequestOpponentRequest {
         }
     }
 
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public OnlineMultiplayerRequestOpponentRequest clone() {
+    // @SuppressWarnings("MethodDoesntCallSuperMethod")
+    /*public OnlineMultiplayerRequestOpponentRequest clone() {
         return new OnlineMultiplayerRequestOpponentRequest(getClientIdentifier(), getDesiredOpponentIdentifier());
-    }
-
-    public enum Operation{
-        RequestOpponent, AbortRequest
-    }
+    }*/
 }

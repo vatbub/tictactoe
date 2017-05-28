@@ -1,8 +1,8 @@
-package com.github.vatbub.tictactoe;
+package com.github.vatbub.tictactoe.common;
 
 /*-
  * #%L
- * tictactoe
+ * tictactoe.common
  * %%
  * Copyright (C) 2016 - 2017 Frederik Kammel
  * %%
@@ -21,9 +21,8 @@ package com.github.vatbub.tictactoe;
  */
 
 
-/**
- * Specifies if a given player is human, a ai or a internet player
- */
-public enum PlayerMode {
-    localHuman, internetHuman, ai
+import java.io.Serializable;
+
+public enum ResponseCode implements Serializable{
+    OpponentFound, WaitForOpponent, RequestAborted
 }
