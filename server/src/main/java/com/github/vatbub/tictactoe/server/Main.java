@@ -42,7 +42,6 @@ import java.util.Map;
 public class Main {
     private static Map<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static Server server = new Server();
-    private static boolean serverRunning;
 
     public static void main(String[] args) throws IOException {
         if (args.length == 0) {
@@ -58,7 +57,6 @@ public class Main {
     public static void startServer(int tcpPort) throws IOException {
         Common.setAppName("tictactoeserver");
         resetServer();
-        serverRunning = true;
         server.getKryo().setReferences(true);
         KryoCommon.registerRequiredClasses(server.getKryo());
         server.start();
@@ -155,7 +153,6 @@ public class Main {
     public static void shutDown() {
         FOKLogger.info(Main.class.getName(), "Shutting server down...");
         server.close();
-        serverRunning = false;
     }
 
     /**
@@ -163,9 +160,5 @@ public class Main {
      */
     public static void resetServer() {
         openRequests = new HashMap<>();
-    }
-
-    public static boolean isServerRunning() {
-        return serverRunning;
     }
 }
