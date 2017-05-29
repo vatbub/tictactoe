@@ -21,7 +21,8 @@ before_cache:
 - mvn site site:deploy --settings target/travis/settings.xml -DskipTests=true
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true -f common/pom.xml
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true -f clint/pom.xml
-- mvn clean heroku:deploy --settings target/travis/settings.xml -DskipTests=true -f server/pom.xml
+- cd server
+- mvn clean heroku:deploy --settings ../target/travis/settings.xml -DskipTests=true
 - cd ..
 after_success:
 - git checkout master
