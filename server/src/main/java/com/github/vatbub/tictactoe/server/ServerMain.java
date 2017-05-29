@@ -45,6 +45,7 @@ public class ServerMain {
     private static Server server = new Server();
 
     public static void main(String[] args) throws IOException {
+        Common.setAppName("tictactoeserver");
         if (args.length == 0) {
             startServer(Integer.parseInt(System.getenv("PORT")));
         } else if (args.length == 1) {
@@ -56,7 +57,6 @@ public class ServerMain {
     }
 
     public static void startServer(int tcpPort) throws IOException {
-        Common.setAppName("tictactoeserver");
         resetServer();
         server.getKryo().setReferences(true);
         KryoCommon.registerRequiredClasses(server.getKryo());
