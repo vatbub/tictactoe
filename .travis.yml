@@ -14,19 +14,14 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_665a7cbb68c6_key -iv $encrypted_665a7cbb68c6_iv
   -in github_deploy_key.enc -out github_deploy_key -d
 - git clone -b travis `git config --get remote.origin.url` target/travis
-install: mvn install --settings target/travis/settings.xml
+install: echo Install phase has been disabled as a complete build is run during deployment
 script:
 - mvn test jacoco:report coveralls:report --settings target/travis/settings.xml
 before_cache:
 - mvn site site:deploy --settings target/travis/settings.xml -DskipTests=true
-- cd common
-- mvn deploy --settings target/travis/settings.xml -DskipTests=true
-- cd ..
-- cd client
-- mvn deploy --settings target/travis/settings.xml -DskipTests=true
-- cd ..
-- cd server
-- mvn clean heroku:deploy
+- mvn deploy --settings target/travis/settings.xml -DskipTests=true -f common/pom.xml
+- mvn deploy --settings target/travis/settings.xml -DskipTests=true -f clint/pom.xml
+- mvn clean heroku:deploy --settings target/travis/settings.xml -DskipTests=true -f server/pom.xml
 - cd ..
 after_success:
 - git checkout master
