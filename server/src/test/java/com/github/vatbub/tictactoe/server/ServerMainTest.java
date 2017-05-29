@@ -56,19 +56,20 @@ public class ServerMainTest {
 
     @BeforeClass
     public static void doYourOneTimeSetup() throws InterruptedException, IOException {
+        Common.setAppName("TicTacToeServerTests");
         Thread.sleep(2000);
+        FOKLogger.info(ServerMainTest.class.getName(), "Launching server...");
         launchServer();
         Thread.sleep(5000);
     }
 
     @AfterClass
     public static void doYourOneTimeTeardown() {
+        FOKLogger.info(ServerMainTest.class.getName(), "Shutting server down...");
         ServerMain.shutDown();
     }
 
     private static void launchServer() throws IOException {
-        Common.setAppName("TicTacToeServerTests");
-
         // launch a server
         if (System.getenv("PORT") == null) {
             // no port defined, launch on port 90
@@ -352,7 +353,7 @@ public class ServerMainTest {
     }
 
     private void tearDown() {
-        FOKLogger.info(ServerMainTest.class.getName(), "Tearing down...");
+        FOKLogger.info(ServerMainTest.class.getName(), "Resetting server...");
         shutServerDown = true;
     }
 }
