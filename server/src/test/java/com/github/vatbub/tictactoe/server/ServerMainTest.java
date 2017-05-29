@@ -38,7 +38,7 @@ import java.io.IOException;
  * Tests the server
  */
 @SuppressWarnings("Duplicates")
-public class MainTest {
+public class ServerMainTest {
     private static int port;
     private String identifierPrefix = "testuser";
     private String identifier1 = identifierPrefix + Math.round(Math.random() * 1000);
@@ -63,7 +63,7 @@ public class MainTest {
 
     @AfterClass
     public static void doYourOneTimeTeardown() {
-        Main.shutDown();
+        ServerMain.shutDown();
     }
 
     private static void launchServer() throws IOException {
@@ -77,12 +77,12 @@ public class MainTest {
             // use port in env var
             port = Integer.parseInt(System.getenv("PORT"));
         }
-        Main.startServer(port);
+        ServerMain.startServer(port);
     }
 
     @Before
     public void setUp() throws IOException, InterruptedException {
-        Main.resetServer();
+        ServerMain.resetServer();
         setupClient();
         setupRequests();
 
@@ -123,7 +123,7 @@ public class MainTest {
         });
 
         try {
-            FOKLogger.info(MainTest.class.getName(), "Sending request without desiredOpponent...");
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending request without desiredOpponent...");
             client.sendTCP(request1);
         } catch (Error | Exception e) {
             throwable = e;
@@ -139,22 +139,22 @@ public class MainTest {
         assert object instanceof OnlineMultiplayerRequestOpponentResponse;
         OnlineMultiplayerRequestOpponentResponse response = (OnlineMultiplayerRequestOpponentResponse) object;
 
-        FOKLogger.info(MainTest.class.getName(), "Checking for response code WaitForOpponent...");
+        FOKLogger.info(ServerMainTest.class.getName(), "Checking for response code WaitForOpponent...");
         assert response.getResponseCode().equals(ResponseCode.WaitForOpponent);
         assert response.getOpponentInetSocketAddress() == null;
-        FOKLogger.info(MainTest.class.getName(), "Passed!");
+        FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
     }
 
     private void assertOpponentFound(Object object) {
         assert object instanceof OnlineMultiplayerRequestOpponentResponse;
         OnlineMultiplayerRequestOpponentResponse response = (OnlineMultiplayerRequestOpponentResponse) object;
 
-        FOKLogger.info(MainTest.class.getName(), "Checking for response code OpponentFound...");
+        FOKLogger.info(ServerMainTest.class.getName(), "Checking for response code OpponentFound...");
         assert response.getResponseCode().equals(ResponseCode.OpponentFound);
-        FOKLogger.info(MainTest.class.getName(), "Passed!");
-        FOKLogger.info(MainTest.class.getName(), "Checking for a opponent ip...");
+        FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
+        FOKLogger.info(ServerMainTest.class.getName(), "Checking for a opponent ip...");
         assert response.getOpponentInetSocketAddress() != null;
-        FOKLogger.info(MainTest.class.getName(), "Passed!");
+        FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
     }
 
     @Test
@@ -186,10 +186,10 @@ public class MainTest {
         });
 
         try {
-            FOKLogger.info(MainTest.class.getName(), "Sending request without desiredOpponent...");
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending request without desiredOpponent...");
             client.sendTCP(request1);
 
-            FOKLogger.info(MainTest.class.getName(), "Sending second request without desiredOpponent...");
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending second request without desiredOpponent...");
             client.sendTCP(request2);
         } catch (Error | Exception e) {
             throwable = e;
@@ -218,7 +218,7 @@ public class MainTest {
         });
 
         try {
-            FOKLogger.info(MainTest.class.getName(), "Sending request with desiredOpponent...");
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending request with desiredOpponent...");
             request1.setDesiredOpponentIdentifier(identifier2);
             client.sendTCP(request1);
         } catch (Error | Exception e) {
@@ -261,11 +261,11 @@ public class MainTest {
         });
 
         try {
-            FOKLogger.info(MainTest.class.getName(), "Sending request with desiredOpponent...");
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending request with desiredOpponent...");
             request1.setDesiredOpponentIdentifier(identifier2);
             client.sendTCP(request1);
 
-            FOKLogger.info(MainTest.class.getName(), "Sending second request with desiredOpponent...");
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending second request with desiredOpponent...");
             request2.setDesiredOpponentIdentifier(identifier1);
             client.sendTCP(request2);
         } catch (Error | Exception e) {
@@ -300,9 +300,9 @@ public class MainTest {
                         assert object instanceof OnlineMultiplayerRequestOpponentResponse;
                         OnlineMultiplayerRequestOpponentResponse response = (OnlineMultiplayerRequestOpponentResponse) object;
 
-                        FOKLogger.info(MainTest.class.getName(), "Checking for response code RequestAborted...");
+                        FOKLogger.info(ServerMainTest.class.getName(), "Checking for response code RequestAborted...");
                         assert response.getResponseCode().equals(ResponseCode.RequestAborted);
-                        FOKLogger.info(MainTest.class.getName(), "Passed!");
+                        FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
                         assert response.getOpponentInetSocketAddress() == null;
                         tearDown();
                     } catch (Error | Exception e) {
@@ -314,10 +314,10 @@ public class MainTest {
         });
 
         try {
-            FOKLogger.info(MainTest.class.getName(), "Sending request without desiredOpponent...");
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending request without desiredOpponent...");
             client.sendTCP(request1);
 
-            FOKLogger.info(MainTest.class.getName(), "Sending abortion request...");
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending abortion request...");
             request1.setOperation(Operation.AbortRequest);
             client.sendTCP(request1);
         } catch (Error | Exception e) {
@@ -352,7 +352,7 @@ public class MainTest {
     }
 
     private void tearDown() {
-        FOKLogger.info(MainTest.class.getName(), "Tearing down...");
+        FOKLogger.info(ServerMainTest.class.getName(), "Tearing down...");
         shutServerDown = true;
     }
 }

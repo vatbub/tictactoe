@@ -40,7 +40,7 @@ import java.util.logging.Level;
  * Launches the server
  */
 @SuppressWarnings("WeakerAccess")
-public class Main {
+public class ServerMain {
     private static Map<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static Server server = new Server();
 
@@ -61,7 +61,7 @@ public class Main {
         server.getKryo().setReferences(true);
         KryoCommon.registerRequiredClasses(server.getKryo());
         server.start();
-        FOKLogger.info(Main.class.getName(), "Binding to tcpPort " + tcpPort);
+        FOKLogger.info(ServerMain.class.getName(), "Binding to tcpPort " + tcpPort);
         server.bind(tcpPort);
         server.addListener(new Listener() {
             @Override
@@ -76,17 +76,17 @@ public class Main {
                     if (object instanceof OnlineMultiplayerRequestOpponentRequest) {
                         OnlineMultiplayerRequestOpponentRequest receivedRequest = (OnlineMultiplayerRequestOpponentRequest) object;
 
-                        FOKLogger.info(Main.class.getName(), "Received OnlineMultiplayerRequestOpponentRequest");
-                        FOKLogger.info(Main.class.getName(), "Requested operation: " + receivedRequest.getOperation());
+                        FOKLogger.info(ServerMain.class.getName(), "Received OnlineMultiplayerRequestOpponentRequest");
+                        FOKLogger.info(ServerMain.class.getName(), "Requested operation: " + receivedRequest.getOperation());
                         if (receivedRequest.getDesiredOpponentIdentifier() == null) {
-                            FOKLogger.info(Main.class.getName(), "The request contains no desired opponent");
+                            FOKLogger.info(ServerMain.class.getName(), "The request contains no desired opponent");
                         } else {
-                            FOKLogger.info(Main.class.getName(), "The request contains a desired opponent");
+                            FOKLogger.info(ServerMain.class.getName(), "The request contains a desired opponent");
                         }
 
                         OnlineMultiplayerRequestOpponentResponse response;
 
-                        FOKLogger.info(Main.class.getName(), "Checking for matching requests...");
+                        FOKLogger.info(ServerMain.class.getName(), "Checking for matching requests...");
                         if (receivedRequest.getOperation().equals(Operation.RequestOpponent)) {
                             // check if any of the open requests has a matching desiredOpponentIdentifier
                             InetSocketAddress matchingAddress = null;
@@ -94,11 +94,11 @@ public class Main {
                                 for (OnlineMultiplayerRequestOpponentRequest comparedRequest : entry.getValue()) {
                                     if (receivedRequest.getDesiredOpponentIdentifier() == null && comparedRequest.getDesiredOpponentIdentifier() == null) {
                                         // found two requests that both don't wish a particular opponent
-                                        FOKLogger.info(Main.class.getName(), "Found matching request!");
+                                        FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
                                         matchingAddress = entry.getKey();
                                         break;
                                     } else if (comparedRequest.getDesiredOpponentIdentifier() != null && receivedRequest.getClientIdentifier().equals(comparedRequest.getDesiredOpponentIdentifier())) {
-                                        FOKLogger.info(Main.class.getName(), "Found matching request!");
+                                        FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
                                         matchingAddress = entry.getKey();
                                         break;
                                     }
@@ -110,7 +110,7 @@ public class Main {
                                 response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.OpponentFound, matchingAddress);
                             } else {
                                 // add the request to the openRequests-map
-                                FOKLogger.info(Main.class.getName(), "No matching request found, adding the request to the open requests list...");
+                                FOKLogger.info(ServerMain.class.getName(), "No matching request found, adding the request to the open requests list...");
                                 response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.WaitForOpponent);
 
                                 if (!openRequests.containsKey(connection.getRemoteAddressTCP())) {
@@ -139,23 +139,23 @@ public class Main {
                                 clientRequestList.remove(receivedRequest);
                                 if (clientRequestList.size() == 0) {
                                     // delete the inet address from the map
-                                    FOKLogger.info(Main.class.getName(), "Matching request found, aborting request...");
+                                    FOKLogger.info(ServerMain.class.getName(), "Matching request found, aborting request...");
                                     openRequests.remove(connection.getRemoteAddressTCP());
                                 }
                                 response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.RequestAborted);
                             } else {
-                                FOKLogger.info(Main.class.getName(), "Could not abort request, no matching request found!");
+                                FOKLogger.info(ServerMain.class.getName(), "Could not abort request, no matching request found!");
                                 OnlineMultiplayerRequestOpponentException exception = new OnlineMultiplayerRequestOpponentException("No matching request found.");
                                 connection.sendTCP(exception);
                                 return;
                             }
                         }
 
-                        FOKLogger.info(Main.class.getName(), "Sending response to client...");
+                        FOKLogger.info(ServerMain.class.getName(), "Sending response to client...");
                         connection.sendTCP(response);
                     }
                 } catch (Exception e) {
-                    FOKLogger.log(Main.class.getName(), Level.SEVERE, "A internal server error occurred", e);
+                    FOKLogger.log(ServerMain.class.getName(), Level.SEVERE, "A internal server error occurred", e);
                     OnlineMultiplayerRequestOpponentException e2 = new OnlineMultiplayerRequestOpponentException(e.getClass().getName() + ", " + e.getMessage());
                     connection.sendTCP(e2);
                 }
@@ -167,7 +167,7 @@ public class Main {
      * Shuts the server down
      */
     public static void shutDown() {
-        FOKLogger.info(Main.class.getName(), "Shutting server down...");
+        FOKLogger.info(ServerMain.class.getName(), "Shutting server down...");
         server.close();
     }
 
