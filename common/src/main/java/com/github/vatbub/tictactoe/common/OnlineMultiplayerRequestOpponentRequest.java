@@ -100,7 +100,7 @@ public class OnlineMultiplayerRequestOpponentRequest implements Serializable{
     }
 
     public String getRequestId() {
-        return Hashing.md5().newHasher().putString(getClientIdentifier() + getDesiredOpponentIdentifier() + getSalt(), Charsets.UTF_8).toString();
+        return Hashing.md5().newHasher().putString(getClientIdentifier() + getDesiredOpponentIdentifier() + getSalt(), Charsets.UTF_8).hash().toString();
     }
 
     @Override

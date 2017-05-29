@@ -40,8 +40,9 @@ import java.util.Map;
  */
 @SuppressWarnings("WeakerAccess")
 public class Main {
-    private static Map<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> openRequests = new HashMap<>();
+    private static Map<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static Server server = new Server();
+    private static boolean serverRunning;
 
     public static void main(String[] args) throws IOException {
         if (args.length == 0) {
@@ -56,11 +57,20 @@ public class Main {
 
     public static void startServer(int tcpPort) throws IOException {
         Common.setAppName("tictactoeserver");
+        resetServer();
+        serverRunning = true;
         server.getKryo().setReferences(true);
         KryoCommon.registerRequiredClasses(server.getKryo());
         server.start();
         FOKLogger.info(Main.class.getName(), "Binding to tcpPort " + tcpPort);
         server.bind(tcpPort);
+        server.addListener(new Listener() {
+            @Override
+            public void connected(Connection connection) {
+                connection.setKeepAliveTCP(0);
+                connection.setTimeout(100000);
+            }
+        });
         server.addListener(new Listener() {
             public void received(Connection connection, Object object) {
                 try {
@@ -70,17 +80,15 @@ public class Main {
                         OnlineMultiplayerRequestOpponentResponse response;
 
                         if (receivedRequest.getOperation().equals(Operation.RequestOpponent)) {
-                        /*
-                        If a client does not specify a desiredOpponent, the desiredOpponentIdentifier will be null.
-                        In that case, we will only give him another opponent who did not specify a desiredOpponent neither,
-                        thus, they will both have specified the same desiredOpponentIdentifier = null
-                         */
-
                             // check if any of the open requests has a matching desiredOpponentIdentifier
                             InetSocketAddress matchingAddress = null;
                             for (Map.Entry<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> entry : openRequests.entrySet()) {
                                 for (OnlineMultiplayerRequestOpponentRequest comparedRequest : entry.getValue()) {
-                                    if ((receivedRequest.getClientIdentifier() == null && comparedRequest.getDesiredOpponentIdentifier() == null) || (receivedRequest.getClientIdentifier().equals(comparedRequest.getDesiredOpponentIdentifier()))) {
+                                    if (receivedRequest.getDesiredOpponentIdentifier() == null && comparedRequest.getDesiredOpponentIdentifier() == null){
+                                        // found two requests that both don't wish a particular opponent
+                                        matchingAddress = entry.getKey();
+                                        break;
+                                    }else if (comparedRequest.getDesiredOpponentIdentifier() != null && receivedRequest.getClientIdentifier().equals(comparedRequest.getDesiredOpponentIdentifier())){
                                         matchingAddress = entry.getKey();
                                         break;
                                     }
@@ -145,6 +153,19 @@ public class Main {
      * Shuts the server down
      */
     public static void shutDown() {
+        FOKLogger.info(Main.class.getName(), "Shutting server down...");
         server.close();
+        serverRunning = false;
+    }
+
+    /**
+     * Clears the internal server memory (like a restart) but without a actual restart
+     */
+    public static void resetServer() {
+        openRequests = new HashMap<>();
+    }
+
+    public static boolean isServerRunning() {
+        return serverRunning;
     }
 }
