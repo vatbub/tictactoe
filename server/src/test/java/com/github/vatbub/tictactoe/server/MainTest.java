@@ -72,7 +72,7 @@ public class MainTest {
         // launch a server
         if (System.getenv("PORT") == null) {
             // no port defined, launch on port 90
-            port = 90;
+            port = 234567897;
         } else {
             // use port in env var
             port = Integer.parseInt(System.getenv("PORT"));
