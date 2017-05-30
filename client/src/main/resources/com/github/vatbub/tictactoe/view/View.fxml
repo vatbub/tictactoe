@@ -47,7 +47,7 @@
               </items>
             </ToolBar>
             <Group fx:id="winLineGroup" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="45.0" />
-            <AnchorPane fx:id="currentPlayerLabelAnchorPane" layoutX="568.0" layoutY="592.0" prefHeight="55.0" prefWidth="45.0" style="-fx-background-color: #DDDDDD; -fx-background-radius: 13 0 0 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+            <AnchorPane fx:id="currentPlayerLabelAnchorPane" layoutX="568.0" layoutY="592.0" prefHeight="55.0" prefWidth="45.0" style="-fx-background-color: #DDDDDD; -fx-background-radius: 13 0 0 0;" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
                <children>
                   <Label fx:id="currentPlayerLabel" text="X" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="10.0">
                      <font>
@@ -236,5 +236,59 @@
             <DropShadow height="12.0" radius="5.5" width="12.0" />
          </effect>
       </AnchorPane>
+      <AnchorPane fx:id="playOnlineAnchorPane" layoutX="578.0" layoutY="602.0" prefWidth="45.0" style="-fx-background-color: #DDDDDD; -fx-background-radius: 13 0 0 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+         <effect>
+            <DropShadow height="12.0" radius="5.5" width="12.0" />
+         </effect>
+         <children>
+            <Hyperlink onAction="#playOnlineHyperlinkOnAction" text="Play online" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+         </children>
+      </AnchorPane>
+      <AnchorPane fx:id="loadingBackground" opacity="0.8" style="-fx-background-color: #000000;" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <HBox fx:id="loadingBox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <VBox alignment="CENTER">
+               <children>
+                  <AnchorPane style="-fx-background-color: #FFFFFF; -fx-background-radius: 13 13 13 13;">
+                     <children>
+                        <ProgressIndicator layoutX="0.558380126953125" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+                     </children>
+                  </AnchorPane>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+      <VBox fx:id="errorBox" alignment="CENTER" layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="100.0" spacing="10.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox alignment="CENTER">
+               <children>
+                  <AnchorPane style="-fx-background-color: #DDDDDD;">
+                     <children>
+                        <VBox alignment="TOP_CENTER" minHeight="0.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                           <children>
+                              <Label text="Error">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Label>
+                              <Label text="Could not connect to server. Reason:" />
+                              <Label fx:id="errorReasonLabel" text="Reason to be filled in" />
+                              <HBox alignment="CENTER" spacing="5.0">
+                                 <children>
+                                    <Button defaultButton="true" mnemonicParsing="false" onAction="#errorRetryOnAction" text="Retry" />
+                                    <Button cancelButton="true" mnemonicParsing="false" onAction="#errorPlayOfflineOnAction" text="Play offline" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                     <effect>
+                        <DropShadow color="WHITE" height="25.0" radius="12.0" width="25.0" />
+                     </effect>
+                  </AnchorPane>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
    </children>
 </AnchorPane>
