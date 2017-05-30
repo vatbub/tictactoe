@@ -36,7 +36,7 @@ public class OnlineMultiplayerRequestOpponentRequest implements Serializable{
     private String desiredOpponentIdentifier;
     private int operation;
 
-    /**
+    /*/**
      * For Kryo only
      *
      * @deprecated
@@ -113,8 +113,12 @@ public class OnlineMultiplayerRequestOpponentRequest implements Serializable{
         }
     }
 
-    // @SuppressWarnings("MethodDoesntCallSuperMethod")
-    /*public OnlineMultiplayerRequestOpponentRequest clone() {
-        return new OnlineMultiplayerRequestOpponentRequest(getClientIdentifier(), getDesiredOpponentIdentifier());
-    }*/
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    public OnlineMultiplayerRequestOpponentRequest clone() {
+        OnlineMultiplayerRequestOpponentRequest res = new OnlineMultiplayerRequestOpponentRequest();
+        res.setOperation(this.getOperation());
+        res.setDesiredOpponentIdentifier(this.getDesiredOpponentIdentifier());
+        res.setClientIdentifier(this.getClientIdentifier());
+        return res;
+    }
 }
