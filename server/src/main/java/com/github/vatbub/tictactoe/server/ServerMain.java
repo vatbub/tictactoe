@@ -126,6 +126,7 @@ public class ServerMain {
                                         clientRequestList.add(receivedRequest);
                                     } else {
                                         // request was sent twice so send a exception
+                                        FOKLogger.severe(ServerMain.class.getName(), "The identical request was already sent once, cannot add it to the list again!");
                                         OnlineMultiplayerRequestOpponentException exception = new OnlineMultiplayerRequestOpponentException("Requests may not be sent twice");
                                         connection.sendTCP(exception);
                                         return;
@@ -135,7 +136,7 @@ public class ServerMain {
                         } else {
                             // operation is AbortRequest
                             List<OnlineMultiplayerRequestOpponentRequest> clientRequestList = openRequests.get(connection.getRemoteAddressTCP());
-                            if (clientRequestList.contains(receivedRequest)) {
+                            if (clientRequestList != null && clientRequestList.contains(receivedRequest)) {
                                 clientRequestList.remove(receivedRequest);
                                 if (clientRequestList.size() == 0) {
                                     // delete the inet address from the map
@@ -144,7 +145,7 @@ public class ServerMain {
                                 }
                                 response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.RequestAborted);
                             } else {
-                                FOKLogger.info(ServerMain.class.getName(), "Could not abort request, no matching request found!");
+                                FOKLogger.severe(ServerMain.class.getName(), "Could not abort request, no matching request found!");
                                 OnlineMultiplayerRequestOpponentException exception = new OnlineMultiplayerRequestOpponentException("No matching request found.");
                                 connection.sendTCP(exception);
                                 return;
