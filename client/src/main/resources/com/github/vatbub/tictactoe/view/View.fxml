@@ -290,5 +290,37 @@
             </HBox>
          </children>
       </VBox>
+      <VBox fx:id="onlineMenuBox" alignment="CENTER" layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="100.0" spacing="10.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox alignment="CENTER">
+               <children>
+                  <AnchorPane style="-fx-background-color: #DDDDDD;">
+                     <children>
+                        <VBox fx:id="onlineMenuSubBox" alignment="TOP_CENTER" minHeight="0.0" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                           <children>
+                              <Label text="Your username">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="onlineMyUsername" promptText="Type a fancy name" style="-fx-prompt-text-fill: #888888;" />
+                              <Label text="Your opponent">
+                                 <font>
+                                    <Font name="System Bold" size="15.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="onlineDesiredOpponentName" promptText="Blank for a random player" style="-fx-prompt-text-fill: #888888;" />
+                              <Button defaultButton="true" maxWidth="271.0" mnemonicParsing="false" onAction="#onlineStartButtonOnAction" text="Start" />
+                           </children>
+                        </VBox>
+                     </children>
+                     <effect>
+                        <DropShadow height="25.0" radius="12.0" width="25.0" />
+                     </effect>
+                  </AnchorPane>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
    </children>
 </AnchorPane>

@@ -30,6 +30,7 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -465,7 +466,7 @@ public class Board {
         this.aiLevel = aiLevel;
     }
 
-    public static class Move {
+    public static class Move implements Serializable {
         private int column;
         private int row;
 

@@ -21,16 +21,11 @@ package com.github.vatbub.tictactoe.view;
  */
 
 
-import com.esotericsoftware.kryonet.Client;
-import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.Listener;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
 import com.github.vatbub.tictactoe.PlayerMode;
-import com.github.vatbub.tictactoe.common.KryoCommon;
-import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequest;
-import com.github.vatbub.tictactoe.common.OnlineMultiplayerResponse;
+import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import com.sun.javafx.tk.Toolkit;
@@ -108,7 +103,6 @@ public class Main extends Application {
     private String player2SampleName = NameList.getNextName();
     private boolean blockedForInput;
     private Timer runLaterTimer = new Timer();
-    private Client kryoClient;
     /**
      * We need to save this manually since {@code aiLevelSlider.isVisible} is delayed due to the animation
      */
@@ -183,6 +177,14 @@ public class Main extends Application {
     private VBox errorBox;
     @FXML
     private Label errorReasonLabel;
+    @FXML
+    private VBox onlineMenuBox;
+    @FXML
+    private VBox getOnlineMenuSubBox;
+    @FXML
+    private TextField onlineMyUsername;
+    @FXML
+    private TextField onlineDesiredOpponentName;
 
     public Main() {
         super();
@@ -218,40 +220,66 @@ public class Main extends Application {
     }
 
     @FXML
+    void onlineStartButtonOnAction(ActionEvent event) {
+
+    }
+
+    @FXML
     void playOnlineHyperlinkOnAction(ActionEvent event) {
-        System.out.println("Clicked Play online");
+        connectToRelayServer();
+    }
+
+    private void connectToRelayServer() {
+        showLoadingScreen();
+        Thread connectionThread = new Thread(() -> {
+            try {
+                KryoGameConnections.connect(() -> Platform.runLater(this::hideLoadingScreen));
+            } catch (IOException e) {
+                FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
+                Platform.runLater(() -> {
+                    errorReasonLabel.setText(e.getLocalizedMessage());
+                    showErrorScreen();
+                });
+            }
+        });
+        connectionThread.setName("connectionThread");
+        connectionThread.start();
+    }
+
+    private void showErrorScreen() {
+        fadeNode(errorBox, 1, true);
+    }
+
+    private void hideErrorScreen() {
+        fadeNode(errorBox, 0, true);
+    }
+
+    private void showLoadingScreen() {
+        guiAnimationQueue.submitWaitForUnlock(() -> {
+            guiAnimationQueue.setBlocked(true);
+            fadeNode(loadingBackground, 0.8);
+            fadeNode(loadingBox, 1, () -> guiAnimationQueue.setBlocked(false));
+        });
+    }
+
+    private void hideLoadingScreen() {
+        guiAnimationQueue.submitWaitForUnlock(() -> {
+            guiAnimationQueue.setBlocked(true);
+            fadeNode(loadingBackground, 0);
+            fadeNode(loadingBox, 0, () -> guiAnimationQueue.setBlocked(false));
+        });
     }
 
     @FXML
     void errorRetryOnAction(ActionEvent event) {
-        System.out.println("Clicked retry");
+        hideErrorScreen();
+        connectToRelayServer();
     }
 
     @FXML
     void errorPlayOfflineOnAction(ActionEvent event) {
-        System.out.println("Clicked retry");
-    }
-
-    public Client getKryoClient() throws IOException {
-        if (kryoClient == null) {
-            kryoClient = new Client();
-            kryoClient.start();
-            KryoCommon.registerRequiredClasses(kryoClient.getKryo());
-            kryoClient.setKeepAliveTCP(2500);
-            kryoClient.connect(5000, "localhost", 90);
-            kryoClient.addListener(new Listener() {
-                public void received(Connection connection, Object object) {
-                    if (object instanceof OnlineMultiplayerResponse) {
-                        OnlineMultiplayerResponse response = (OnlineMultiplayerResponse) object;
-                        System.out.println(response.text);
-                    }
-                }
-            });
-            OnlineMultiplayerRequest request = new OnlineMultiplayerRequest();
-            request.text = "Here is the request";
-            kryoClient.sendTCP(request);
-        }
-        return kryoClient;
+        hideErrorScreen();
+        hideLoadingScreen();
     }
 
     /**
