@@ -158,6 +158,17 @@ public class ServerMainTest {
         FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
     }
 
+    private void assertException(Object object, String expectedErrorMessage) {
+        assert object instanceof OnlineMultiplayerRequestOpponentException;
+        OnlineMultiplayerRequestOpponentException response = (OnlineMultiplayerRequestOpponentException) object;
+
+        if (expectedErrorMessage != null) {
+            FOKLogger.info(ServerMainTest.class.getName(), "Checking for the expected error message...");
+            assert response.getMessage().equals(expectedErrorMessage);
+            FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
+        }
+    }
+
     @Test
     public void twoRequestsNoDesiredOpponent() throws Throwable {
         final boolean[] firstPassed = {false};
@@ -234,6 +245,56 @@ public class ServerMainTest {
     }
 
     @Test
+    public void multipleRequestsFromSameClient() throws Throwable {
+        final int[] responsesReceivedCount = {0};
+
+        client.addListener(new Listener() {
+            @SuppressWarnings("Duplicates")
+            @Override
+            public void received(Connection connection, Object object) {
+                FOKLogger.info(ServerMainTest.class.getName(), "Requests received: " + responsesReceivedCount[0] + 1);
+                if (responsesReceivedCount[0] < 2) {
+                    try {
+                        responsesReceivedCount[0]++;
+                        assertWaitForOpponent(object);
+                    } catch (Error | Exception e) {
+                        throwable = e;
+                        tearDown();
+                    }
+                } else {
+                    try {
+                        assertWaitForOpponent(object);
+                        tearDown();
+                    } catch (Error | Exception e) {
+                        throwable = e;
+                        tearDown();
+                    }
+                }
+            }
+        });
+
+        try {
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending request with desiredOpponent...");
+            request1.setDesiredOpponentIdentifier(identifier2);
+            client.sendTCP(request1);
+
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending second request with desiredOpponent...");
+            client.sendTCP(request1.clone());
+
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending third request with desiredOpponent...");
+            client.sendTCP(request1.clone());
+        } catch (Error | Exception e) {
+            throwable = e;
+            tearDown();
+        }
+
+        shutDownThread.join();
+        if (throwable != null) {
+            throw throwable;
+        }
+    }
+
+    @Test
     public void twoRequestsWithDesiredOpponent() throws Throwable {
         final boolean[] firstPassed = {false};
 
@@ -269,6 +330,52 @@ public class ServerMainTest {
             FOKLogger.info(ServerMainTest.class.getName(), "Sending second request with desiredOpponent...");
             request2.setDesiredOpponentIdentifier(identifier1);
             client.sendTCP(request2);
+        } catch (Error | Exception e) {
+            throwable = e;
+            tearDown();
+        }
+
+        shutDownThread.join();
+        if (throwable != null) {
+            throw throwable;
+        }
+    }
+
+    @Test
+    public void sendSameRequestTwice() throws Throwable {
+        final boolean[] firstPassed = {false};
+
+        client.addListener(new Listener() {
+            @SuppressWarnings("Duplicates")
+            @Override
+            public void received(Connection connection, Object object) {
+                if (!firstPassed[0]) {
+                    try {
+                        firstPassed[0] = true;
+                        assertWaitForOpponent(object);
+                    } catch (Error | Exception e) {
+                        throwable = e;
+                        tearDown();
+                    }
+                } else {
+                    try {
+                        assertException(object, "Requests may not be sent twice");
+                        tearDown();
+                    } catch (Error | Exception e) {
+                        throwable = e;
+                        tearDown();
+                    }
+                }
+            }
+        });
+
+        try {
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending request with desiredOpponent...");
+            request1.setDesiredOpponentIdentifier(identifier2);
+            client.sendTCP(request1);
+
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending same request again...");
+            client.sendTCP(request1);
         } catch (Error | Exception e) {
             throwable = e;
             tearDown();
@@ -318,6 +425,37 @@ public class ServerMainTest {
             FOKLogger.info(ServerMainTest.class.getName(), "Sending request without desiredOpponent...");
             client.sendTCP(request1);
 
+            FOKLogger.info(ServerMainTest.class.getName(), "Sending abortion request...");
+            request1.setOperation(Operation.AbortRequest);
+            client.sendTCP(request1);
+        } catch (Error | Exception e) {
+            throwable = e;
+            tearDown();
+        }
+
+        shutDownThread.join();
+        if (throwable != null) {
+            throw throwable;
+        }
+    }
+
+    @Test
+    public void abortRequestThatWasNeverSent() throws Throwable {
+        client.addListener(new Listener() {
+            @SuppressWarnings("Duplicates")
+            @Override
+            public void received(Connection connection, Object object) {
+                try {
+                    assertException(object, "No matching request found.");
+                    tearDown();
+                } catch (Error | Exception e) {
+                    throwable = e;
+                    tearDown();
+                }
+            }
+        });
+
+        try {
             FOKLogger.info(ServerMainTest.class.getName(), "Sending abortion request...");
             request1.setOperation(Operation.AbortRequest);
             client.sendTCP(request1);
