@@ -26,14 +26,12 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.github.vatbub.tictactoe.common.*;
 import common.Common;
+import de.taimos.totp.TOTP;
 import logging.FOKLogger;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -46,13 +44,27 @@ public class ServerMain {
 
     public static void main(String[] args) throws IOException {
         Common.setAppName("tictactoeserver");
-        if (args.length == 0) {
-            startServer(Integer.parseInt(System.getenv("PORT")));
-        } else if (args.length == 1) {
-            startServer(Integer.parseInt(args[0]));
-        } else {
-            System.out.println("Too many arguments. The first argument must be the tcp port to run the server on. All other arguments are ignored. If no port is specified, the value will be taken from the PORT environment variable.");
-            startServer(Integer.parseInt(args[0]));
+        List<String> argList = new ArrayList<>(args.length);
+        argList.addAll(Arrays.asList(args));
+        boolean launchSucceeded = false;
+        while (!launchSucceeded) {
+            try {
+                if (argList.size() == 0) {
+                    startServer(Integer.parseInt(System.getenv("PORT")));
+                    launchSucceeded = true;
+                } else if (argList.size() == 1) {
+                    startServer(Integer.parseInt(argList.get(0)));
+                    launchSucceeded = true;
+                } else {
+                    System.out.println("Too many arguments. The first argument must be the tcp port to run the server on. All other arguments are ignored. If no port is specified, the value will be taken from the PORT environment variable.");
+                    startServer(Integer.parseInt(argList.get(0)));
+                    launchSucceeded = true;
+                }
+            }catch(Exception e){
+                FOKLogger.log(ServerMain.class.getName(), Level.SEVERE, "An error occurred, probably because of an illegal comman line argument, stripping the argument " + argList.get(0));
+                launchSucceeded=false;
+                argList.remove(0);
+            }
         }
     }
 
@@ -154,6 +166,38 @@ public class ServerMain {
 
                         FOKLogger.info(ServerMain.class.getName(), "Sending response to client...");
                         connection.sendTCP(response);
+                    } else if (object instanceof UpdateServerRequest) {
+                        UpdateServerRequest request = (UpdateServerRequest) object;
+                        String key = System.getenv("updateServerTOTPKey");
+                        String fokLauncherJar = System.getenv("foklauncherJar");
+                        UpdateServerResponse response = new UpdateServerResponse();
+
+                        if (!TOTP.getOTP(key).equals(request.getTotpPassword())) {
+                            response.setResponseText("TOTP not matching.");
+                            connection.sendTCP(response);
+                        } else {
+                            // launch autolaunchrepourl=https://dl.bintray.com/vatbub/fokprojectsReleases autolaunchsnapshotrepourl=https://oss.jfrog.org/artifactory/repo autolaunchgroupid=com.git
+                            ProcessBuilder foklauncherProcessBuilder = new ProcessBuilder("java", "-jar", fokLauncherJar, "launch", "autolaunchrepourl=" + ServerConfig.updateMavenRepoURL.toString(), "autolaunchsnapshotrepourl=" + ServerConfig.updateMavenSnapshotRepoURL.toString(), "autolaunchgroupid=" + ServerConfig.groupID, "autolaunchartifactid=" + ServerConfig.artifactID, "autolaunchclassifier=" + ServerConfig.classifier, "autolaunchenablesnapshots");
+                            foklauncherProcessBuilder.inheritIO();
+                            FOKLogger.info(ServerMain.class.getName(), "Launching a server update...");
+                            Process foklauncherProcess = foklauncherProcessBuilder.start();
+                            if (foklauncherProcess.isAlive()) {
+                                response.setResponseText("Updating now...");
+                                connection.sendTCP(response);
+                                Thread shutdownThread = new Thread(() -> {
+                                    // to make sure the response goes through
+                                    try {
+                                        Thread.sleep(1000);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    shutDown();
+                                });
+                                shutdownThread.setName("shutdownThread");
+                                shutdownThread.start();
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     FOKLogger.log(ServerMain.class.getName(), Level.SEVERE, "A internal server error occurred", e);

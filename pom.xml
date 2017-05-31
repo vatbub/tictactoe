@@ -58,6 +58,7 @@
 		<module>client</module>
         <module>server</module>
         <module>common</module>
+        <module>serverupdater</module>
     </modules>
 
     <properties>
