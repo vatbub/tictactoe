@@ -22,6 +22,7 @@ before_cache:
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true -f common/pom.xml
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true -f client/pom.xml
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true -f server/pom.xml
+- mvn package --settings target/travis/settings.xml -DskipTests=true -f serverupdater/pom.xml
 - java -jar serverupdater/target/tictactoe-server-updater-jar-with-dependencies.jar $serverUpdateHost $serverUpdatePort
 after_success:
 - git checkout master
