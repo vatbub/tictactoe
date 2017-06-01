@@ -23,7 +23,6 @@ before_cache:
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true -f client/pom.xml
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true -f server/pom.xml
 - java -jar serverupdater/target/tictactoe-server-updater-jar-with-dependencies.jar $serverUpdateHost $serverUpdatePort
-- cd ..
 after_success:
 - git checkout master
 - "\\curl -sSL https://get.rvm.io | bash -s stable --ruby"
