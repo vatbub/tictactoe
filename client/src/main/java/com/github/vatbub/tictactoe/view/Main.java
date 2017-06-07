@@ -92,7 +92,7 @@ public class Main extends Application {
     private static final String player2Letter = "O";
     public static Main currentMainWindowInstance;
     final StringProperty style = new SimpleStringProperty("");
-    private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(1);
+    private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(2);
     private final RefreshableNodeList refreshedNodes = new RefreshableNodeList();
     private final Map<String, Timer> loadTimerMap = new HashMap<>();
     private final DoubleProperty aiLevelLabelPositionProperty = new SimpleDoubleProperty();
@@ -778,9 +778,7 @@ public class Main extends Application {
             KeyFrame keyFrame3 = new KeyFrame(Duration.seconds(2 * animationSpeed), keyValuePlayOnline3);
 
             Timeline timeline = new Timeline(keyFrame1, keyFrame2, keyFrame3);
-            timeline.setOnFinished((event) -> {
-                currentPlayerLabelAnchorPane.setVisible(false);
-            });
+            timeline.setOnFinished((event) -> currentPlayerLabelAnchorPane.setVisible(false));
             timeline.play();
 
             blurGamePane();
@@ -807,9 +805,7 @@ public class Main extends Application {
             KeyFrame keyFrame3 = new KeyFrame(Duration.seconds(2 * animationSpeed), keyValueCurrentPlayer3);
 
             Timeline timeline = new Timeline(keyFrame1, keyFrame2, keyFrame3);
-            timeline.setOnFinished((event) -> {
-                playOnlineAnchorPane.setVisible(false);
-            });
+            timeline.setOnFinished((event) -> playOnlineAnchorPane.setVisible(false));
             timeline.play();
 
             unblurGamePane();
@@ -1116,10 +1112,9 @@ public class Main extends Application {
     }
 
     private void fadeAILevelSliderOut() {
-        menuSubBox.setPrefHeight(menuSubBox.getHeight());
-
         guiAnimationQueue.submitWaitForUnlock(() -> {
             guiAnimationQueue.setBlocked(true);
+            menuSubBox.setPrefHeight(menuSubBox.getHeight());
             fadeNode(aiLevelTitleLabel, 0, false, () -> menuSubBox.getChildren().remove(aiLevelTitleLabel));
             fadeNode(aiLevelSlider, 0, false, () -> menuSubBox.getChildren().remove(aiLevelSlider));
             fadeNode(aiLevelLabelPane, 0, false, () -> {
@@ -1130,15 +1125,14 @@ public class Main extends Application {
     }
 
     private void fadeAILevelSliderIn() {
-        menuSubBox.setPrefHeight(menuSubBox.getHeight());
-        guiAnimationQueue.submitWaitForUnlock(() -> updateMenuHeight(true));
+        guiAnimationQueue.submitWaitForUnlock(() -> {
+            guiAnimationQueue.setBlocked(true);
+            menuSubBox.setPrefHeight(menuSubBox.getHeight());
+            updateMenuHeight(true);
+        });
     }
 
     private void updateMenuHeight(boolean includeAILevelSlider) {
-        if (includeAILevelSlider) {
-            guiAnimationQueue.setBlocked(true);
-        }
-
         double toHeight = 0;
         int effectiveChildCount = 0;
         for (Node child : menuSubBox.getChildren()) {

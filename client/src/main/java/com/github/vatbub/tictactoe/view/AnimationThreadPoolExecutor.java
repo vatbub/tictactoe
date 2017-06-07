@@ -35,7 +35,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
  * A {@code ScheduledThreadPoolExecutor} for javaFX animations
  */
 @SuppressWarnings("JavaDoc")
-public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
+public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor {
     /**
      * Animations submitted using {@link #submitWaitForUnlock(Runnable)}, {@link #submitWaitForUnlock(Runnable, Object)} or {@link #submitWaitForUnlock(Callable)} will wait for this value to be false before being executed
      */
@@ -139,7 +139,6 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
             Platform.runLater(effectiveCall);
             return effectiveCall.get();
         };
-
         return super.schedule(effectiveTask, 0, NANOSECONDS);
     }
 
@@ -154,11 +153,11 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
         return super.schedule(Executors.callable(effectiveTask, result), 0, NANOSECONDS);
     }
 
-    private Runnable createEffectiveWaitingTask(Runnable task){
+    private Runnable createEffectiveWaitingTask(Runnable task) {
         return () -> {
             // PrintStreams magically don't make the wait loop hang
             PrintStream nullStream = new PrintStream(new NullOutputStream());
-            while (isBlocked()){
+            while (isBlocked()) {
                 nullStream.println("Waiting...");
             }
             // run
@@ -174,7 +173,7 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
                     //DO NOTHING
                 }
             });
-            while (isBlocked()){
+            while (isBlocked()) {
                 nullStream.println("Waiting...");
             }
             // run
@@ -182,7 +181,6 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
             Platform.runLater(effectiveCall);
             return effectiveCall.get();
         };
-
         return super.schedule(effectiveTask, 0, NANOSECONDS);
     }
 
@@ -192,6 +190,7 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor{
 
     /**
      * If {@code true}, Animations submitted using {@link #submitWaitForUnlock(Runnable)}, {@link #submitWaitForUnlock(Runnable, Object)} or {@link #submitWaitForUnlock(Callable)} will wait until {@code setBlocked(false} is called.
+     *
      * @param blocked The new value for blocked
      */
     public void setBlocked(boolean blocked) {
