@@ -1,5 +1,13 @@
 # Change Log
 
+## [Unreleased](https://github.com/vatbub/tictactoe/tree/HEAD)
+
+[Full Changelog](https://github.com/vatbub/tictactoe/compare/tictactoe-0.0.1...HEAD)
+
+**Fixed bugs:**
+
+- GUI freezes when quickly enabling and disabling ai [\#2](https://github.com/vatbub/tictactoe/issues/2)
+
 ## [tictactoe-0.0.1](https://github.com/vatbub/tictactoe/tree/tictactoe-0.0.1) (2017-03-13)
 
 
