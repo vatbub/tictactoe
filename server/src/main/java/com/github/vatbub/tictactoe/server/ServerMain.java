@@ -40,6 +40,7 @@ import java.util.logging.Level;
 @SuppressWarnings("WeakerAccess")
 public class ServerMain {
     private static Map<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
+    private static int currentTcpPort;
     private static Server server = new Server();
 
     public static void main(String[] args) throws IOException {
@@ -60,9 +61,9 @@ public class ServerMain {
                     startServer(Integer.parseInt(argList.get(0)));
                     launchSucceeded = true;
                 }
-            }catch(Exception e){
+            } catch (Exception e) {
                 FOKLogger.log(ServerMain.class.getName(), Level.SEVERE, "An error occurred, probably because of an illegal comman line argument, stripping the argument " + argList.get(0));
-                launchSucceeded=false;
+                launchSucceeded = false;
                 argList.remove(0);
             }
         }
@@ -70,6 +71,7 @@ public class ServerMain {
 
     public static void startServer(int tcpPort) throws IOException {
         resetServer();
+        currentTcpPort = tcpPort;
         server.getKryo().setReferences(true);
         KryoCommon.registerRequiredClasses(server.getKryo());
         server.start();
@@ -221,5 +223,9 @@ public class ServerMain {
      */
     public static void resetServer() {
         openRequests = new HashMap<>();
+    }
+
+    public static int getCurrentTcpPort() {
+        return currentTcpPort;
     }
 }
