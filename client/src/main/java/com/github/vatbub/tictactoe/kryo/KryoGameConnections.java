@@ -27,9 +27,11 @@ import com.esotericsoftware.kryonet.*;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.common.KryoCommon;
 import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequestOpponentResponse;
+import common.internet.Internet;
 import logging.FOKLogger;
 
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * Does all the networking tasks for the online multiplayer game.
@@ -51,11 +53,12 @@ public class KryoGameConnections {
     }
 
     public static void connect(Runnable onConnected) throws IOException {
-        connect("vatbubtictactoeserver.heroku.com", onConnected);
+        // vatbubtictactoeserver.herokuapp.com
+        connect("52.59.117.143", onConnected);
     }
 
     public static void connect(String host, Runnable onConnected) throws IOException {
-        connect(host, 22127, onConnected);
+        connect(host, 90, onConnected);
     }
 
     public static void connect(String host, int tcpPort, Runnable onConnected) throws IOException {
@@ -67,9 +70,20 @@ public class KryoGameConnections {
             kryoClient = new Client();
         }
 
+        // ping the host to wake him up (e. g. om heroku)
+        String pingAddress = "http://" + host;
+        FOKLogger.info(KryoGameConnections.class.getName(), "Pinging the host " + pingAddress + " to wake him up...");
+        try {
+            String pingResponse = Internet.webread(new URL(pingAddress));
+            FOKLogger.info(KryoGameConnections.class.getName(), "Ping response: " + pingResponse);
+        } catch (Exception e) {
+            FOKLogger.severe(KryoGameConnections.class.getName(), "Ping failed. Still trying to connect using KryoNet, reason for the failed ping: " + e.getLocalizedMessage());
+        }
+
         kryoClient.start();
         KryoCommon.registerRequiredClasses(kryoClient.getKryo());
-        registerGameClasses(kryoClient.getKryo());
+        kryoClient.getKryo().setReferences(true);
+        //registerGameClasses(kryoClient.getKryo());
         kryoClient.setKeepAliveTCP(2500);
 
         kryoClient.addListener(new Listener() {
