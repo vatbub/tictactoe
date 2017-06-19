@@ -67,6 +67,7 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import logging.FOKLogger;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.controlsfx.control.ToggleSwitch;
@@ -237,7 +238,17 @@ public class Main extends Application {
             } catch (IOException e) {
                 FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
                 Platform.runLater(() -> {
-                    errorReasonLabel.setText(e.getLocalizedMessage());
+                    Throwable finalException;
+                    if (ExceptionUtils.getRootCause(e) != null) {
+                        finalException = ExceptionUtils.getRootCause(e);
+                    } else {
+                        finalException = e;
+                    }
+                    String errorText = finalException.getClass().getSimpleName();
+                    if (finalException.getLocalizedMessage() != null) {
+                        errorText = errorText + ": " + finalException.getLocalizedMessage();
+                    }
+                    errorReasonLabel.setText(errorText);
                     showErrorScreen();
                 });
             }
