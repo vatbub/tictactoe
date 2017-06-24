@@ -21,8 +21,10 @@ package com.github.vatbub.tictactoe.kryo;
  */
 
 
+import java.io.Serializable;
+
 /**
  * Created by Frederik on 23.06.2017.
  */
-public class StartGameRequest {
+public class StartGameRequest implements Serializable{
 }
