@@ -70,6 +70,7 @@ public class ServerMain {
     }
 
     public static void startServer(int tcpPort) throws IOException {
+        FOKLogger.info(ServerMain.class.getName(), "VatbubTicTacToeServer version " + Common.getAppVersion());
         resetServer();
         currentTcpPort = tcpPort;
         server.getKryo().setReferences(true);
@@ -104,16 +105,19 @@ public class ServerMain {
                         if (receivedRequest.getOperation().equals(Operation.RequestOpponent)) {
                             // check if any of the open requests has a matching desiredOpponentIdentifier
                             InetSocketAddress matchingAddress = null;
+                            String matchingOpponentIdentifier = null;
                             for (Map.Entry<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> entry : openRequests.entrySet()) {
                                 for (OnlineMultiplayerRequestOpponentRequest comparedRequest : entry.getValue()) {
                                     if (receivedRequest.getDesiredOpponentIdentifier() == null && comparedRequest.getDesiredOpponentIdentifier() == null) {
                                         // found two requests that both don't wish a particular opponent
                                         FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
                                         matchingAddress = entry.getKey();
+                                        matchingOpponentIdentifier = comparedRequest.getClientIdentifier();
                                         break;
                                     } else if (comparedRequest.getDesiredOpponentIdentifier() != null && receivedRequest.getClientIdentifier().equals(comparedRequest.getDesiredOpponentIdentifier())) {
                                         FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
                                         matchingAddress = entry.getKey();
+                                        matchingOpponentIdentifier = comparedRequest.getClientIdentifier();
                                         break;
                                     }
                                 }
@@ -121,7 +125,7 @@ public class ServerMain {
 
                             if (matchingAddress != null) {
                                 // send a response to the client that just requested an opponent
-                                response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.OpponentFound, matchingAddress);
+                                response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.OpponentFound, matchingAddress, matchingOpponentIdentifier);
                             } else {
                                 // add the request to the openRequests-map
                                 FOKLogger.info(ServerMain.class.getName(), "No matching request found, adding the request to the open requests list...");
@@ -225,6 +229,7 @@ public class ServerMain {
         openRequests = new HashMap<>();
     }
 
+    @SuppressWarnings("unused")
     public static int getCurrentTcpPort() {
         return currentTcpPort;
     }

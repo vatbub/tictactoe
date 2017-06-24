@@ -25,6 +25,8 @@ import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
 import com.github.vatbub.tictactoe.PlayerMode;
+import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequestOpponentResponse;
+import com.github.vatbub.tictactoe.common.ResponseCode;
 import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
@@ -91,6 +93,7 @@ public class Main extends Application {
     private static final int gameCols = 3;
     private static final String player1Letter = "X";
     private static final String player2Letter = "O";
+    private static final int gameServerTCPPort = 8181;
     public static Main currentMainWindowInstance;
     final StringProperty style = new SimpleStringProperty("");
     private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(2);
@@ -222,7 +225,50 @@ public class Main extends Application {
 
     @FXML
     void onlineStartButtonOnAction(ActionEvent event) {
+        hideOnlineMenu();
+        showLoadingScreen();
+        String clientIdentifier = onlineMyUsername.getText();
+        if (clientIdentifier.equals("")) {
+            clientIdentifier = onlineMyUsername.getPromptText();
+        }
 
+        String desiredOpponentIdentifier = null;
+        if (!onlineDesiredOpponentName.getText().equals("")) {
+            desiredOpponentIdentifier = onlineDesiredOpponentName.getText();
+        }
+
+        KryoGameConnections.requestOpponent(clientIdentifier, desiredOpponentIdentifier, (OnlineMultiplayerRequestOpponentResponse response) -> {
+            if (response.getResponseCode() == ResponseCode.WaitForOpponent) {
+                try {
+                    KryoGameConnections.launchGameServer(gameServerTCPPort, () -> Platform.runLater(() -> startGame(response.getOpponentIdentifier())));
+                } catch (IOException e) {
+                    FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not launch the game server", e);
+                    Platform.runLater(() -> showErrorMessage(e));
+                }
+            } else {
+                try {
+                    KryoGameConnections.launchGameClient(response.getOpponentInetSocketAddress(), () -> Platform.runLater(() -> startGame(response.getOpponentIdentifier())));
+                } catch (IOException e) {
+                    FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not launch the game client", e);
+                    Platform.runLater(() -> showErrorMessage(e));
+                }
+            }
+        });
+    }
+
+    public void showErrorMessage(Throwable e) {
+        Throwable finalException;
+        if (ExceptionUtils.getRootCause(e) != null) {
+            finalException = ExceptionUtils.getRootCause(e);
+        } else {
+            finalException = e;
+        }
+        String errorText = finalException.getClass().getSimpleName();
+        if (finalException.getLocalizedMessage() != null) {
+            errorText = errorText + ": " + finalException.getLocalizedMessage();
+        }
+        errorReasonLabel.setText(errorText);
+        showErrorScreen();
     }
 
     @FXML
@@ -234,23 +280,15 @@ public class Main extends Application {
         showLoadingScreen();
         Thread connectionThread = new Thread(() -> {
             try {
-                KryoGameConnections.connect(() -> Platform.runLater(this::hideLoadingScreen));
+                KryoGameConnections.connect(() -> {
+                    Platform.runLater(() -> {
+                        hideLoadingScreen();
+                        showOnlineMenu();
+                    });
+                });
             } catch (IOException e) {
                 FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
-                Platform.runLater(() -> {
-                    Throwable finalException;
-                    if (ExceptionUtils.getRootCause(e) != null) {
-                        finalException = ExceptionUtils.getRootCause(e);
-                    } else {
-                        finalException = e;
-                    }
-                    String errorText = finalException.getClass().getSimpleName();
-                    if (finalException.getLocalizedMessage() != null) {
-                        errorText = errorText + ": " + finalException.getLocalizedMessage();
-                    }
-                    errorReasonLabel.setText(errorText);
-                    showErrorScreen();
-                });
+                Platform.runLater(() -> showErrorMessage(e));
             }
         });
         connectionThread.setName("connectionThread");
@@ -278,6 +316,21 @@ public class Main extends Application {
             guiAnimationQueue.setBlocked(true);
             fadeNode(loadingBackground, 0);
             fadeNode(loadingBox, 0, () -> guiAnimationQueue.setBlocked(false));
+        });
+    }
+
+    private void showOnlineMenu() {
+        hideMenu();
+        guiAnimationQueue.submit(() -> {
+            guiAnimationQueue.setBlocked(true);
+            fadeNode(onlineMenuBox, 1, () -> guiAnimationQueue.setBlocked(false));
+        });
+    }
+
+    private void hideOnlineMenu() {
+        guiAnimationQueue.submit(() -> {
+            guiAnimationQueue.setBlocked(true);
+            fadeNode(onlineMenuBox, 0, () -> guiAnimationQueue.setBlocked(false));
         });
     }
 
@@ -324,6 +377,7 @@ public class Main extends Application {
 
     @Override
     public void stop() {
+        KryoGameConnections.shutdown();
         System.exit(0);
     }
 
@@ -413,6 +467,9 @@ public class Main extends Application {
                 }
             }
         });
+
+        // prompt text of the my username field in the online multiplayer menu
+        onlineMyUsername.promptTextProperty().bind(player1Name.promptTextProperty());
 
         initBoard();
         initNewGame();
@@ -552,6 +609,10 @@ public class Main extends Application {
     }
 
     private void startGame() {
+        startGame(null);
+    }
+
+    private void startGame(String onlineOpponentName) {
         initBoard();
         if (looserPane.isVisible()) {
             fadeNode(looserPane, 0, true);
@@ -563,26 +624,42 @@ public class Main extends Application {
             fadeNode(winPane, 0);
         }
         hideMenu();
+        hideOnlineMenu();
         fadeWinLineGroup();
-        guiAnimationQueue.submit(() -> {
-            String finalPlayerName1 = player1Name.getText();
-            if (finalPlayerName1.equals("")) {
-                finalPlayerName1 = player1Name.getPromptText();
-            }
+        if (onlineOpponentName!=null) {
+            guiAnimationQueue.submit(() -> {
+                String finalPlayerName1 = onlineMyUsername.getText();
+                if (finalPlayerName1.equals("")) {
+                    finalPlayerName1 = onlineMyUsername.getPromptText();
+                }
 
-            String finalPlayerName2 = player2Name.getText();
-            if (finalPlayerName2.equals("")) {
-                finalPlayerName2 = player2Name.getPromptText();
-            }
+                board.setPlayer1(new Player(PlayerMode.localHuman, finalPlayerName1, player1Letter));
+                board.setPlayer2(new Player(PlayerMode.internetHuman, onlineOpponentName, player2Letter));
+                updateCurrentPlayerLabel(true);
 
-            board.setPlayer1(new Player(player1AIToggle.isSelected() ? PlayerMode.ai : PlayerMode.localHuman, finalPlayerName1, player1Letter));
-            board.setPlayer2(new Player(player2AIToggle.isSelected() ? PlayerMode.ai : PlayerMode.localHuman, finalPlayerName2, player2Letter));
-            updateCurrentPlayerLabel(true);
+                KryoGameConnections.setConnectedBoard(board);
+            });
+        } else {
+            guiAnimationQueue.submit(() -> {
+                String finalPlayerName1 = player1Name.getText();
+                if (finalPlayerName1.equals("")) {
+                    finalPlayerName1 = player1Name.getPromptText();
+                }
 
-            if (board.getPlayer1().isAi()) {
-                board.getPlayer1().doAiTurn(board);
-            }
-        });
+                String finalPlayerName2 = player2Name.getText();
+                if (finalPlayerName2.equals("")) {
+                    finalPlayerName2 = player2Name.getPromptText();
+                }
+
+                board.setPlayer1(new Player(player1AIToggle.isSelected() ? PlayerMode.ai : PlayerMode.localHuman, finalPlayerName1, player1Letter));
+                board.setPlayer2(new Player(player2AIToggle.isSelected() ? PlayerMode.ai : PlayerMode.localHuman, finalPlayerName2, player2Letter));
+                updateCurrentPlayerLabel(true);
+
+                if (board.getPlayer1().isAi()) {
+                    board.getPlayer1().doAiTurn(board);
+                }
+            });
+        }
     }
 
     public void updateCurrentPlayerLabel() {
@@ -1199,6 +1276,7 @@ public class Main extends Application {
                 guiAnimationQueue.setBlocked(true);
             }
             if (!node.isVisible()) {
+                node.setOpacity(0);
                 node.setVisible(true);
             }
 

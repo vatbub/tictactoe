@@ -31,16 +31,19 @@ import java.net.InetSocketAddress;
 public class OnlineMultiplayerRequestOpponentResponse implements Serializable{
     private ResponseCode responseCode;
     private InetSocketAddress opponentInetSocketAddress;
+    private String opponentIdentifier;
+
     public OnlineMultiplayerRequestOpponentResponse(ResponseCode responseCode) {
-        this(responseCode, null);
+        this(responseCode, null, null);
         if (responseCode.equals(ResponseCode.OpponentFound)) {
             throw new IllegalArgumentException("ResponseCode.OpponentFound requires a opponentInetSocketAddress to be specified!");
         }
     }
 
-    public OnlineMultiplayerRequestOpponentResponse(ResponseCode responseCode, InetSocketAddress opponentInetSocketAddress) {
+    public OnlineMultiplayerRequestOpponentResponse(ResponseCode responseCode, InetSocketAddress opponentInetSocketAddress, String opponentIdentifier) {
         setResponseCode(responseCode);
         setOpponentInetSocketAddress(opponentInetSocketAddress);
+        setOpponentIdentifier(opponentIdentifier);
     }
 
     public ResponseCode getResponseCode() {
@@ -57,5 +60,13 @@ public class OnlineMultiplayerRequestOpponentResponse implements Serializable{
 
     public void setOpponentInetSocketAddress(InetSocketAddress opponentInetSocketAddress) {
         this.opponentInetSocketAddress = opponentInetSocketAddress;
+    }
+
+    public String getOpponentIdentifier() {
+        return opponentIdentifier;
+    }
+
+    public void setOpponentIdentifier(String opponentIdentifier) {
+        this.opponentIdentifier = opponentIdentifier;
     }
 }

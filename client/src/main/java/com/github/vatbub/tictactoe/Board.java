@@ -21,6 +21,7 @@ package com.github.vatbub.tictactoe;
  */
 
 
+import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
 import com.github.vatbub.tictactoe.view.AILevel;
 import com.github.vatbub.tictactoe.view.Main;
 import javafx.beans.property.ObjectProperty;
@@ -164,6 +165,10 @@ public class Board {
         }
 
         this.setPlayerAt(move.getRow(), move.getColumn(), getCurrentPlayer());
+
+        if (getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman)){
+            KryoGameConnections.sendMove(move);
+        }
 
         WinnerInfo winnerInfo = getWinner(move.getRow(), move.getColumn());
         if (winnerInfo.winningPlayer != null) {

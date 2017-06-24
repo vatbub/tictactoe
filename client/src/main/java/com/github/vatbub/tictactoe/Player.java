@@ -42,7 +42,6 @@ public class Player {
     private String name;
     private PlayerMode playerMode;
     private String letter;
-    private boolean connectedToInternetPlayer;
 
     public Player(PlayerMode playerMode) {
         this(playerMode, NameList.getNextName());
@@ -71,7 +70,7 @@ public class Player {
     }
 
     public void setPlayerMode(PlayerMode playerMode) {
-        this.playerMode=playerMode;
+        this.playerMode = playerMode;
     }
 
     public void doAiTurn(Board currentBoard) {
@@ -191,26 +190,12 @@ public class Player {
         this.letter = letter;
     }
 
-    private enum ReturnType {
-        alpha, beta, heuristicValue
-    }
-
-    public boolean isConnectedToInternetPlayer(){
-        if (!getPlayerMode().equals(PlayerMode.internetHuman)){
-            throw new IllegalStateException("The player is not a internet player");
-        }
-        return connectedToInternetPlayer;
-    }
-
-    public boolean isAi(){
+    public boolean isAi() {
         return getPlayerMode().equals(PlayerMode.ai);
     }
 
-    public void connectToInternetPlayer(){
-        if (!getPlayerMode().equals(PlayerMode.internetHuman)){
-            throw new IllegalStateException("The player is not a internet player");
-        }
-
+    private enum ReturnType {
+        alpha, beta, heuristicValue
     }
 
     private class AlphaBetaResult {
