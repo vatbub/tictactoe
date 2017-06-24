@@ -93,7 +93,6 @@ public class Main extends Application {
     private static final int gameCols = 3;
     private static final String player1Letter = "X";
     private static final String player2Letter = "O";
-    private static final int gameServerTCPPort = 8181;
     public static Main currentMainWindowInstance;
     final StringProperty style = new SimpleStringProperty("");
     private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(2);
@@ -240,7 +239,7 @@ public class Main extends Application {
         KryoGameConnections.requestOpponent(clientIdentifier, desiredOpponentIdentifier, (OnlineMultiplayerRequestOpponentResponse response) -> {
             if (response.getResponseCode() == ResponseCode.WaitForOpponent) {
                 try {
-                    KryoGameConnections.launchGameServer(gameServerTCPPort, () -> Platform.runLater(() -> startGame(response.getOpponentIdentifier())));
+                    KryoGameConnections.launchGameServer(KryoGameConnections.gameServerTCPPort, () -> Platform.runLater(() -> startGame(response.getOpponentIdentifier())));
                 } catch (IOException e) {
                     FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not launch the game server", e);
                     Platform.runLater(() -> showErrorMessage(e));

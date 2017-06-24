@@ -39,6 +39,8 @@ import java.util.logging.Level;
  * Does all the networking tasks for the online multiplayer game.
  */
 public class KryoGameConnections {
+    public static final int gameServerTCPPort = 8181;
+
     private static Client relayKryoClient;
     private static Client gameKryoClient;
     private static Server gameKryoServer;
@@ -62,8 +64,7 @@ public class KryoGameConnections {
     public static void connect(Runnable onConnected) throws IOException {
         // vatbubtictactoeserver.herokuapp.com
         // connect("52.59.117.143", onConnected);
-        // connect("localhost", onConnected);
-        connect("192.168.2.109", onConnected);
+        connect("localhost", onConnected);
     }
 
     public static void connect(String host, Runnable onConnected) throws IOException {
@@ -172,6 +173,7 @@ public class KryoGameConnections {
         kryo.register(Board.Move.class, new JavaSerializer());
         kryo.register(StartGameRequest.class, new JavaSerializer());
         kryo.register(StartGameResponse.class, new JavaSerializer());
+        kryo.register(StartGameException.class, new JavaSerializer());
     }
 
     public static void launchGameServer(int tcpPort, Runnable onConnected) throws IOException {
@@ -272,7 +274,7 @@ public class KryoGameConnections {
             }
         });
 
-        gameKryoClient.connect(5000, serverAddress.getHostName(), serverAddress.getPort());
+        gameKryoClient.connect(5000, serverAddress.getHostName(), gameServerTCPPort);
 
         FOKLogger.info(KryoGameConnections.class.getName(), "Sending the StartGameRequest...");
         gameKryoClient.sendTCP(new StartGameRequest());
