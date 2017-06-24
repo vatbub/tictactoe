@@ -62,7 +62,8 @@ public class ServerMain {
                     launchSucceeded = true;
                 }
             } catch (Exception e) {
-                FOKLogger.log(ServerMain.class.getName(), Level.SEVERE, "An error occurred, probably because of an illegal comman line argument, stripping the argument " + argList.get(0));
+                FOKLogger.log(ServerMain.class.getName(), Level.SEVERE, "An error occurred, probably because of an illegal command line argument", e);
+                FOKLogger.log(ServerMain.class.getName(), Level.SEVERE, "Stripping the argument " + argList.get(0));
                 launchSucceeded = false;
                 argList.remove(0);
             }
