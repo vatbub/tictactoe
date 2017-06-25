@@ -112,11 +112,13 @@ public class ServerMain {
                                     if (receivedRequest.getDesiredOpponentIdentifier() == null && comparedRequest.getDesiredOpponentIdentifier() == null) {
                                         // found two requests that both don't wish a particular opponent
                                         FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
+                                        openRequests.remove(entry.getKey());
                                         matchingAddress = entry.getKey();
                                         matchingOpponentIdentifier = comparedRequest.getClientIdentifier();
                                         break;
                                     } else if (comparedRequest.getDesiredOpponentIdentifier() != null && receivedRequest.getClientIdentifier().equals(comparedRequest.getDesiredOpponentIdentifier())) {
                                         FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
+                                        openRequests.remove(entry.getKey());
                                         matchingAddress = entry.getKey();
                                         matchingOpponentIdentifier = comparedRequest.getClientIdentifier();
                                         break;
