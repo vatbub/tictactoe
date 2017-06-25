@@ -89,11 +89,13 @@ import java.util.logging.Level;
 @SuppressWarnings("JavaDoc")
 public class Main extends Application {
     public static final double animationSpeed = 0.3;
+    private static final String windowTitle = "Tic Tac Toe";
     private static final int gameRows = 3;
     private static final int gameCols = 3;
     private static final String player1Letter = "X";
     private static final String player2Letter = "O";
     public static Main currentMainWindowInstance;
+    private static Stage stage;
     final StringProperty style = new SimpleStringProperty("");
     private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(2);
     private final RefreshableNodeList refreshedNodes = new RefreshableNodeList();
@@ -226,6 +228,28 @@ public class Main extends Application {
         launch(args);
     }
 
+    private String getWindowTitle() {
+        String res = windowTitle;
+
+        if (board != null && (board.getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman) || board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman))) {
+            Player internetPlayer;
+            if (board.getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman)) {
+                internetPlayer = board.getCurrentPlayer();
+            } else {
+                internetPlayer = board.getOpponent(board.getCurrentPlayer());
+            }
+            res = res + ": Playing against " + internetPlayer.getName();
+
+            if (board.getCurrentPlayer() == internetPlayer) {
+                res = res + " (Opponent's turn)";
+            } else {
+                res = res + " (Your turn)";
+            }
+        }
+
+        return res;
+    }
+
     @FXML
     void onlineStartButtonOnAction(ActionEvent event) {
         hideOnlineMenu();
@@ -282,10 +306,10 @@ public class Main extends Application {
         if (!onlineMenuBox.isVisible()) {
             connectToRelayServer();
         } else {
-            guiAnimationQueue.submit(()->{
+            guiAnimationQueue.submit(() -> {
                 guiAnimationQueue.setBlocked(true);
                 playOnlineHyperlink.setText("Play online");
-                fadeNode(onlineMenuBox, 0,() -> fadeNode(menuBox, 1, () -> guiAnimationQueue.setBlocked(false)));
+                fadeNode(onlineMenuBox, 0, () -> fadeNode(menuBox, 1, () -> guiAnimationQueue.setBlocked(false)));
             });
         }
     }
@@ -334,14 +358,14 @@ public class Main extends Application {
         });
     }
 
-    private void setLoadingStatusText(String textToSet){
+    private void setLoadingStatusText(String textToSet) {
         KeyValue keyValueTranslation1 = new KeyValue(loadingStatusText.translateYProperty(), -loadingStatusText.getHeight());
         KeyValue keyValueOpacity1 = new KeyValue(loadingStatusText.opacityProperty(), 0);
         KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(animationSpeed), keyValueOpacity1, keyValueTranslation1);
 
         Timeline timeline1 = new Timeline(keyFrame1);
 
-        timeline1.setOnFinished((event) ->{
+        timeline1.setOnFinished((event) -> {
             loadingStatusText.setText(textToSet);
             loadingStatusText.setTranslateY(loadingStatusText.getHeight());
 
@@ -404,6 +428,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("View.fxml"));
         Scene scene = new Scene(root);
+        stage = primaryStage;
         primaryStage.setMinWidth(scene.getRoot().minWidth(0) + 70);
         primaryStage.setMinHeight(scene.getRoot().minHeight(0) + 70);
 
@@ -411,6 +436,8 @@ public class Main extends Application {
 
         // Set Icon
         primaryStage.getIcons().add(new Image(Main.class.getResourceAsStream("icon.png")));
+
+        primaryStage.setTitle(getWindowTitle());
 
         primaryStage.show();
     }
@@ -719,6 +746,7 @@ public class Main extends Application {
     }
 
     public void updateCurrentPlayerLabel(boolean noAnimation, boolean setBlockedValueAfterAnimation) {
+        Platform.runLater(() -> stage.setTitle(getWindowTitle()));
         if (board.getCurrentPlayer() != null) {
             if (!board.getCurrentPlayer().getLetter().equals(currentPlayerLabel.getText())) {
                 if (noAnimation) {
