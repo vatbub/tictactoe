@@ -537,6 +537,7 @@ public class Main extends Application {
 
         // prompt text of the my username field in the online multiplayer menu
         onlineMyUsername.promptTextProperty().bind(player1Name.promptTextProperty());
+        onlineMyUsername.textProperty().bindBidirectional(player1Name.textProperty());
 
         initBoard();
         initNewGame();
