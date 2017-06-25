@@ -76,13 +76,11 @@ public class KryoGameConnections {
     }
 
     public static void connect(String host, int tcpPort, Runnable onConnected) throws IOException {
-        if (relayKryoClient != null && relayKryoClient.isConnected()) {
-            throw new IllegalStateException("Already connected");
+        if (relayKryoClient != null) {
+            resetConnections();
         }
 
-        if (relayKryoClient == null) {
-            relayKryoClient = new Client();
-        }
+        relayKryoClient = new Client();
 
         // ping the host to wake him up (e. g. om heroku)
         String pingAddress = "http://" + host;
@@ -313,16 +311,23 @@ public class KryoGameConnections {
     /**
      * Closes all internet connections and aborts pending opponent requests
      */
-    public static void shutdown() {
+    public static void resetConnections() {
         if (relayKryoClient != null) {
+            Client oldRelayKryoClient = relayKryoClient;
             abortLastOpponentRequestIfApplicable();
-            relayKryoClient.stop();
+            oldRelayKryoClient.stop();
+            relayKryoClient = null;
+
         }
         if (gameKryoClient != null) {
-            gameKryoClient.stop();
+            Client oldGameKryoClient = gameKryoClient;
+            oldGameKryoClient.stop();
+            gameKryoClient = null;
         }
         if (gameKryoServer != null) {
-            gameKryoServer.stop();
+            Server oldGameKryoServer = gameKryoServer;
+            oldGameKryoServer.stop();
+            gameKryoServer = null;
         }
     }
 }
