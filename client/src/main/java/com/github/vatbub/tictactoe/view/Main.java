@@ -377,7 +377,7 @@ public class Main extends Application {
 
     @Override
     public void stop() {
-        KryoGameConnections.shutdown();
+        KryoGameConnections.resetConnections();
         System.exit(0);
     }
 
@@ -629,17 +629,17 @@ public class Main extends Application {
         fadeWinLineGroup();
         if (onlineOpponentName != null) {
             guiAnimationQueue.submit(() -> {
-                String finalPlayerName1 = onlineMyUsername.getText();
-                if (finalPlayerName1.equals("")) {
-                    finalPlayerName1 = onlineMyUsername.getPromptText();
+                String finalOnlineUsername = onlineMyUsername.getText();
+                if (finalOnlineUsername.equals("")) {
+                    finalOnlineUsername = onlineMyUsername.getPromptText();
                 }
 
                 if (!inversePlayerOrderForOnlineGame) {
-                    board.setPlayer1(new Player(PlayerMode.localHuman, finalPlayerName1, player1Letter));
+                    board.setPlayer1(new Player(PlayerMode.localHuman, finalOnlineUsername, player1Letter));
                     board.setPlayer2(new Player(PlayerMode.internetHuman, onlineOpponentName, player2Letter));
                 } else {
-                    board.setPlayer1(new Player(PlayerMode.internetHuman, finalPlayerName1, player1Letter));
-                    board.setPlayer2(new Player(PlayerMode.localHuman, onlineOpponentName, player2Letter));
+                    board.setPlayer1(new Player(PlayerMode.internetHuman, onlineOpponentName, player1Letter));
+                    board.setPlayer2(new Player(PlayerMode.localHuman, finalOnlineUsername, player2Letter));
                 }
                 updateCurrentPlayerLabel(true, inversePlayerOrderForOnlineGame);
 
