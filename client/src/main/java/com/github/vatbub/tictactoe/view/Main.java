@@ -553,8 +553,9 @@ public class Main extends Application {
     void thinkOnAction(ActionEvent event) {
         if (!isBlockedForInput()) {
             setBlockedForInput(true);
+            boolean opponentIsInternetPlayer = board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman);
             board.getCurrentPlayer().doAiTurn(board, AILevel.UNBEATABLE);
-            updateCurrentPlayerLabel();
+            updateCurrentPlayerLabel(false, opponentIsInternetPlayer);
             renderRows();
         }
     }
