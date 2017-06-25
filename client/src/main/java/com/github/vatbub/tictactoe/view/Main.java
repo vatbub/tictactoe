@@ -631,6 +631,7 @@ public class Main extends Application {
     }
 
     private void initNewGame() {
+        KryoGameConnections.resetConnections();
         guiAnimationQueue.submit(() -> {
             if (looserPane.isVisible()) {
                 blurLooserPane();

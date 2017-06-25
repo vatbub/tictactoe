@@ -210,6 +210,7 @@ public class KryoGameConnections {
                         connection.sendTCP(new StartGameResponse());
                         FOKLogger.info(KryoGameConnections.class.getName(), "Connecting the game...");
                         onConnected.run(((StartGameRequest) object).getOpponentIdentifier());
+                        disconnectFromRelayServer();
                     } else {
                         FOKLogger.severe(KryoGameConnections.class.getName(), "Cannot connect the game, game is already connected");
                         connection.sendTCP(new StartGameException("Node already connected"));
@@ -258,6 +259,7 @@ public class KryoGameConnections {
                         gameConnected = true;
                         FOKLogger.info(KryoGameConnections.class.getName(), "Connecting the game...");
                         onConnected.run();
+                        disconnectFromRelayServer();
                     } else {
                         FOKLogger.severe(KryoGameConnections.class.getName(), "Cannot connect the game, game is already connected");
                         connection.sendTCP(new StartGameException("Node already connected"));
@@ -313,13 +315,7 @@ public class KryoGameConnections {
      */
     public static void resetConnections() {
         FOKLogger.info(KryoGameConnections.class.getName(), "Resetting all kryo connections...");
-        if (relayKryoClient != null) {
-            Client oldRelayKryoClient = relayKryoClient;
-            abortLastOpponentRequestIfApplicable();
-            oldRelayKryoClient.stop();
-            relayKryoClient = null;
-
-        }
+        disconnectFromRelayServer();
         if (gameKryoClient != null) {
             gameConnected = false;
             Client oldGameKryoClient = gameKryoClient;
@@ -331,6 +327,16 @@ public class KryoGameConnections {
             Server oldGameKryoServer = gameKryoServer;
             oldGameKryoServer.stop();
             gameKryoServer = null;
+        }
+    }
+
+    public static void disconnectFromRelayServer(){
+        FOKLogger.info(KryoGameConnections.class.getName(), "Disconnecting from the relay server...");
+        if (relayKryoClient != null) {
+            Client oldRelayKryoClient = relayKryoClient;
+            abortLastOpponentRequestIfApplicable();
+            oldRelayKryoClient.stop();
+            relayKryoClient = null;
         }
     }
 }
