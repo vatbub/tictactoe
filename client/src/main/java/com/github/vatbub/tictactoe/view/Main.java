@@ -21,6 +21,7 @@ package com.github.vatbub.tictactoe.view;
  */
 
 
+import com.esotericsoftware.kryo.Kryo;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
@@ -755,6 +756,10 @@ public class Main extends Application {
             }
 
             board.setGameEndCallback((winnerInfo) -> guiAnimationQueue.submit(() -> {
+                // disconnect after ending the game
+                if (board.getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman) || board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman)){
+                    KryoGameConnections.resetConnections();
+                }
                 FOKLogger.info(Main.class.getName(), "The winner is: " + winnerInfo.winningPlayer.getName());
                 if (winnerInfo.isTie()) {
                     showTie();
