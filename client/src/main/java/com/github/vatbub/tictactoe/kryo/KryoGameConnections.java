@@ -312,6 +312,7 @@ public class KryoGameConnections {
      * Closes all internet connections and aborts pending opponent requests
      */
     public static void resetConnections() {
+        FOKLogger.info(KryoGameConnections.class.getName(), "Resetting all kryo connections...");
         if (relayKryoClient != null) {
             Client oldRelayKryoClient = relayKryoClient;
             abortLastOpponentRequestIfApplicable();
@@ -320,11 +321,13 @@ public class KryoGameConnections {
 
         }
         if (gameKryoClient != null) {
+            gameConnected = false;
             Client oldGameKryoClient = gameKryoClient;
             oldGameKryoClient.stop();
             gameKryoClient = null;
         }
         if (gameKryoServer != null) {
+            gameConnected = false;
             Server oldGameKryoServer = gameKryoServer;
             oldGameKryoServer.stop();
             gameKryoServer = null;
