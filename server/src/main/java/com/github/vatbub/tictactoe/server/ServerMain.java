@@ -82,7 +82,6 @@ public class ServerMain {
         server.addListener(new Listener() {
             @Override
             public void connected(Connection connection) {
-                connection.setKeepAliveTCP(0);
                 connection.setTimeout(100000);
             }
         });
