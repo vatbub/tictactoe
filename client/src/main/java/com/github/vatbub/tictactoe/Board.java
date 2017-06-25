@@ -166,7 +166,7 @@ public class Board {
 
         this.setPlayerAt(move.getRow(), move.getColumn(), getCurrentPlayer());
 
-        if (getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman)){
+        if (getOpponent(getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman)){
             KryoGameConnections.sendMove(move);
         }
 
