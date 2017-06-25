@@ -21,7 +21,6 @@ package com.github.vatbub.tictactoe.view;
  */
 
 
-import com.esotericsoftware.kryo.Kryo;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
@@ -46,8 +45,8 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.Blend;
 import javafx.scene.effect.BlendMode;
@@ -174,6 +173,8 @@ public class Main extends Application {
     @FXML
     private AnchorPane playOnlineAnchorPane;
     @FXML
+    private Hyperlink playOnlineHyperlink;
+    @FXML
     private AnchorPane loadingBackground;
     @FXML
     private HBox loadingBox;
@@ -274,7 +275,15 @@ public class Main extends Application {
 
     @FXML
     void playOnlineHyperlinkOnAction(ActionEvent event) {
-        connectToRelayServer();
+        if (!onlineMenuBox.isVisible()) {
+            connectToRelayServer();
+        } else {
+            guiAnimationQueue.submit(()->{
+                guiAnimationQueue.setBlocked(true);
+                playOnlineHyperlink.setText("Play online");
+                fadeNode(onlineMenuBox, 0,() -> fadeNode(menuBox, 1, () -> guiAnimationQueue.setBlocked(false)));
+            });
+        }
     }
 
     private void connectToRelayServer() {
@@ -321,9 +330,10 @@ public class Main extends Application {
     }
 
     private void showOnlineMenu() {
-        hideMenu();
         guiAnimationQueue.submit(() -> {
             guiAnimationQueue.setBlocked(true);
+            playOnlineHyperlink.setText("Play offline");
+            fadeNode(menuBox, 0);
             fadeNode(onlineMenuBox, 1, () -> guiAnimationQueue.setBlocked(false));
         });
     }
@@ -331,6 +341,7 @@ public class Main extends Application {
     private void hideOnlineMenu() {
         guiAnimationQueue.submit(() -> {
             guiAnimationQueue.setBlocked(true);
+            playOnlineHyperlink.setText("Play online");
             fadeNode(onlineMenuBox, 0, () -> guiAnimationQueue.setBlocked(false));
         });
     }
@@ -757,7 +768,7 @@ public class Main extends Application {
 
             board.setGameEndCallback((winnerInfo) -> guiAnimationQueue.submit(() -> {
                 // disconnect after ending the game
-                if (board.getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman) || board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman)){
+                if (board.getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman) || board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman)) {
                     KryoGameConnections.resetConnections();
                 }
                 FOKLogger.info(Main.class.getName(), "The winner is: " + winnerInfo.winningPlayer.getName());
