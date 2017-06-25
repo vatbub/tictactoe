@@ -236,17 +236,18 @@ public class Main extends Application {
             desiredOpponentIdentifier = onlineDesiredOpponentName.getText();
         }
 
+        String finalClientIdentifier = clientIdentifier;
         KryoGameConnections.requestOpponent(clientIdentifier, desiredOpponentIdentifier, (OnlineMultiplayerRequestOpponentResponse response) -> {
             if (response.getResponseCode() == ResponseCode.WaitForOpponent) {
                 try {
-                    KryoGameConnections.launchGameServer(KryoGameConnections.gameServerTCPPort, () -> Platform.runLater(() -> startGame(response.getOpponentIdentifier())));
+                    KryoGameConnections.launchGameServer(KryoGameConnections.gameServerTCPPort, (opponentName) -> Platform.runLater(() -> startGame(opponentName, false)));
                 } catch (IOException e) {
                     FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not launch the game server", e);
                     Platform.runLater(() -> showErrorMessage(e));
                 }
             } else {
                 try {
-                    KryoGameConnections.launchGameClient(response.getOpponentInetSocketAddress(), () -> Platform.runLater(() -> startGame(response.getOpponentIdentifier())));
+                    KryoGameConnections.launchGameClient(finalClientIdentifier, response.getOpponentInetSocketAddress(), () -> Platform.runLater(() -> startGame(response.getOpponentIdentifier(), true)));
                 } catch (IOException e) {
                     FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not launch the game client", e);
                     Platform.runLater(() -> showErrorMessage(e));
@@ -608,10 +609,10 @@ public class Main extends Application {
     }
 
     private void startGame() {
-        startGame(null);
+        startGame(null, false);
     }
 
-    private void startGame(String onlineOpponentName) {
+    private void startGame(String onlineOpponentName, boolean inversePlayerOrderForOnlineGame) {
         initBoard();
         if (looserPane.isVisible()) {
             fadeNode(looserPane, 0, true);
@@ -624,17 +625,23 @@ public class Main extends Application {
         }
         hideMenu();
         hideOnlineMenu();
+        hideLoadingScreen();
         fadeWinLineGroup();
-        if (onlineOpponentName!=null) {
+        if (onlineOpponentName != null) {
             guiAnimationQueue.submit(() -> {
                 String finalPlayerName1 = onlineMyUsername.getText();
                 if (finalPlayerName1.equals("")) {
                     finalPlayerName1 = onlineMyUsername.getPromptText();
                 }
 
-                board.setPlayer1(new Player(PlayerMode.localHuman, finalPlayerName1, player1Letter));
-                board.setPlayer2(new Player(PlayerMode.internetHuman, onlineOpponentName, player2Letter));
-                updateCurrentPlayerLabel(true);
+                if (!inversePlayerOrderForOnlineGame) {
+                    board.setPlayer1(new Player(PlayerMode.localHuman, finalPlayerName1, player1Letter));
+                    board.setPlayer2(new Player(PlayerMode.internetHuman, onlineOpponentName, player2Letter));
+                } else {
+                    board.setPlayer1(new Player(PlayerMode.internetHuman, finalPlayerName1, player1Letter));
+                    board.setPlayer2(new Player(PlayerMode.localHuman, onlineOpponentName, player2Letter));
+                }
+                updateCurrentPlayerLabel(true, inversePlayerOrderForOnlineGame);
 
                 KryoGameConnections.setConnectedBoard(board);
             });
@@ -665,7 +672,11 @@ public class Main extends Application {
         updateCurrentPlayerLabel(false);
     }
 
-    public void updateCurrentPlayerLabel(@SuppressWarnings("SameParameterValue") boolean noAnimation) {
+    public void updateCurrentPlayerLabel(boolean noAnimation) {
+        updateCurrentPlayerLabel(noAnimation, false);
+    }
+
+    public void updateCurrentPlayerLabel(boolean noAnimation, boolean setBlockedValueAfterAnimation) {
         if (board.getCurrentPlayer() != null) {
             if (!board.getCurrentPlayer().getLetter().equals(currentPlayerLabel.getText())) {
                 if (noAnimation) {
@@ -701,7 +712,7 @@ public class Main extends Application {
                         timeline.setOnFinished((event) -> {
                             currentPlayerLabel.setEffect(null);
                             guiAnimationQueue.setBlocked(false);
-                            setBlockedForInput(false);
+                            setBlockedForInput(setBlockedValueAfterAnimation);
                         });
 
                         timeline.play();
@@ -712,7 +723,7 @@ public class Main extends Application {
         }
 
         guiAnimationQueue.setBlocked(false);
-        setBlockedForInput(false);
+        setBlockedForInput(setBlockedValueAfterAnimation);
     }
 
     private void setCurrentPlayerValue() {
@@ -781,8 +792,9 @@ public class Main extends Application {
                         cell.setOnMouseClicked(event -> {
                             if (board.getPlayerAt(cell.getIndex(), gameTable.getColumns().indexOf(col)) == null && !isBlockedForInput()) {
                                 setBlockedForInput(true);
+                                boolean opponentIsInternetPlayer = board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman);
                                 board.doTurn(new Board.Move(cell.getIndex(), gameTable.getColumns().indexOf(col)));
-                                updateCurrentPlayerLabel();
+                                updateCurrentPlayerLabel(false, opponentIsInternetPlayer);
                                 renderRows();
                             }
                         });

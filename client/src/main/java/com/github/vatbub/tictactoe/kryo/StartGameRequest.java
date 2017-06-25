@@ -27,4 +27,17 @@ import java.io.Serializable;
  * Created by Frederik on 23.06.2017.
  */
 public class StartGameRequest implements Serializable{
+    private String opponentIdentifier;
+
+    public StartGameRequest(String opponentIdentifier) {
+        this.opponentIdentifier = opponentIdentifier;
+    }
+
+    public String getOpponentIdentifier() {
+        return opponentIdentifier;
+    }
+
+    public void setOpponentIdentifier(String opponentIdentifier) {
+        this.opponentIdentifier = opponentIdentifier;
+    }
 }

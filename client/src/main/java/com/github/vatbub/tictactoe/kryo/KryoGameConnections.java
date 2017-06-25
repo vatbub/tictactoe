@@ -47,6 +47,10 @@ public class KryoGameConnections {
     private static boolean gameConnected;
     private static OnOpponentFoundRunnable onOpponentFoundRunnable;
     private static OnlineMultiplayerRequestOpponentRequest lastOpponentRequest;
+    /**
+     * Only used by the game server, not the client
+     */
+    private static Connection gameConnection;
     private static Board connectedBoard;
 
     public static void connect() throws IOException {
@@ -176,7 +180,7 @@ public class KryoGameConnections {
         kryo.register(StartGameException.class, new JavaSerializer());
     }
 
-    public static void launchGameServer(int tcpPort, Runnable onConnected) throws IOException {
+    public static void launchGameServer(int tcpPort, OnOpponentConnectedRunnable onConnected) throws IOException {
         if (gameKryoServer != null) {
             throw new IllegalStateException("Game server already running");
         } else {
@@ -200,14 +204,14 @@ public class KryoGameConnections {
             @SuppressWarnings("Duplicates")
             @Override
             public void received(Connection connection, Object object) {
-                FOKLogger.info(KryoGameConnections.class.getName(), "The game server received an object!");
                 if (object instanceof StartGameRequest) {
                     FOKLogger.info(KryoGameConnections.class.getName(), "The game server received a StartGameRequest from " + connection.getRemoteAddressTCP().getHostString() + "!");
                     if (!gameConnected) {
                         gameConnected = true;
+                        gameConnection = connection;
                         connection.sendTCP(new StartGameResponse());
                         FOKLogger.info(KryoGameConnections.class.getName(), "Connecting the game...");
-                        onConnected.run();
+                        onConnected.run(((StartGameRequest) object).getOpponentIdentifier());
                     } else {
                         FOKLogger.severe(KryoGameConnections.class.getName(), "Cannot connect the game, game is already connected");
                         connection.sendTCP(new StartGameException("Node already connected"));
@@ -226,7 +230,7 @@ public class KryoGameConnections {
         });
     }
 
-    public static void launchGameClient(InetSocketAddress serverAddress, Runnable onConnected) throws IOException {
+    public static void launchGameClient(String clientIdentifier, InetSocketAddress serverAddress, Runnable onConnected) throws IOException {
         if (gameKryoClient != null) {
             throw new IllegalStateException("Game client already running");
         } else {
@@ -250,7 +254,6 @@ public class KryoGameConnections {
             @SuppressWarnings("Duplicates")
             @Override
             public void received(Connection connection, Object object) {
-                FOKLogger.info(KryoGameConnections.class.getName(), "The game client received an object!");
                 if (object instanceof StartGameResponse) {
                     FOKLogger.info(KryoGameConnections.class.getName(), "The game client received a StartGameResponse!");
                     if (!gameConnected) {
@@ -277,7 +280,7 @@ public class KryoGameConnections {
         gameKryoClient.connect(5000, serverAddress.getHostName(), gameServerTCPPort);
 
         FOKLogger.info(KryoGameConnections.class.getName(), "Sending the StartGameRequest...");
-        gameKryoClient.sendTCP(new StartGameRequest());
+        gameKryoClient.sendTCP(new StartGameRequest(clientIdentifier));
     }
 
     private static void doMove(Board.Move move) {
@@ -297,8 +300,13 @@ public class KryoGameConnections {
     }
 
     public static void sendMove(Board.Move move) {
+        FOKLogger.info(KryoGameConnections.class.getName(), "Sending a move...");
         if (gameKryoClient != null) {
             gameKryoClient.sendTCP(move);
+        } else if (gameKryoServer != null) {
+            gameConnection.sendTCP(move);
+        } else {
+            throw new IllegalStateException("Game not connected");
         }
     }
 
