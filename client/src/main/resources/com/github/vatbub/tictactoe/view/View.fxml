@@ -284,7 +284,12 @@
                <children>
                   <AnchorPane style="-fx-background-color: #FFFFFF; -fx-background-radius: 13 13 13 13;">
                      <children>
-                        <ProgressIndicator layoutX="0.558380126953125" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+                        <VBox alignment="CENTER" layoutX="1.2393853664398193" layoutY="1.5161008834838867" spacing="5.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                           <children>
+                              <ProgressIndicator layoutX="0.558380126953125" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+                              <Label fx:id="loadingStatusText" alignment="CENTER" maxWidth="1.7976931348623157E308" minWidth="200.0" text="Connecting to the server..." textAlignment="CENTER" />
+                           </children>
+                        </VBox>
                      </children>
                   </AnchorPane>
                </children>

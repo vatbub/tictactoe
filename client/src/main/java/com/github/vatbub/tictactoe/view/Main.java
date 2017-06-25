@@ -179,6 +179,8 @@ public class Main extends Application {
     @FXML
     private HBox loadingBox;
     @FXML
+    private Label loadingStatusText;
+    @FXML
     private VBox errorBox;
     @FXML
     private Label errorReasonLabel;
@@ -227,6 +229,7 @@ public class Main extends Application {
     @FXML
     void onlineStartButtonOnAction(ActionEvent event) {
         hideOnlineMenu();
+        setLoadingStatusText("Searching for an opponent...");
         showLoadingScreen();
         String clientIdentifier = onlineMyUsername.getText();
         if (clientIdentifier.equals("")) {
@@ -249,6 +252,7 @@ public class Main extends Application {
                 }
             } else {
                 try {
+                    setLoadingStatusText("Waiting for the opponent...");
                     KryoGameConnections.launchGameClient(finalClientIdentifier, response.getOpponentInetSocketAddress(), () -> Platform.runLater(() -> startGame(response.getOpponentIdentifier(), true)));
                 } catch (IOException e) {
                     FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not launch the game client", e);
@@ -287,6 +291,7 @@ public class Main extends Application {
     }
 
     private void connectToRelayServer() {
+        setLoadingStatusText("Connecting to the server...");
         showLoadingScreen();
         Thread connectionThread = new Thread(() -> {
             try {
@@ -327,6 +332,29 @@ public class Main extends Application {
             fadeNode(loadingBackground, 0);
             fadeNode(loadingBox, 0, () -> guiAnimationQueue.setBlocked(false));
         });
+    }
+
+    private void setLoadingStatusText(String textToSet){
+        KeyValue keyValueTranslation1 = new KeyValue(loadingStatusText.translateYProperty(), -loadingStatusText.getHeight());
+        KeyValue keyValueOpacity1 = new KeyValue(loadingStatusText.opacityProperty(), 0);
+        KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(animationSpeed), keyValueOpacity1, keyValueTranslation1);
+
+        Timeline timeline1 = new Timeline(keyFrame1);
+
+        timeline1.setOnFinished((event) ->{
+            loadingStatusText.setText(textToSet);
+            loadingStatusText.setTranslateY(loadingStatusText.getHeight());
+
+            KeyValue keyValueTranslation2 = new KeyValue(loadingStatusText.translateYProperty(), 0);
+            KeyValue keyValueOpacity2 = new KeyValue(loadingStatusText.opacityProperty(), 1);
+            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed), keyValueOpacity2, keyValueTranslation2);
+
+            Timeline timeline2 = new Timeline(keyFrame2);
+
+            timeline2.play();
+        });
+
+        timeline1.play();
     }
 
     private void showOnlineMenu() {
