@@ -833,7 +833,7 @@ public class Main extends Application {
                 FOKLogger.info(Main.class.getName(), "The winner is: " + winnerInfo.winningPlayer.getName());
                 if (winnerInfo.isTie()) {
                     showTie();
-                } else if (!winnerInfo.winningPlayer.isAi() && board.getOpponent(winnerInfo.winningPlayer).isAi()) {
+                } else if (winnerInfo.winningPlayer.getPlayerMode().equals(PlayerMode.localHuman) && !board.getOpponent(winnerInfo.winningPlayer).getPlayerMode().equals(PlayerMode.localHuman)) {
                     showWinner(winnerInfo);
                 } else {
                     showLooser(winnerInfo);
