@@ -26,6 +26,7 @@ import javafx.animation.Interpolator;
 /**
  * EASE-OUT-{@code Interpolator} with custom ease out point and ease out slope
  */
+@SuppressWarnings("WeakerAccess")
 public class CustomEaseBothInterpolator extends Interpolator {
     private double x1;
     private double x2;

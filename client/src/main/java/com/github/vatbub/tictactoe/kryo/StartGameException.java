@@ -26,6 +26,7 @@ import java.io.Serializable;
 /**
  * Created by Frederik on 23.06.2017.
  */
+@SuppressWarnings({"SameParameterValue", "WeakerAccess"})
 public class StartGameException extends RuntimeException implements Serializable {
     /**
      * Constructs a new runtime exception with {@code null} as its

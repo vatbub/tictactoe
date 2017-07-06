@@ -33,5 +33,6 @@ public interface Refreshable {
      * @param newWindowWidth  The width of the window after to resizing
      * @param newWindowHeight The height of the window after to resizing
      */
+    @SuppressWarnings("unused")
     void refresh(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight);
 }

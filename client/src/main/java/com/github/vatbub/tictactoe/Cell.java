@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A cell on a game {@link Board}
  */
+@SuppressWarnings("WeakerAccess")
 public class Cell {
     private Player currentPlayer;
 

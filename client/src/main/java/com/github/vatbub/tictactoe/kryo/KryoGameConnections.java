@@ -39,6 +39,7 @@ import java.util.logging.Level;
 /**
  * Does all the networking tasks for the online multiplayer game.
  */
+@SuppressWarnings("WeakerAccess")
 public class KryoGameConnections {
     public static final int gameServerTCPPort = 8181;
 
@@ -54,14 +55,17 @@ public class KryoGameConnections {
     private static Connection gameConnection;
     private static Board connectedBoard;
 
+    @SuppressWarnings("unused")
     public static void connect() throws IOException {
         connect((Runnable) null);
     }
 
+    @SuppressWarnings("unused")
     public static void connect(String host) throws IOException {
         connect(host, null);
     }
 
+    @SuppressWarnings("unused")
     public static void connect(String host, int tcpPort) throws IOException {
         connect(host, tcpPort, null);
     }
@@ -128,10 +132,6 @@ public class KryoGameConnections {
         }
     }
 
-    public static void requestOpponent(String clientIdentifier, OnOpponentFoundRunnable onOpponentFound) {
-        requestOpponent(clientIdentifier, null, onOpponentFound);
-    }
-
     public static void requestOpponent(String clientIdentifier, String desiredOpponentIdentifier, OnOpponentFoundRunnable onOpponentFound) {
         OnlineMultiplayerRequestOpponentRequest request = new OnlineMultiplayerRequestOpponentRequest();
         request.setClientIdentifier(clientIdentifier);
@@ -182,7 +182,7 @@ public class KryoGameConnections {
         kryo.register(CancelGameResponse.class, new JavaSerializer());
     }
 
-    public static void launchGameServer(int tcpPort, OnOpponentConnectedRunnable onConnected) throws IOException {
+    public static void launchGameServer(OnOpponentConnectedRunnable onConnected) throws IOException {
         if (gameKryoServer != null) {
             throw new IllegalStateException("Game server already running");
         } else {
@@ -199,7 +199,7 @@ public class KryoGameConnections {
         registerGameClasses(gameKryoServer.getKryo());
         gameKryoServer.getKryo().setReferences(true);
 
-        gameKryoServer.bind(tcpPort);
+        gameKryoServer.bind(KryoGameConnections.gameServerTCPPort);
         gameKryoServer.start();
 
         gameKryoServer.addListener(new Listener() {

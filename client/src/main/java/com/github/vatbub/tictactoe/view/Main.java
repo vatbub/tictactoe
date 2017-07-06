@@ -86,7 +86,7 @@ import java.util.logging.Level;
 /**
  * The main game view
  */
-@SuppressWarnings("JavaDoc")
+@SuppressWarnings({"JavaDoc", "WeakerAccess"})
 public class Main extends Application {
     public static final double animationSpeed = 0.3;
     private static final String windowTitle = "Tic Tac Toe";
@@ -101,13 +101,13 @@ public class Main extends Application {
     private final RefreshableNodeList refreshedNodes = new RefreshableNodeList();
     private final Map<String, Timer> loadTimerMap = new HashMap<>();
     private final DoubleProperty aiLevelLabelPositionProperty = new SimpleDoubleProperty();
+    private final String player1SampleName = NameList.getNextName();
+    private final String player2SampleName = NameList.getNextName();
+    private final Timer runLaterTimer = new Timer();
     private Board board;
     private ObjectProperty<Font> rowFont;
     private Rectangle aiLevelLabelClipRectangle;
-    private String player1SampleName = NameList.getNextName();
-    private String player2SampleName = NameList.getNextName();
     private boolean blockedForInput;
-    private Timer runLaterTimer = new Timer();
     /**
      * We need to save this manually since {@code aiLevelSlider.isVisible} is delayed due to the animation
      */
@@ -271,7 +271,7 @@ public class Main extends Application {
         KryoGameConnections.requestOpponent(clientIdentifier, desiredOpponentIdentifier, (OnlineMultiplayerRequestOpponentResponse response) -> {
             if (response.getResponseCode() == ResponseCode.WaitForOpponent) {
                 try {
-                    KryoGameConnections.launchGameServer(KryoGameConnections.gameServerTCPPort, (opponentName) -> Platform.runLater(() -> startGame(opponentName, false)));
+                    KryoGameConnections.launchGameServer((opponentName) -> Platform.runLater(() -> startGame(opponentName, false)));
                 } catch (IOException e) {
                     FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not launch the game server", e);
                     Platform.runLater(() -> showErrorMessage(e));
@@ -292,7 +292,7 @@ public class Main extends Application {
         showErrorMessage("Something went wrong.", e);
     }
 
-    public void showErrorMessage(String errorMessage, Throwable e) {
+    public void showErrorMessage(@SuppressWarnings("SameParameterValue") String errorMessage, Throwable e) {
         Throwable finalException;
         if (ExceptionUtils.getRootCause(e) != null) {
             finalException = ExceptionUtils.getRootCause(e);
@@ -331,12 +331,10 @@ public class Main extends Application {
         showLoadingScreen();
         Thread connectionThread = new Thread(() -> {
             try {
-                KryoGameConnections.connect(() -> {
-                    Platform.runLater(() -> {
-                        hideLoadingScreen();
-                        showOnlineMenu();
-                    });
-                });
+                KryoGameConnections.connect(() -> Platform.runLater(() -> {
+                    hideLoadingScreen();
+                    showOnlineMenu();
+                }));
             } catch (IOException e) {
                 FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
                 Platform.runLater(() -> showErrorMessage(e));
@@ -1418,7 +1416,7 @@ public class Main extends Application {
     }
 
     private static class KunamiCode {
-        private static KeyCode[] kunamiCodes = {KeyCode.U, KeyCode.U, KeyCode.D, KeyCode.D, KeyCode.L, KeyCode.R, KeyCode.L, KeyCode.R, KeyCode.B, KeyCode.A};
+        private static final KeyCode[] kunamiCodes = {KeyCode.U, KeyCode.U, KeyCode.D, KeyCode.D, KeyCode.L, KeyCode.R, KeyCode.L, KeyCode.R, KeyCode.B, KeyCode.A};
         private static int currentIndex = 0;
 
         private static boolean isCompleted(KeyCode nextKeyCode) {

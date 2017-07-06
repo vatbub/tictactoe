@@ -40,9 +40,9 @@ import java.io.IOException;
 @SuppressWarnings("Duplicates")
 public class ServerMainTest {
     private static int port;
-    private String identifierPrefix = "testuser";
-    private String identifier1 = identifierPrefix + Math.round(Math.random() * 1000);
-    private String identifier2 = identifierPrefix + Math.round(Math.random() * 1000);
+    private final String identifierPrefix = "testuser";
+    private final String identifier1 = identifierPrefix + Math.round(Math.random() * 1000);
+    private final String identifier2 = identifierPrefix + Math.round(Math.random() * 1000);
 
     private OnlineMultiplayerRequestOpponentRequest request1;
 

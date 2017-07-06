@@ -31,6 +31,7 @@ import java.util.Map;
 /**
  * A Player entity in the game
  */
+@SuppressWarnings("WeakerAccess")
 public class Player {
     /**
      * A Player that represents a finished game with no winner
@@ -43,10 +44,7 @@ public class Player {
     private PlayerMode playerMode;
     private String letter;
 
-    public Player(PlayerMode playerMode) {
-        this(playerMode, NameList.getNextName());
-    }
-
+    @SuppressWarnings("SameParameterValue")
     public Player(PlayerMode playerMode, String name) {
         this(playerMode, name, "");
     }

@@ -27,8 +27,11 @@ import java.net.URL;
 /**
  * Created by Frederik on 31/05/2017.
  */
+@SuppressWarnings("WeakerAccess")
 public class ServerConfig {
+    @SuppressWarnings("CanBeFinal")
     public static URL updateMavenRepoURL;
+    @SuppressWarnings("CanBeFinal")
     public static URL updateMavenSnapshotRepoURL;
 
     static {

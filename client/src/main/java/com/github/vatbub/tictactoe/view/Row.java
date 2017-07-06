@@ -26,6 +26,7 @@ import java.util.List;
 /**
  * A row in the gameTable view
  */
+@SuppressWarnings("WeakerAccess")
 public class Row {
     private List<String> values;
 

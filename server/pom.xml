@@ -75,11 +75,6 @@
             <artifactId>totp</artifactId>
             <version>1.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.vatbub</groupId>
-            <artifactId>common</artifactId>
-            <version>0.0.24-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <build>

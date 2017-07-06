@@ -36,11 +36,12 @@ import java.util.logging.Level;
 /**
  * Created by Frederik on 31/05/2017.
  */
+@SuppressWarnings("WeakerAccess")
 public class UpdaterMain {
     public static void main(String[] args) {
         try {
             Common.setAppName("tictactoeserverupdater");
-            String key = System.getenv("updateServerTOTPKey");
+            @SuppressWarnings("unused") String key = System.getenv("updateServerTOTPKey");
 
             Client client = new Client();
             KryoCommon.registerRequiredClasses(client.getKryo());

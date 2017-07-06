@@ -41,7 +41,7 @@ import java.util.logging.Level;
 public class ServerMain {
     private static Map<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static int currentTcpPort;
-    private static Server server = new Server();
+    private static final Server server = new Server();
 
     public static void main(String[] args) throws IOException {
         Common.setAppName("tictactoeserver");

@@ -26,5 +26,6 @@ import java.io.Serializable;
 /**
  * Created by Frederik on 23.06.2017.
  */
+@SuppressWarnings("WeakerAccess")
 public class StartGameResponse implements Serializable {
 }

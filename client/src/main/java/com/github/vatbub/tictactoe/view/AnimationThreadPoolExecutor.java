@@ -34,7 +34,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 /**
  * A {@code ScheduledThreadPoolExecutor} for javaFX animations
  */
-@SuppressWarnings("JavaDoc")
+@SuppressWarnings({"JavaDoc", "WeakerAccess"})
 public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor {
     /**
      * Animations submitted using {@link #submitWaitForUnlock(Runnable)}, {@link #submitWaitForUnlock(Runnable, Object)} or {@link #submitWaitForUnlock(Callable)} will wait for this value to be false before being executed
@@ -148,6 +148,7 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor {
         return super.schedule(effectiveTask, 0, NANOSECONDS);
     }
 
+    @SuppressWarnings("unused")
     public <T> Future<T> submitWaitForUnlock(Runnable task, T result) {
         Runnable effectiveTask = createEffectiveWaitingTask(task);
         return super.schedule(Executors.callable(effectiveTask, result), 0, NANOSECONDS);
@@ -165,6 +166,7 @@ public class AnimationThreadPoolExecutor extends ScheduledThreadPoolExecutor {
         };
     }
 
+    @SuppressWarnings("unused")
     public <T> Future<T> submitWaitForUnlock(Callable<T> task) {
         Callable<T> effectiveTask = () -> {
             // PrintStreams magically don't make the wait loop hang
