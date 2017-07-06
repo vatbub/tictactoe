@@ -30,35 +30,16 @@ import java.io.Serializable;
  * Request sent bz the client to specify that it seeks a opponent
  */
 @SuppressWarnings("WeakerAccess")
-public class OnlineMultiplayerRequestOpponentRequest implements Serializable{
+public class OnlineMultiplayerRequestOpponentRequest implements Serializable {
     private final String salt = generateSalt();
     private String clientIdentifier;
     private String desiredOpponentIdentifier;
     private int operation;
 
-    /*/**
-     * For Kryo only
-     *
-     * @deprecated
+    /**
+     * Generates a random string with a length of 8 characters.
+     * @return A random string with a length of 8 characters.
      */
-    /*public OnlineMultiplayerRequestOpponentRequest() {
-
-    }
-
-    public OnlineMultiplayerRequestOpponentRequest(String clientIdentifier) {
-        this(clientIdentifier, "");
-    }
-
-    public OnlineMultiplayerRequestOpponentRequest(String clientIdentifier, String desiredOpponentIdentifier) {
-        this(clientIdentifier, desiredOpponentIdentifier, Operation.RequestOpponent);
-    }
-
-    public OnlineMultiplayerRequestOpponentRequest(String clientIdentifier, String desiredOpponentIdentifier, Operation operation) {
-        setClientIdentifier(clientIdentifier);
-        setDesiredOpponentIdentifier(desiredOpponentIdentifier);
-        setOperation(operation);
-    }*/
-
     private static String generateSalt() {
         String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
         int length = 8;

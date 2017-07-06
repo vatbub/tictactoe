@@ -39,6 +39,9 @@ import java.io.IOException;
  */
 @SuppressWarnings("Duplicates")
 public class ServerMainTest {
+    /**
+     * The port to be used to test the server
+     */
     private static int port;
     private final String identifierPrefix = "testuser";
     private final String identifier1 = identifierPrefix + Math.round(Math.random() * 1000);
@@ -69,6 +72,10 @@ public class ServerMainTest {
         ServerMain.shutDown();
     }
 
+    /**
+     * Launches an instance of the relay server
+     * @throws IOException
+     */
     private static void launchServer() throws IOException {
         // launch a server
         if (System.getenv("PORT") == null) {
@@ -470,6 +477,9 @@ public class ServerMainTest {
         }
     }
 
+    /**
+     * Prepares the requests to make them ready to be sent
+     */
     private void setupRequests() {
         request1 = new OnlineMultiplayerRequestOpponentRequest();
         request2 = new OnlineMultiplayerRequestOpponentRequest();
@@ -477,6 +487,10 @@ public class ServerMainTest {
         request2.setClientIdentifier(identifier2);
     }
 
+    /**
+     * Sets the relay client up
+     * @throws IOException If the client cannot connect for any reason
+     */
     private void setupClient() throws IOException {
         client = new Client();
         KryoCommon.registerRequiredClasses(client.getKryo());
@@ -486,6 +500,10 @@ public class ServerMainTest {
         connect();
     }
 
+    /**
+     * Connects the relay client
+     * @throws IOException If the client cannot connect for any reason
+     */
     private void connect() throws IOException {
         client.connect(100000, "localhost", port);
     }

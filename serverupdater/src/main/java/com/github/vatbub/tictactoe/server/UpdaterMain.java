@@ -71,6 +71,9 @@ public class UpdaterMain {
         }
     }
 
+    /**
+     * Prints the help message on the console
+     */
     private static void printHelpMessage() {
         FOKLogger.info(UpdaterMain.class.getName(), "TicTacToe Server Updater");
         FOKLogger.info(UpdaterMain.class.getName(), "Sends a request to the specified server to update itself");
