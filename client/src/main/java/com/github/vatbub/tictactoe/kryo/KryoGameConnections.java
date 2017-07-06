@@ -28,6 +28,7 @@ import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.common.*;
 import com.github.vatbub.tictactoe.view.Main;
 import common.internet.Internet;
+import javafx.application.Platform;
 import logging.FOKLogger;
 
 import java.io.IOException;
@@ -68,7 +69,8 @@ public class KryoGameConnections {
     public static void connect(Runnable onConnected) throws IOException {
         // vatbubtictactoeserver.herokuapp.com
         // connect("52.59.117.143", onConnected);
-        connect("localhost", onConnected);
+        // connect("localhost", onConnected);
+        connect("SURFACEFREDERIK", onConnected);
     }
 
     public static void connect(String host, Runnable onConnected) throws IOException {
@@ -176,6 +178,8 @@ public class KryoGameConnections {
         kryo.register(StartGameRequest.class, new JavaSerializer());
         kryo.register(StartGameResponse.class, new JavaSerializer());
         kryo.register(StartGameException.class, new JavaSerializer());
+        kryo.register(CancelGameRequest.class, new JavaSerializer());
+        kryo.register(CancelGameResponse.class, new JavaSerializer());
     }
 
     public static void launchGameServer(int tcpPort, OnOpponentConnectedRunnable onConnected) throws IOException {
@@ -218,6 +222,10 @@ public class KryoGameConnections {
                 } else if (object instanceof Board.Move && connection != null) {
                     FOKLogger.info(KryoGameConnections.class.getName(), "The game server received a move!");
                     doMove((Board.Move) object);
+                } else if (object instanceof CancelGameRequest && connection != null) {
+                    FOKLogger.info(KryoGameConnections.class.getName(), "The game client received a CancelGameRequest!");
+                    connection.sendTCP(new CancelGameResponse());
+                    cancelGame();
                 } else if (object instanceof FrameworkMessage.KeepAlive) {
                     FOKLogger.info(KryoGameConnections.class.getName(), "Received keepAlive message from server");
                 } else if (object instanceof StartGameException) {
@@ -267,6 +275,10 @@ public class KryoGameConnections {
                 } else if (object instanceof Board.Move && connection != null) {
                     FOKLogger.info(KryoGameConnections.class.getName(), "The game client received a move!");
                     doMove((Board.Move) object);
+                } else if (object instanceof CancelGameRequest && connection != null) {
+                    FOKLogger.info(KryoGameConnections.class.getName(), "The game client received a CancelGameRequest!");
+                    connection.sendTCP(new CancelGameResponse());
+                    cancelGame();
                 } else if (object instanceof FrameworkMessage.KeepAlive) {
                     FOKLogger.info(KryoGameConnections.class.getName(), "Received keepAlive message from server");
                 } else if (object instanceof StartGameException) {
@@ -291,6 +303,7 @@ public class KryoGameConnections {
         }
     }
 
+
     public static Board getConnectedBoard() {
         return connectedBoard;
     }
@@ -308,6 +321,22 @@ public class KryoGameConnections {
         } else {
             throw new IllegalStateException("Game not connected");
         }
+    }
+
+    public static void sendCancelGameRequest() {
+        FOKLogger.info(KryoGameConnections.class.getName(), "Cancelling the game...");
+        if (gameKryoClient != null) {
+            gameKryoClient.sendTCP(new CancelGameRequest());
+        } else if (gameKryoServer != null) {
+            gameConnection.sendTCP(new CancelGameRequest());
+        } else {
+            throw new IllegalStateException("Game not connected");
+        }
+    }
+
+    public static void cancelGame() {
+        KryoGameConnections.resetConnections();
+        Platform.runLater(() -> Main.currentMainWindowInstance.showErrorMessage("The game was cancelled.", "The opponent cancelled the game."));
     }
 
     /**
@@ -330,7 +359,7 @@ public class KryoGameConnections {
         }
     }
 
-    public static void disconnectFromRelayServer(){
+    public static void disconnectFromRelayServer() {
         FOKLogger.info(KryoGameConnections.class.getName(), "Disconnecting from the relay server...");
         if (relayKryoClient != null) {
             Client oldRelayKryoClient = relayKryoClient;

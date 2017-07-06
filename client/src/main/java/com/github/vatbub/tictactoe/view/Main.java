@@ -187,6 +187,8 @@ public class Main extends Application {
     @FXML
     private Label errorReasonLabel;
     @FXML
+    private Label errorMessageLabel;
+    @FXML
     private VBox onlineMenuBox;
     @FXML
     private VBox getOnlineMenuSubBox;
@@ -287,6 +289,10 @@ public class Main extends Application {
     }
 
     public void showErrorMessage(Throwable e) {
+        showErrorMessage("Something went wrong.", e);
+    }
+
+    public void showErrorMessage(String errorMessage, Throwable e) {
         Throwable finalException;
         if (ExceptionUtils.getRootCause(e) != null) {
             finalException = ExceptionUtils.getRootCause(e);
@@ -297,7 +303,13 @@ public class Main extends Application {
         if (finalException.getLocalizedMessage() != null) {
             errorText = errorText + ": " + finalException.getLocalizedMessage();
         }
-        errorReasonLabel.setText(errorText);
+        showErrorMessage(errorMessage, errorText);
+    }
+
+    public void showErrorMessage(String errorMessage, String errorReason) {
+        String finalErrorMessage = errorMessage + "\nPlease try again later.\nReason:";
+        errorMessageLabel.setText(finalErrorMessage);
+        errorReasonLabel.setText(errorReason);
         showErrorScreen();
     }
 
@@ -335,6 +347,7 @@ public class Main extends Application {
     }
 
     private void showErrorScreen() {
+        fadeNode(loadingBackground, 0.8);
         fadeNode(errorBox, 1, true);
     }
 
@@ -658,7 +671,13 @@ public class Main extends Application {
         }
     }
 
-    private void initNewGame() {
+    public void initNewGame() {
+        try {
+            KryoGameConnections.sendCancelGameRequest();
+        } catch (IllegalStateException e) {
+            FOKLogger.log(Main.class.getName(), Level.INFO, "Could not cancel the online game as no online game is running.", e);
+        }
+
         KryoGameConnections.resetConnections();
         guiAnimationQueue.submit(() -> {
             if (looserPane.isVisible()) {
