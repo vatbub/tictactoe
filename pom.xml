@@ -50,7 +50,7 @@
         <url>https://travis-ci.org/vatbub/${gitRepoName}</url>
     </ciManagement>
 
-    <artifactId>tictactoe-parent</artifactId>
+    <artifactId>tictactoe.parent</artifactId>
     <version>0.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 	

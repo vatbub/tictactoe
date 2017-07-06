@@ -28,7 +28,7 @@
 
     <parent>
         <groupId>com.github.vatbub</groupId>
-        <artifactId>tictactoe-parent</artifactId>
+        <artifactId>tictactoe.parent</artifactId>
         <version>0.0.2-SNAPSHOT</version>
     </parent>
 
@@ -50,6 +50,7 @@
     </ciManagement>
 
     <artifactId>tictactoe</artifactId>
+	<name>tictactoe.client</name>
     <version>0.0.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 

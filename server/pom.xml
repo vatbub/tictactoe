@@ -30,7 +30,7 @@
     </repositories>
 
     <parent>
-        <artifactId>tictactoe-parent</artifactId>
+        <artifactId>tictactoe.parent</artifactId>
         <groupId>com.github.vatbub</groupId>
         <version>0.0.2-SNAPSHOT</version>
     </parent>
@@ -54,7 +54,7 @@
 
     <artifactId>tictactoe.server</artifactId>
     <packaging>jar</packaging>
-    <name>tictactoe-server</name>
+    <name>tictactoe.server</name>
     <description>The server component required for online multiplayer gaming</description>
 
     <properties>

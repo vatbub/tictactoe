@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>tictactoe-parent</artifactId>
+        <artifactId>tictactoe.parent</artifactId>
         <groupId>com.github.vatbub</groupId>
         <version>0.0.2-SNAPSHOT</version>
     </parent>
@@ -36,7 +36,7 @@
 
     <artifactId>tictactoe.server.updater</artifactId>
     <packaging>jar</packaging>
-    <name>tictactoe-server-updater</name>
+    <name>tictactoe.server.updater</name>
     <description>Sends a request to a tictactoeserver to update itself</description>
 
     <properties>
