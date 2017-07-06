@@ -22,7 +22,8 @@ package com.github.vatbub.tictactoe.kryo;
 
 
 /**
- * Created by Frederik on 25.06.2017.
+ * Executed when the Game-Server receives a connection.
+ * @see KryoGameConnections#launchGameServer(OnOpponentConnectedRunnable)
  */
 public interface OnOpponentConnectedRunnable {
     void run(String opponentName);

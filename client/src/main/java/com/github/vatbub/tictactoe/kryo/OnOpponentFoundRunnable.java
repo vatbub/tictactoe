@@ -24,7 +24,8 @@ package com.github.vatbub.tictactoe.kryo;
 import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequestOpponentResponse;
 
 /**
- * Created by Frederik on 24.06.2017.
+ * Called when a opponent was found using {@link KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable)}
+ * @see KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable)
  */
 public interface OnOpponentFoundRunnable {
     void run(OnlineMultiplayerRequestOpponentResponse response);

@@ -25,7 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Created by Frederik on 31/05/2017.
+ * Some server configuration parameters
  */
 @SuppressWarnings("WeakerAccess")
 public class ServerConfig {

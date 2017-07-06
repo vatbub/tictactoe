@@ -22,9 +22,12 @@ package com.github.vatbub.tictactoe.kryo;
 
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 
 /**
- * Created by Frederik on 23.06.2017.
+ * Sent if an online game cannot be started for any reason.
+ * @see KryoGameConnections#launchGameServer(OnOpponentConnectedRunnable)
+ * @see KryoGameConnections#launchGameClient(String, InetSocketAddress, Runnable)
  */
 @SuppressWarnings({"SameParameterValue", "WeakerAccess"})
 public class StartGameException extends RuntimeException implements Serializable {

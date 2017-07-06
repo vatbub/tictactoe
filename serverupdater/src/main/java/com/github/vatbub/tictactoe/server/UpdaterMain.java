@@ -34,7 +34,7 @@ import logging.FOKLogger;
 import java.util.logging.Level;
 
 /**
- * Created by Frederik on 31/05/2017.
+ * Updates the software on the relay server
  */
 @SuppressWarnings("WeakerAccess")
 public class UpdaterMain {

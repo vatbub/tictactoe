@@ -24,7 +24,7 @@ package com.github.vatbub.tictactoe.kryo;
 import java.io.Serializable;
 
 /**
- * Created by Frederik on 23.06.2017.
+ * Sent as a response to a {@link StartGameRequest} to tell the sender of the request that the game was successfully started.
  */
 @SuppressWarnings("WeakerAccess")
 public class StartGameResponse implements Serializable {

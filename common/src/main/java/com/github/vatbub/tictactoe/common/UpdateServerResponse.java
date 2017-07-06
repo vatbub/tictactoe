@@ -24,7 +24,7 @@ package com.github.vatbub.tictactoe.common;
 import java.io.Serializable;
 
 /**
- * Created by Frederik on 31/05/2017.
+ * Sent by the server as a response to a {@link UpdateServerRequest} to tell the sender of the request that an update of the software on the relay server is about to be done.
  */
 public class UpdateServerResponse implements Serializable{
     private String responseText;

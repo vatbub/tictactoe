@@ -22,9 +22,11 @@ package com.github.vatbub.tictactoe.kryo;
 
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 
 /**
- * Created by Frederik on 23.06.2017.
+ * Sent when a game client requests a game server to start the game
+ * @see KryoGameConnections#launchGameClient(String, InetSocketAddress, Runnable)
  */
 @SuppressWarnings("WeakerAccess")
 public class StartGameRequest implements Serializable {

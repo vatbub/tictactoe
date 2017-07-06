@@ -25,7 +25,8 @@ import java.io.Serializable;
 import java.net.InetSocketAddress;
 
 /**
- * Created by Frederik on 27/05/2017.
+ * Response to a {@link OnlineMultiplayerRequestOpponentRequest} that tells the requesting client if it has to wait or not
+ * and if not, who the opponent is.
  */
 @SuppressWarnings("WeakerAccess")
 public class OnlineMultiplayerRequestOpponentResponse implements Serializable{
