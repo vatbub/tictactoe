@@ -457,6 +457,7 @@ public class Main extends Application {
 
     @Override
     public void stop() {
+        KryoGameConnections.sendCancelGameRequest();
         KryoGameConnections.resetConnections();
         System.exit(0);
     }
