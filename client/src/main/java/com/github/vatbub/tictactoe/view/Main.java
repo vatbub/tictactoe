@@ -345,6 +345,7 @@ public class Main extends Application {
     }
 
     private void showErrorScreen() {
+        blurGamePane();
         fadeNode(loadingBackground, 0.8);
         fadeNode(errorBox, 1, true);
     }
@@ -397,6 +398,7 @@ public class Main extends Application {
             guiAnimationQueue.setBlocked(true);
             playOnlineHyperlink.setText("Play offline");
             fadeNode(menuBox, 0);
+            showMenuBackground();
             fadeNode(onlineMenuBox, 1, () -> guiAnimationQueue.setBlocked(false));
         });
     }
@@ -954,28 +956,36 @@ public class Main extends Application {
 
     private void showMenu() {
         guiAnimationQueue.submit(() -> {
-            fadeNode(menuBackground, 0.12);
             fadeNode(menuBox, 1);
+            menuBox.setVisible(true);
+        });
+        showMenuBackground();
+    }
 
-            playOnlineAnchorPane.setVisible(true);
-            KeyValue keyValuePlayOnline1 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 3 + playOnlineAnchorPane.getHeight());
-            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(0), keyValuePlayOnline1);
+    private void showMenuBackground() {
+        guiAnimationQueue.submit(() -> {
+            fadeNode(menuBackground, 0.12);
 
-            KeyValue keyValuePlayOnline2 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 3 + playOnlineAnchorPane.getHeight());
-            KeyValue keyValueCurrentPlayer2 = new KeyValue(currentPlayerLabelAnchorPane.translateYProperty(), 3 + currentPlayerLabelAnchorPane.getHeight());
-            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed), keyValueCurrentPlayer2, keyValuePlayOnline2);
+            if (currentPlayerLabelAnchorPane.isVisible()) {
+                playOnlineAnchorPane.setVisible(true);
+                KeyValue keyValuePlayOnline1 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 3 + playOnlineAnchorPane.getHeight());
+                KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(0), keyValuePlayOnline1);
 
-            KeyValue keyValuePlayOnline3 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 0);
-            KeyFrame keyFrame3 = new KeyFrame(Duration.seconds(2 * animationSpeed), keyValuePlayOnline3);
+                KeyValue keyValuePlayOnline2 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 3 + playOnlineAnchorPane.getHeight());
+                KeyValue keyValueCurrentPlayer2 = new KeyValue(currentPlayerLabelAnchorPane.translateYProperty(), 3 + currentPlayerLabelAnchorPane.getHeight());
+                KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed), keyValueCurrentPlayer2, keyValuePlayOnline2);
 
-            Timeline timeline = new Timeline(keyFrame1, keyFrame2, keyFrame3);
-            timeline.setOnFinished((event) -> currentPlayerLabelAnchorPane.setVisible(false));
-            timeline.play();
+                KeyValue keyValuePlayOnline3 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 0);
+                KeyFrame keyFrame3 = new KeyFrame(Duration.seconds(2 * animationSpeed), keyValuePlayOnline3);
+
+                Timeline timeline = new Timeline(keyFrame1, keyFrame2, keyFrame3);
+                timeline.setOnFinished((event) -> currentPlayerLabelAnchorPane.setVisible(false));
+                timeline.play();
+            }
 
             blurGamePane();
 
             menuBackground.setVisible(true);
-            menuBox.setVisible(true);
         });
     }
 
