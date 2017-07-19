@@ -421,6 +421,7 @@ public class Main extends Application {
     void errorPlayOfflineOnAction(ActionEvent event) {
         hideErrorScreen();
         hideLoadingScreen();
+        showMenu();
     }
 
     /**
