@@ -39,9 +39,9 @@ import java.util.logging.Level;
  */
 @SuppressWarnings("WeakerAccess")
 public class ServerMain {
+    private static final Server server = new Server();
     private static Map<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static int currentTcpPort;
-    private static final Server server = new Server();
 
     public static void main(String[] args) throws IOException {
         Common.setAppName("tictactoeserver");
@@ -68,6 +68,8 @@ public class ServerMain {
                 argList.remove(0);
             }
         }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(ServerMain::shutDown));
     }
 
     public static void startServer(int tcpPort) throws IOException {
