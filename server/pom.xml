@@ -30,14 +30,14 @@
     <parent>
         <artifactId>tictactoe.parent</artifactId>
         <groupId>com.github.vatbub</groupId>
-        <version>0.0.2</version>
+        <version>0.0.3-SNAPSHOT</version>
     </parent>
 
     <scm>
         <connection>scm:git:git@github.com:vatbub/${gitRepoName}.git</connection>
         <url>https://github.com/vatbub/${gitRepoName}</url>
         <developerConnection>scm:git:git@github.com:vatbub/${gitRepoName}.git</developerConnection>
-        <tag>tictactoe.parent-0.0.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
@@ -66,7 +66,7 @@
         <dependency>
             <groupId>com.github.vatbub</groupId>
             <artifactId>tictactoe.common</artifactId>
-            <version>0.0.2</version>
+            <version>0.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>de.taimos</groupId>
