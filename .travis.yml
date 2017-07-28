@@ -18,10 +18,7 @@ script:
 - mvn test jacoco:report coveralls:report --settings target/travis/settings.xml
 before_cache:
 - mvn site site:deploy --settings target/travis/settings.xml -DskipTests=true
-- mvn deploy --settings target/travis/settings.xml -DskipTests=true -f common/pom.xml
-- mvn deploy --settings target/travis/settings.xml -DskipTests=true -f client/pom.xml
-- mvn deploy --settings target/travis/settings.xml -DskipTests=true -f server/pom.xml
-- mvn package --settings target/travis/settings.xml -DskipTests=true -f serverupdater/pom.xml
+- mvn deploy --settings target/travis/settings.xml -DskipTests=true
 - java -jar serverupdater/target/tictactoe-server-updater-jar-with-dependencies.jar $serverUpdateHost $serverUpdatePort
 after_success:
 - git checkout master
