@@ -466,8 +466,12 @@ public class Main extends Application {
 
     @Override
     public void stop() {
-        KryoGameConnections.sendCancelGameRequest();
-        KryoGameConnections.resetConnections();
+        try {
+            KryoGameConnections.sendCancelGameRequest();
+            KryoGameConnections.resetConnections();
+        } catch (Exception e) {
+            FOKLogger.log(Main.class.getName(), Level.SEVERE, "Exception in the application stop method", e);
+        }
         System.exit(0);
     }
 
