@@ -281,7 +281,7 @@ public class Main extends Application {
                     Platform.runLater(() -> Main.this.startGame(response.getOpponentIdentifier(), inversePlayerOrder));
                 }
             }
-        }, () -> showErrorMessage("The game was cancelled.", "Disconnected from the server."));
+        }, () -> Platform.runLater(() -> showErrorMessage("The game was cancelled.", "Disconnected from the server.")));
     }
 
     public void showErrorMessage(Throwable e) {
