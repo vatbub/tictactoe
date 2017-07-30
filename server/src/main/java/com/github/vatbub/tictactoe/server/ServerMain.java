@@ -124,13 +124,11 @@ public class ServerMain {
                                     if (receivedRequest.getDesiredOpponentIdentifier() == null && comparedRequest.getDesiredOpponentIdentifier() == null) {
                                         // found two requests that both don't wish a particular opponent
                                         FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
-                                        openRequests.remove(entry.getKey());
                                         matchingConnection = entry.getKey();
                                         matchingOpponentIdentifier = comparedRequest.getClientIdentifier();
                                         break;
                                     } else if (comparedRequest.getDesiredOpponentIdentifier() != null && receivedRequest.getClientIdentifier().equals(comparedRequest.getDesiredOpponentIdentifier())) {
                                         FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
-                                        openRequests.remove(entry.getKey());
                                         matchingConnection = entry.getKey();
                                         matchingOpponentIdentifier = comparedRequest.getClientIdentifier();
                                         break;
@@ -139,6 +137,7 @@ public class ServerMain {
                             }
 
                             if (matchingConnection != null) {
+                                openRequests.remove(matchingConnection);
                                 // send a response to the client that just requested an opponent
                                 response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.OpponentFound, matchingOpponentIdentifier);
                                 connectionMap.put(connection, matchingConnection);
