@@ -39,7 +39,7 @@ import java.util.logging.Level;
 /**
  * Does all the networking tasks for the online multiplayer game.
  */
-@SuppressWarnings({"WeakerAccess", "Duplicates"})
+@SuppressWarnings({"WeakerAccess"})
 public class KryoGameConnections {
     private static Client relayKryoClient;
     private static boolean gameConnected;

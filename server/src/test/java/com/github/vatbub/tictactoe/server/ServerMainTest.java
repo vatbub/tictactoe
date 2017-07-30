@@ -74,6 +74,7 @@ public class ServerMainTest {
 
     /**
      * Launches an instance of the relay server
+     *
      * @throws IOException
      */
     private static void launchServer() throws IOException {
@@ -149,7 +150,6 @@ public class ServerMainTest {
 
         FOKLogger.info(ServerMainTest.class.getName(), "Checking for response code WaitForOpponent...");
         assert response.getResponseCode().equals(ResponseCode.WaitForOpponent);
-        assert response.getOpponentInetSocketAddress() == null;
         FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
     }
 
@@ -159,9 +159,6 @@ public class ServerMainTest {
 
         FOKLogger.info(ServerMainTest.class.getName(), "Checking for response code OpponentFound...");
         assert response.getResponseCode().equals(ResponseCode.OpponentFound);
-        FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
-        FOKLogger.info(ServerMainTest.class.getName(), "Checking for a opponent ip...");
-        assert response.getOpponentInetSocketAddress() != null;
         FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
     }
 
@@ -418,7 +415,6 @@ public class ServerMainTest {
                         FOKLogger.info(ServerMainTest.class.getName(), "Checking for response code RequestAborted...");
                         assert response.getResponseCode().equals(ResponseCode.RequestAborted);
                         FOKLogger.info(ServerMainTest.class.getName(), "Passed!");
-                        assert response.getOpponentInetSocketAddress() == null;
                         tearDown();
                     } catch (Error | Exception e) {
                         throwable = e;
@@ -489,6 +485,7 @@ public class ServerMainTest {
 
     /**
      * Sets the relay client up
+     *
      * @throws IOException If the client cannot connect for any reason
      */
     private void setupClient() throws IOException {
@@ -502,6 +499,7 @@ public class ServerMainTest {
 
     /**
      * Connects the relay client
+     *
      * @throws IOException If the client cannot connect for any reason
      */
     private void connect() throws IOException {
