@@ -88,6 +88,10 @@ public class ServerMain {
 
             @Override
             public void disconnected(Connection connection) {
+                if (openRequests.containsKey(connection)) {
+                    FOKLogger.info(ServerMain.class.getName(), "Removing all open requests from the client that just disconnected...");
+                    openRequests.remove(connection);
+                }
                 if (connectionMap.containsKey(connection)) {
                     // send the opponent the message that the game has been disconnected
                     Connection matchingConnection = connectionMap.get(connection);
