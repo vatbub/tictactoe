@@ -41,8 +41,7 @@ import java.util.logging.Level;
  */
 @SuppressWarnings({"WeakerAccess"})
 public class KryoGameConnections {
-    private static Client relayKryoClient;
-    private static boolean gameConnected;
+    private static Client kryoClient;
     private static OnOpponentFoundRunnable onOpponentFoundRunnable;
     private static OnlineMultiplayerRequestOpponentRequest lastOpponentRequest;
 
@@ -78,11 +77,11 @@ public class KryoGameConnections {
     }
 
     public static void connect(String host, int tcpPort, Runnable onConnected) throws IOException {
-        if (relayKryoClient != null) {
+        if (kryoClient != null) {
             resetConnections();
         }
 
-        relayKryoClient = new Client();
+        kryoClient = new Client();
 
         // ping the host to wake him up (e. g. om heroku)
         String pingAddress = "http://" + host;
@@ -94,28 +93,19 @@ public class KryoGameConnections {
             FOKLogger.severe(KryoGameConnections.class.getName(), "Ping failed. Still trying to connect using KryoNet, reason for the failed ping: " + e.getLocalizedMessage());
         }
 
-        relayKryoClient.start();
-        KryoCommon.registerRequiredClasses(relayKryoClient.getKryo());
-        relayKryoClient.getKryo().setReferences(true);
-        //registerGameClasses(relayKryoClient.getKryo());
-        relayKryoClient.setKeepAliveTCP(2500);
+        kryoClient.start();
+        KryoCommon.registerRequiredClasses(kryoClient.getKryo());
+        kryoClient.getKryo().setReferences(true);
+        //registerGameClasses(kryoClient.getKryo());
+        kryoClient.setKeepAliveTCP(2500);
 
-        relayKryoClient.addListener(new Listener() {
+        kryoClient.addListener(new Listener() {
             public void received(Connection connection, Object object) {
                 if (object instanceof OnlineMultiplayerRequestOpponentResponse) {
                     OnlineMultiplayerRequestOpponentResponse response = (OnlineMultiplayerRequestOpponentResponse) object;
                     FOKLogger.info(KryoGameConnections.class.getName(), "Received OnlineMultiplayerRequestOpponentResponse");
                     FOKLogger.info(KryoGameConnections.class.getName(), "Response code: " + response.getResponseCode());
-                    if (response.getResponseCode().equals(ResponseCode.OpponentFound)) {
-                        // connect the game
-                        if (!gameConnected) {
-                            gameConnected = true;
-                            FOKLogger.info(KryoGameConnections.class.getName(), "Connecting the game...");
-                        } else {
-                            FOKLogger.severe(KryoGameConnections.class.getName(), "Cannot connect the game, game is already connected");
-                            connection.sendTCP(new GameException("Node already connected"));
-                        }
-                    }
+
                     if (onOpponentFoundRunnable != null) {
                         onOpponentFoundRunnable.run(response);
                     }
@@ -136,7 +126,7 @@ public class KryoGameConnections {
             }
         });
 
-        relayKryoClient.connect(5000, host, tcpPort);
+        kryoClient.connect(5000, host, tcpPort);
 
         if (onConnected != null) {
             onConnected.run();
@@ -153,14 +143,14 @@ public class KryoGameConnections {
     }
 
     public static void requestOpponent(OnlineMultiplayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound) {
-        if (relayKryoClient == null) {
+        if (kryoClient == null) {
             throw new IllegalStateException("Not connected to the relay server");
         }
 
         FOKLogger.info(KryoGameConnections.class.getName(), "Requesting an opponent...");
         onOpponentFoundRunnable = onOpponentFound;
         lastOpponentRequest = request;
-        relayKryoClient.sendTCP(request);
+        kryoClient.sendTCP(request);
     }
 
     public static void abortLastOpponentRequestIfApplicable() {
@@ -174,14 +164,14 @@ public class KryoGameConnections {
     }
 
     public static void abortOpponentRequest(OnlineMultiplayerRequestOpponentRequest request) {
-        if (relayKryoClient == null) {
+        if (kryoClient == null) {
             throw new IllegalStateException("Not connected to the relay server");
         }
 
         FOKLogger.info(KryoGameConnections.class.getName(), "Aborting the opponent request with id " + request.getRequestId() + "...");
 
         request.setOperation(Operation.AbortRequest);
-        relayKryoClient.sendTCP(request);
+        kryoClient.sendTCP(request);
     }
 
     private static void doMove(Move move) {
@@ -203,8 +193,8 @@ public class KryoGameConnections {
 
     public static void sendMove(Move move) {
         FOKLogger.info(KryoGameConnections.class.getName(), "Sending a move...");
-        if (relayKryoClient != null) {
-            relayKryoClient.sendTCP(move);
+        if (kryoClient != null) {
+            kryoClient.sendTCP(move);
         } else {
             throw new IllegalStateException("Game not connected");
         }
@@ -212,8 +202,8 @@ public class KryoGameConnections {
 
     public static void sendCancelGameRequest() {
         FOKLogger.info(KryoGameConnections.class.getName(), "Cancelling the game...");
-        if (relayKryoClient != null) {
-            relayKryoClient.sendTCP(new CancelGameRequest());
+        if (kryoClient != null) {
+            kryoClient.sendTCP(new CancelGameRequest());
         } else {
             throw new IllegalStateException("Game not connected");
         }
@@ -229,11 +219,11 @@ public class KryoGameConnections {
      */
     public static void resetConnections() {
         FOKLogger.info(KryoGameConnections.class.getName(), "Resetting all kryo connections...");
-        if (relayKryoClient != null) {
-            Client oldRelayKryoClient = relayKryoClient;
+        if (kryoClient != null) {
+            Client oldRelayKryoClient = kryoClient;
             abortLastOpponentRequestIfApplicable();
             oldRelayKryoClient.stop();
-            relayKryoClient = null;
+            kryoClient = null;
         }
     }
 }

@@ -29,6 +29,7 @@ import com.github.vatbub.tictactoe.common.Move;
 import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequestOpponentResponse;
 import com.github.vatbub.tictactoe.common.ResponseCode;
 import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
+import com.github.vatbub.tictactoe.kryo.OnOpponentFoundRunnable;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import com.sun.javafx.tk.Toolkit;
@@ -268,10 +269,17 @@ public class Main extends Application {
             desiredOpponentIdentifier = onlineDesiredOpponentName.getText();
         }
 
-        KryoGameConnections.requestOpponent(clientIdentifier, desiredOpponentIdentifier, (OnlineMultiplayerRequestOpponentResponse response) -> {
-            if (response.getResponseCode() == ResponseCode.OpponentFound) {
-                setLoadingStatusText("Waiting for the opponent...");
-                Platform.runLater(() -> startGame(response.getOpponentIdentifier(), true));
+        KryoGameConnections.requestOpponent(clientIdentifier, desiredOpponentIdentifier, new OnOpponentFoundRunnable() {
+            private boolean inversePlayerOrder = true;
+
+            @Override
+            public void run(OnlineMultiplayerRequestOpponentResponse response) {
+                if (response.getResponseCode() == ResponseCode.WaitForOpponent) {
+                    inversePlayerOrder = false;
+                } else {
+                    Main.this.setLoadingStatusText("Waiting for the opponent...");
+                    Platform.runLater(() -> Main.this.startGame(response.getOpponentIdentifier(), inversePlayerOrder));
+                }
             }
         });
     }
