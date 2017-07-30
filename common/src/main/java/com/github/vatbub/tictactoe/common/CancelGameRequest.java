@@ -1,4 +1,4 @@
-package com.github.vatbub.tictactoe.kryo;
+package com.github.vatbub.tictactoe.common;
 
 /*-
  * #%L

@@ -38,5 +38,9 @@ public class KryoCommon {
         kryo.register(ResponseCode.class, new JavaSerializer());
         kryo.register(UpdateServerRequest.class, new JavaSerializer());
         kryo.register(UpdateServerResponse.class, new JavaSerializer());
+        kryo.register(Move.class, new JavaSerializer());
+        kryo.register(GameException.class, new JavaSerializer());
+        kryo.register(CancelGameRequest.class, new JavaSerializer());
+        kryo.register(CancelGameResponse.class, new JavaSerializer());
     }
 }

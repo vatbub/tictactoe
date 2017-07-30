@@ -21,6 +21,7 @@ package com.github.vatbub.tictactoe;
  */
 
 
+import com.github.vatbub.tictactoe.common.Move;
 import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
 import com.github.vatbub.tictactoe.view.AILevel;
 import com.github.vatbub.tictactoe.view.Main;
@@ -469,32 +470,6 @@ public class Board {
 
     public void setAiLevel(AILevel aiLevel) {
         this.aiLevel = aiLevel;
-    }
-
-    public static class Move implements Serializable {
-        private int column;
-        private int row;
-
-        public Move(int row, int column) {
-            setColumn(column);
-            setRow(row);
-        }
-
-        public int getColumn() {
-            return column;
-        }
-
-        public void setColumn(int column) {
-            this.column = column;
-        }
-
-        public int getRow() {
-            return row;
-        }
-
-        public void setRow(int row) {
-            this.row = row;
-        }
     }
 
     public class WinnerInfo {

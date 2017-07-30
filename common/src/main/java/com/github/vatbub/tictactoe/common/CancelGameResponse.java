@@ -1,8 +1,8 @@
-package com.github.vatbub.tictactoe.kryo;
+package com.github.vatbub.tictactoe.common;
 
 /*-
  * #%L
- * tictactoe
+ * tictactoe.client
  * %%
  * Copyright (C) 2016 - 2017 Frederik Kammel
  * %%
@@ -22,25 +22,11 @@ package com.github.vatbub.tictactoe.kryo;
 
 
 import java.io.Serializable;
-import java.net.InetSocketAddress;
 
 /**
- * Sent when a game client requests a game server to start the game
- * @see KryoGameConnections#launchGameClient(String, InetSocketAddress, Runnable)
+ * Sent as a response to a {@link CancelGameRequest}
+ * @see CancelGameRequest
  */
 @SuppressWarnings("WeakerAccess")
-public class StartGameRequest implements Serializable {
-    private String opponentIdentifier;
-
-    public StartGameRequest(String opponentIdentifier) {
-        setOpponentIdentifier(opponentIdentifier);
-    }
-
-    public String getOpponentIdentifier() {
-        return opponentIdentifier;
-    }
-
-    public void setOpponentIdentifier(String opponentIdentifier) {
-        this.opponentIdentifier = opponentIdentifier;
-    }
+public class CancelGameResponse implements Serializable {
 }

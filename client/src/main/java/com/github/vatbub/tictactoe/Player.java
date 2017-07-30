@@ -21,6 +21,7 @@ package com.github.vatbub.tictactoe;
  */
 
 
+import com.github.vatbub.tictactoe.common.Move;
 import com.github.vatbub.tictactoe.view.AILevel;
 
 import java.util.ArrayList;
@@ -85,7 +86,7 @@ public class Player {
                     c = (int) Math.round(Math.random() * (currentBoard.getColumnCount() - 1));
                 } while (currentBoard.getPlayerAt(r, c) != null);
 
-                currentBoard.doTurn(new Board.Move(r, c));
+                currentBoard.doTurn(new Move(r, c));
                 break;
             case SOMEWHAT_GOOD:
                 AlphaBetaResult alphaBetaResult2 = alphaBeta(currentBoard, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, true);
@@ -117,9 +118,9 @@ public class Player {
         res.beta = beta;
 
         // evaluate the current situation
-        Board.Move lastMove = node.getLastMove();
+        Move lastMove = node.getLastMove();
         if (lastMove == null) {
-            lastMove = new Board.Move(0, 0);
+            lastMove = new Move(0, 0);
         }
         Board.WinnerInfo winnerInfo = node.getWinner(lastMove.getRow(), lastMove.getColumn());
 
@@ -135,7 +136,7 @@ public class Player {
         }
 
         if (maximizingPlayer) {
-            for (Board.Move move : node.getAvailableMoves()) {
+            for (Move move : node.getAvailableMoves()) {
                 Board child = node.clone();
                 child.doTurn(move, true);
                 double previousAlpha = alpha;
@@ -154,7 +155,7 @@ public class Player {
             res.returnType = ReturnType.alpha;
             return res;
         } else {
-            for (Board.Move move : node.getAvailableMoves()) {
+            for (Move move : node.getAvailableMoves()) {
                 Board child = node.clone();
                 child.doTurn(move, true);
                 double previousBeta = beta;
@@ -197,8 +198,8 @@ public class Player {
     }
 
     private class AlphaBetaResult {
-        final Map<Board.Move, Double> moveScores = new HashMap<>();
-        Board.Move bestMove;
+        final Map<Move, Double> moveScores = new HashMap<>();
+        Move bestMove;
         double heuristicNodeValue;
         double alpha;
         double beta;
@@ -221,14 +222,14 @@ public class Player {
         /*
          * Makes the ai less perfect
          */
-        Board.Move getBestMoveWithRandomness() {
+        Move getBestMoveWithRandomness() {
             double optimalScore;
             System.out.print(returnType.toString() + ", ");
             switch (returnType) {
                 default:
                 case alpha:
                     optimalScore = Double.NEGATIVE_INFINITY;
-                    for (Map.Entry<Board.Move, Double> entry : moveScores.entrySet()) {
+                    for (Map.Entry<Move, Double> entry : moveScores.entrySet()) {
                         if (entry.getValue() > optimalScore) {
                             optimalScore = entry.getValue();
                         }
@@ -236,7 +237,7 @@ public class Player {
                     break;
                 case beta:
                     optimalScore = Double.POSITIVE_INFINITY;
-                    for (Map.Entry<Board.Move, Double> entry : moveScores.entrySet()) {
+                    for (Map.Entry<Move, Double> entry : moveScores.entrySet()) {
                         if (entry.getValue() < optimalScore) {
                             optimalScore = entry.getValue();
                         }
@@ -244,9 +245,9 @@ public class Player {
             }
 
             // get all the moves that have the optimal score and pick a random one among those
-            List<Board.Move> optimalMoves = new ArrayList<>();
+            List<Move> optimalMoves = new ArrayList<>();
 
-            for (Map.Entry<Board.Move, Double> entry : moveScores.entrySet()) {
+            for (Map.Entry<Move, Double> entry : moveScores.entrySet()) {
                 if (entry.getValue() == optimalScore) {
                     optimalMoves.add(entry.getKey());
                 }

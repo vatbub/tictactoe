@@ -30,7 +30,6 @@ import de.taimos.totp.TOTP;
 import logging.FOKLogger;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -40,8 +39,9 @@ import java.util.logging.Level;
 @SuppressWarnings("WeakerAccess")
 public class ServerMain {
     private static final Server server = new Server();
-    private static Map<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
+    private static Map<Connection, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static int currentTcpPort;
+    private static Map<Connection, Connection> connectionMap = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
         Common.setAppName("tictactoeserver");
@@ -106,43 +106,48 @@ public class ServerMain {
                         FOKLogger.info(ServerMain.class.getName(), "Checking for matching requests...");
                         if (receivedRequest.getOperation().equals(Operation.RequestOpponent)) {
                             // check if any of the open requests has a matching desiredOpponentIdentifier
-                            InetSocketAddress matchingAddress = null;
+                            Connection matchingConnection = null;
                             String matchingOpponentIdentifier = null;
-                            for (Map.Entry<InetSocketAddress, List<OnlineMultiplayerRequestOpponentRequest>> entry : openRequests.entrySet()) {
+                            for (Map.Entry<Connection, List<OnlineMultiplayerRequestOpponentRequest>> entry : openRequests.entrySet()) {
                                 for (OnlineMultiplayerRequestOpponentRequest comparedRequest : entry.getValue()) {
                                     if (receivedRequest.getDesiredOpponentIdentifier() == null && comparedRequest.getDesiredOpponentIdentifier() == null) {
                                         // found two requests that both don't wish a particular opponent
                                         FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
                                         openRequests.remove(entry.getKey());
-                                        matchingAddress = entry.getKey();
+                                        matchingConnection = entry.getKey();
                                         matchingOpponentIdentifier = comparedRequest.getClientIdentifier();
                                         break;
                                     } else if (comparedRequest.getDesiredOpponentIdentifier() != null && receivedRequest.getClientIdentifier().equals(comparedRequest.getDesiredOpponentIdentifier())) {
                                         FOKLogger.info(ServerMain.class.getName(), "Found matching request!");
                                         openRequests.remove(entry.getKey());
-                                        matchingAddress = entry.getKey();
+                                        matchingConnection = entry.getKey();
                                         matchingOpponentIdentifier = comparedRequest.getClientIdentifier();
                                         break;
                                     }
                                 }
                             }
 
-                            if (matchingAddress != null) {
+                            if (matchingConnection != null) {
                                 // send a response to the client that just requested an opponent
-                                response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.OpponentFound, matchingAddress, matchingOpponentIdentifier);
+                                response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.OpponentFound, matchingOpponentIdentifier);
+                                connectionMap.put(connection, matchingConnection);
+                                connectionMap.put(matchingConnection, connection);
+
+                                // send request to the opponent too
+                                matchingConnection.sendTCP(new OnlineMultiplayerRequestOpponentResponse(ResponseCode.OpponentFound, receivedRequest.getClientIdentifier()));
                             } else {
                                 // add the request to the openRequests-map
                                 FOKLogger.info(ServerMain.class.getName(), "No matching request found, adding the request to the open requests list...");
                                 response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.WaitForOpponent);
 
-                                if (!openRequests.containsKey(connection.getRemoteAddressTCP())) {
-                                    // First request of the client
+                                if (!openRequests.containsKey(connection)) {
+                                    // First request through this connection
                                     List<OnlineMultiplayerRequestOpponentRequest> tempRequestList = new ArrayList<>();
                                     tempRequestList.add(receivedRequest);
-                                    openRequests.put(connection.getRemoteAddressTCP(), tempRequestList);
+                                    openRequests.put(connection, tempRequestList);
                                 } else {
                                     // client has already sent a request
-                                    List<OnlineMultiplayerRequestOpponentRequest> clientRequestList = openRequests.get(connection.getRemoteAddressTCP());
+                                    List<OnlineMultiplayerRequestOpponentRequest> clientRequestList = openRequests.get(connection);
                                     if (!clientRequestList.contains(receivedRequest)) {
                                         // request was only sent once so add it to the list
                                         clientRequestList.add(receivedRequest);
@@ -157,13 +162,13 @@ public class ServerMain {
                             }
                         } else {
                             // operation is AbortRequest
-                            List<OnlineMultiplayerRequestOpponentRequest> clientRequestList = openRequests.get(connection.getRemoteAddressTCP());
+                            List<OnlineMultiplayerRequestOpponentRequest> clientRequestList = openRequests.get(connection);
                             if (clientRequestList != null && clientRequestList.contains(receivedRequest)) {
                                 clientRequestList.remove(receivedRequest);
                                 if (clientRequestList.size() == 0) {
                                     // delete the inet address from the map
                                     FOKLogger.info(ServerMain.class.getName(), "Matching request found, aborting request...");
-                                    openRequests.remove(connection.getRemoteAddressTCP());
+                                    openRequests.remove(connection);
                                 }
                                 response = new OnlineMultiplayerRequestOpponentResponse(ResponseCode.RequestAborted);
                             } else {
@@ -176,6 +181,18 @@ public class ServerMain {
 
                         FOKLogger.info(ServerMain.class.getName(), "Sending response to client...");
                         connection.sendTCP(response);
+                    } else if (object instanceof Move || object instanceof CancelGameRequest || object instanceof CancelGameResponse) {
+                        // forward the move to the right client
+                        Connection matchingConnection = connectionMap.get(connection);
+                        if (matchingConnection == null) {
+                            connection.sendTCP(new GameException("No opponent found for this connection"));
+                        } else {
+                            matchingConnection.sendTCP(object);
+                            if (object instanceof CancelGameRequest) {
+                                connectionMap.remove(connection);
+                                connectionMap.remove(matchingConnection);
+                            }
+                        }
                     } else if (object instanceof UpdateServerRequest) {
                         UpdateServerRequest request = (UpdateServerRequest) object;
                         String key = System.getenv("updateServerTOTPKey");

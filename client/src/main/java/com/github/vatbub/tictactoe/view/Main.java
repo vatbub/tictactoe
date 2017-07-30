@@ -25,6 +25,7 @@ import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
 import com.github.vatbub.tictactoe.PlayerMode;
+import com.github.vatbub.tictactoe.common.Move;
 import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequestOpponentResponse;
 import com.github.vatbub.tictactoe.common.ResponseCode;
 import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
@@ -267,23 +268,10 @@ public class Main extends Application {
             desiredOpponentIdentifier = onlineDesiredOpponentName.getText();
         }
 
-        String finalClientIdentifier = clientIdentifier;
         KryoGameConnections.requestOpponent(clientIdentifier, desiredOpponentIdentifier, (OnlineMultiplayerRequestOpponentResponse response) -> {
-            if (response.getResponseCode() == ResponseCode.WaitForOpponent) {
-                try {
-                    KryoGameConnections.launchGameServer((opponentName) -> Platform.runLater(() -> startGame(opponentName, false)));
-                } catch (IOException e) {
-                    FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not launch the game server", e);
-                    Platform.runLater(() -> showErrorMessage(e));
-                }
-            } else {
-                try {
-                    setLoadingStatusText("Waiting for the opponent...");
-                    KryoGameConnections.launchGameClient(finalClientIdentifier, response.getOpponentInetSocketAddress(), () -> Platform.runLater(() -> startGame(response.getOpponentIdentifier(), true)));
-                } catch (IOException e) {
-                    FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not launch the game client", e);
-                    Platform.runLater(() -> showErrorMessage(e));
-                }
+            if (response.getResponseCode() == ResponseCode.OpponentFound) {
+                setLoadingStatusText("Waiting for the opponent...");
+                Platform.runLater(() -> startGame(response.getOpponentIdentifier(), true));
             }
         });
     }
@@ -901,7 +889,7 @@ public class Main extends Application {
                             if (board.getPlayerAt(cell.getIndex(), gameTable.getColumns().indexOf(col)) == null && !isBlockedForInput()) {
                                 setBlockedForInput(true);
                                 boolean opponentIsInternetPlayer = board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman);
-                                board.doTurn(new Board.Move(cell.getIndex(), gameTable.getColumns().indexOf(col)));
+                                board.doTurn(new Move(cell.getIndex(), gameTable.getColumns().indexOf(col)));
                                 updateCurrentPlayerLabel(false, opponentIsInternetPlayer);
                                 renderRows();
                             }

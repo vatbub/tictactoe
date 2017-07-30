@@ -22,28 +22,22 @@ package com.github.vatbub.tictactoe.common;
 
 
 import java.io.Serializable;
-import java.net.InetSocketAddress;
 
 /**
  * Response to a {@link OnlineMultiplayerRequestOpponentRequest} that tells the requesting client if it has to wait or not
  * and if not, who the opponent is.
  */
 @SuppressWarnings("WeakerAccess")
-public class OnlineMultiplayerRequestOpponentResponse implements Serializable{
+public class OnlineMultiplayerRequestOpponentResponse implements Serializable {
     private ResponseCode responseCode;
-    private InetSocketAddress opponentInetSocketAddress;
     private String opponentIdentifier;
 
     public OnlineMultiplayerRequestOpponentResponse(ResponseCode responseCode) {
-        this(responseCode, null, null);
-        if (responseCode.equals(ResponseCode.OpponentFound)) {
-            throw new IllegalArgumentException("ResponseCode.OpponentFound requires a opponentInetSocketAddress to be specified!");
-        }
+        this(responseCode, null);
     }
 
-    public OnlineMultiplayerRequestOpponentResponse(ResponseCode responseCode, InetSocketAddress opponentInetSocketAddress, String opponentIdentifier) {
+    public OnlineMultiplayerRequestOpponentResponse(ResponseCode responseCode, String opponentIdentifier) {
         setResponseCode(responseCode);
-        setOpponentInetSocketAddress(opponentInetSocketAddress);
         setOpponentIdentifier(opponentIdentifier);
     }
 
@@ -53,14 +47,6 @@ public class OnlineMultiplayerRequestOpponentResponse implements Serializable{
 
     public void setResponseCode(ResponseCode responseCode) {
         this.responseCode = responseCode;
-    }
-
-    public InetSocketAddress getOpponentInetSocketAddress() {
-        return opponentInetSocketAddress;
-    }
-
-    public void setOpponentInetSocketAddress(InetSocketAddress opponentInetSocketAddress) {
-        this.opponentInetSocketAddress = opponentInetSocketAddress;
     }
 
     public String getOpponentIdentifier() {

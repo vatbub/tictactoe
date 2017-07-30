@@ -21,9 +21,10 @@ package com.github.vatbub.tictactoe.kryo;
  */
 
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.serializers.JavaSerializer;
-import com.esotericsoftware.kryonet.*;
+import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.FrameworkMessage;
+import com.esotericsoftware.kryonet.Listener;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.common.*;
 import com.github.vatbub.tictactoe.view.Main;
@@ -32,27 +33,19 @@ import javafx.application.Platform;
 import logging.FOKLogger;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.logging.Level;
 
 /**
  * Does all the networking tasks for the online multiplayer game.
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "Duplicates"})
 public class KryoGameConnections {
-    public static final int gameServerTCPPort = 8181;
-
     private static Client relayKryoClient;
-    private static Client gameKryoClient;
-    private static Server gameKryoServer;
     private static boolean gameConnected;
     private static OnOpponentFoundRunnable onOpponentFoundRunnable;
     private static OnlineMultiplayerRequestOpponentRequest lastOpponentRequest;
-    /**
-     * Only used by the game server, not the client
-     */
-    private static Connection gameConnection;
+
     private static Board connectedBoard;
 
     @SuppressWarnings("unused")
@@ -114,14 +107,29 @@ public class KryoGameConnections {
                     FOKLogger.info(KryoGameConnections.class.getName(), "Received OnlineMultiplayerRequestOpponentResponse");
                     FOKLogger.info(KryoGameConnections.class.getName(), "Response code: " + response.getResponseCode());
                     if (response.getResponseCode().equals(ResponseCode.OpponentFound)) {
-                        FOKLogger.info(KryoGameConnections.class.getName(), "Opponents inet address");
-                        FOKLogger.info(KryoGameConnections.class.getName(), response.getOpponentInetSocketAddress().toString());
+                        // connect the game
+                        if (!gameConnected) {
+                            gameConnected = true;
+                            FOKLogger.info(KryoGameConnections.class.getName(), "Connecting the game...");
+                        } else {
+                            FOKLogger.severe(KryoGameConnections.class.getName(), "Cannot connect the game, game is already connected");
+                            connection.sendTCP(new GameException("Node already connected"));
+                        }
                     }
                     if (onOpponentFoundRunnable != null) {
                         onOpponentFoundRunnable.run(response);
                     }
+                } else if (object instanceof Move && connection != null) {
+                    FOKLogger.info(KryoGameConnections.class.getName(), "The game received a move!");
+                    doMove((Move) object);
+                } else if (object instanceof CancelGameRequest && connection != null) {
+                    FOKLogger.info(KryoGameConnections.class.getName(), "The game received a CancelGameRequest!");
+                    connection.sendTCP(new CancelGameResponse());
+                    cancelGame();
                 } else if (object instanceof FrameworkMessage.KeepAlive) {
                     FOKLogger.info(KryoGameConnections.class.getName(), "Received keepAlive message from server");
+                } else if (object instanceof GameException) {
+                    FOKLogger.log(KryoGameConnections.class.getName(), Level.SEVERE, "Received a GameException!", (GameException) object);
                 } else {
                     FOKLogger.severe(KryoGameConnections.class.getName(), "Received illegal object");
                 }
@@ -176,129 +184,7 @@ public class KryoGameConnections {
         relayKryoClient.sendTCP(request);
     }
 
-    private static void registerGameClasses(Kryo kryo) {
-        kryo.register(Board.Move.class, new JavaSerializer());
-        kryo.register(StartGameRequest.class, new JavaSerializer());
-        kryo.register(StartGameResponse.class, new JavaSerializer());
-        kryo.register(StartGameException.class, new JavaSerializer());
-        kryo.register(CancelGameRequest.class, new JavaSerializer());
-        kryo.register(CancelGameResponse.class, new JavaSerializer());
-    }
-
-    public static void launchGameServer(OnOpponentConnectedRunnable onConnected) throws IOException {
-        if (gameKryoServer != null) {
-            throw new IllegalStateException("Game server already running");
-        } else {
-            gameKryoServer = new Server();
-        }
-
-        if (gameConnected) {
-            throw new IllegalStateException("Game already connected");
-        }
-
-        FOKLogger.info(KryoGameConnections.class.getName(), "Launching the game server...");
-
-        KryoCommon.registerRequiredClasses(gameKryoServer.getKryo());
-        registerGameClasses(gameKryoServer.getKryo());
-        gameKryoServer.getKryo().setReferences(true);
-
-        gameKryoServer.bind(KryoGameConnections.gameServerTCPPort);
-        gameKryoServer.start();
-
-        gameKryoServer.addListener(new Listener() {
-            @SuppressWarnings("Duplicates")
-            @Override
-            public void received(Connection connection, Object object) {
-                if (object instanceof StartGameRequest) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "The game server received a StartGameRequest from " + connection.getRemoteAddressTCP().getHostString() + "!");
-                    if (!gameConnected) {
-                        gameConnected = true;
-                        gameConnection = connection;
-                        connection.sendTCP(new StartGameResponse());
-                        FOKLogger.info(KryoGameConnections.class.getName(), "Connecting the game...");
-                        onConnected.run(((StartGameRequest) object).getOpponentIdentifier());
-                        disconnectFromRelayServer();
-                    } else {
-                        FOKLogger.severe(KryoGameConnections.class.getName(), "Cannot connect the game, game is already connected");
-                        connection.sendTCP(new StartGameException("Node already connected"));
-                    }
-                } else if (object instanceof Board.Move && connection != null) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "The game server received a move!");
-                    doMove((Board.Move) object);
-                } else if (object instanceof CancelGameRequest && connection != null) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "The game client received a CancelGameRequest!");
-                    connection.sendTCP(new CancelGameResponse());
-                    cancelGame();
-                } else if (object instanceof FrameworkMessage.KeepAlive) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "Received keepAlive message from server");
-                } else if (object instanceof StartGameException) {
-                    FOKLogger.log(KryoGameConnections.class.getName(), Level.SEVERE, "Received a StartGameException!", (StartGameException) object);
-                } else {
-                    FOKLogger.severe(KryoGameConnections.class.getName(), "Received illegal object");
-                }
-            }
-        });
-    }
-
-    public static void launchGameClient(String clientIdentifier, InetSocketAddress serverAddress, Runnable onConnected) throws IOException {
-        if (gameKryoClient != null) {
-            throw new IllegalStateException("Game client already running");
-        } else {
-            gameKryoClient = new Client();
-        }
-
-        if (gameConnected) {
-            throw new IllegalStateException("Game already connected");
-        }
-
-        FOKLogger.info(KryoGameConnections.class.getName(), "Launching the game client...");
-
-        KryoCommon.registerRequiredClasses(gameKryoClient.getKryo());
-        registerGameClasses(gameKryoClient.getKryo());
-        gameKryoClient.getKryo().setReferences(true);
-        gameKryoClient.setKeepAliveTCP(2500);
-
-        gameKryoClient.start();
-
-        gameKryoClient.addListener(new Listener() {
-            @SuppressWarnings("Duplicates")
-            @Override
-            public void received(Connection connection, Object object) {
-                if (object instanceof StartGameResponse) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "The game client received a StartGameResponse!");
-                    if (!gameConnected) {
-                        gameConnected = true;
-                        FOKLogger.info(KryoGameConnections.class.getName(), "Connecting the game...");
-                        onConnected.run();
-                        disconnectFromRelayServer();
-                    } else {
-                        FOKLogger.severe(KryoGameConnections.class.getName(), "Cannot connect the game, game is already connected");
-                        connection.sendTCP(new StartGameException("Node already connected"));
-                    }
-                } else if (object instanceof Board.Move && connection != null) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "The game client received a move!");
-                    doMove((Board.Move) object);
-                } else if (object instanceof CancelGameRequest && connection != null) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "The game client received a CancelGameRequest!");
-                    connection.sendTCP(new CancelGameResponse());
-                    cancelGame();
-                } else if (object instanceof FrameworkMessage.KeepAlive) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "Received keepAlive message from server");
-                } else if (object instanceof StartGameException) {
-                    FOKLogger.log(KryoGameConnections.class.getName(), Level.SEVERE, "Received a StartGameException!", (StartGameException) object);
-                } else {
-                    FOKLogger.severe(KryoGameConnections.class.getName(), "Received illegal object");
-                }
-            }
-        });
-
-        gameKryoClient.connect(5000, serverAddress.getHostName(), gameServerTCPPort);
-
-        FOKLogger.info(KryoGameConnections.class.getName(), "Sending the StartGameRequest...");
-        gameKryoClient.sendTCP(new StartGameRequest(clientIdentifier));
-    }
-
-    private static void doMove(Board.Move move) {
+    private static void doMove(Move move) {
         if (getConnectedBoard().getPlayerAt(move.getRow(), move.getColumn()) == null && Main.currentMainWindowInstance.isBlockedForInput()) {
             getConnectedBoard().doTurn(move);
             Main.currentMainWindowInstance.updateCurrentPlayerLabel();
@@ -315,12 +201,10 @@ public class KryoGameConnections {
         KryoGameConnections.connectedBoard = connectedBoard;
     }
 
-    public static void sendMove(Board.Move move) {
+    public static void sendMove(Move move) {
         FOKLogger.info(KryoGameConnections.class.getName(), "Sending a move...");
-        if (gameKryoClient != null) {
-            gameKryoClient.sendTCP(move);
-        } else if (gameKryoServer != null) {
-            gameConnection.sendTCP(move);
+        if (relayKryoClient != null) {
+            relayKryoClient.sendTCP(move);
         } else {
             throw new IllegalStateException("Game not connected");
         }
@@ -328,10 +212,8 @@ public class KryoGameConnections {
 
     public static void sendCancelGameRequest() {
         FOKLogger.info(KryoGameConnections.class.getName(), "Cancelling the game...");
-        if (gameKryoClient != null) {
-            gameKryoClient.sendTCP(new CancelGameRequest());
-        } else if (gameKryoServer != null) {
-            gameConnection.sendTCP(new CancelGameRequest());
+        if (relayKryoClient != null) {
+            relayKryoClient.sendTCP(new CancelGameRequest());
         } else {
             throw new IllegalStateException("Game not connected");
         }
@@ -347,23 +229,6 @@ public class KryoGameConnections {
      */
     public static void resetConnections() {
         FOKLogger.info(KryoGameConnections.class.getName(), "Resetting all kryo connections...");
-        disconnectFromRelayServer();
-        if (gameKryoClient != null) {
-            gameConnected = false;
-            Client oldGameKryoClient = gameKryoClient;
-            oldGameKryoClient.stop();
-            gameKryoClient = null;
-        }
-        if (gameKryoServer != null) {
-            gameConnected = false;
-            Server oldGameKryoServer = gameKryoServer;
-            oldGameKryoServer.stop();
-            gameKryoServer = null;
-        }
-    }
-
-    public static void disconnectFromRelayServer() {
-        FOKLogger.info(KryoGameConnections.class.getName(), "Disconnecting from the relay server...");
         if (relayKryoClient != null) {
             Client oldRelayKryoClient = relayKryoClient;
             abortLastOpponentRequestIfApplicable();

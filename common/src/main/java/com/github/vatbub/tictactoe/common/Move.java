@@ -1,8 +1,8 @@
-package com.github.vatbub.tictactoe.kryo;
+package com.github.vatbub.tictactoe.common;
 
 /*-
  * #%L
- * tictactoe
+ * tictactoe.common
  * %%
  * Copyright (C) 2016 - 2017 Frederik Kammel
  * %%
@@ -21,10 +21,30 @@ package com.github.vatbub.tictactoe.kryo;
  */
 
 
-/**
- * Executed when the Game-Server receives a connection.
- * @see KryoGameConnections#launchGameServer(OnOpponentConnectedRunnable)
- */
-public interface OnOpponentConnectedRunnable {
-    void run(String opponentName);
+import java.io.Serializable;
+
+public class Move implements Serializable {
+    private int column;
+    private int row;
+
+    public Move(int row, int column) {
+        setColumn(column);
+        setRow(row);
+    }
+
+    public int getColumn() {
+        return column;
+    }
+
+    public void setColumn(int column) {
+        this.column = column;
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
+    }
 }
