@@ -28,12 +28,11 @@ import com.esotericsoftware.kryonet.Listener;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.common.*;
 import com.github.vatbub.tictactoe.view.Main;
-import common.internet.Internet;
 import javafx.application.Platform;
 import logging.FOKLogger;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.logging.Level;
 
 /**
@@ -43,6 +42,7 @@ import java.util.logging.Level;
 public class KryoGameConnections {
     private static Client kryoClient;
     private static OnOpponentFoundRunnable onOpponentFoundRunnable;
+    private static Runnable onDisconnectRunnable;
     private static OnlineMultiplayerRequestOpponentRequest lastOpponentRequest;
 
     private static Board connectedBoard;
@@ -90,6 +90,14 @@ public class KryoGameConnections {
         kryoClient.setKeepAliveTCP(2500);
 
         kryoClient.addListener(new Listener() {
+            @Override
+            public void disconnected(Connection connection) {
+                if (onDisconnectRunnable != null) {
+                    onDisconnectRunnable.run();
+                }
+            }
+
+            @Override
             public void received(Connection connection, Object object) {
                 if (object instanceof OnlineMultiplayerRequestOpponentResponse) {
                     OnlineMultiplayerRequestOpponentResponse response = (OnlineMultiplayerRequestOpponentResponse) object;
@@ -105,7 +113,7 @@ public class KryoGameConnections {
                 } else if (object instanceof CancelGameRequest && connection != null) {
                     FOKLogger.info(KryoGameConnections.class.getName(), "The game received a CancelGameRequest!");
                     connection.sendTCP(new CancelGameResponse());
-                    cancelGame();
+                    cancelGame(((CancelGameRequest) object).getReason());
                 } else if (object instanceof FrameworkMessage.KeepAlive) {
                     FOKLogger.info(KryoGameConnections.class.getName(), "Received keepAlive message from server");
                 } else if (object instanceof GameException) {
@@ -123,22 +131,23 @@ public class KryoGameConnections {
         }
     }
 
-    public static void requestOpponent(String clientIdentifier, String desiredOpponentIdentifier, OnOpponentFoundRunnable onOpponentFound) {
+    public static void requestOpponent(String clientIdentifier, String desiredOpponentIdentifier, OnOpponentFoundRunnable onOpponentFound, Runnable onDisconnect) {
         OnlineMultiplayerRequestOpponentRequest request = new OnlineMultiplayerRequestOpponentRequest();
         request.setClientIdentifier(clientIdentifier);
         request.setDesiredOpponentIdentifier(desiredOpponentIdentifier);
         request.setOperation(Operation.RequestOpponent);
 
-        requestOpponent(request, onOpponentFound);
+        requestOpponent(request, onOpponentFound, onDisconnect);
     }
 
-    public static void requestOpponent(OnlineMultiplayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound) {
+    public static void requestOpponent(OnlineMultiplayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound, Runnable onDisconnect) {
         if (kryoClient == null) {
             throw new IllegalStateException("Not connected to the relay server");
         }
 
         FOKLogger.info(KryoGameConnections.class.getName(), "Requesting an opponent...");
         onOpponentFoundRunnable = onOpponentFound;
+        onDisconnectRunnable = onDisconnect;
         lastOpponentRequest = request;
         kryoClient.sendTCP(request);
     }
@@ -199,9 +208,13 @@ public class KryoGameConnections {
         }
     }
 
-    public static void cancelGame() {
+    public static void cancelGame(@Nullable String reason) {
         KryoGameConnections.resetConnections();
-        Platform.runLater(() -> Main.currentMainWindowInstance.showErrorMessage("The game was cancelled.", "The opponent cancelled the game."));
+        if (reason == null) {
+            reason = "The opponent cancelled the game.";
+        }
+        @Nullable String finalReason = reason;
+        Platform.runLater(() -> Main.currentMainWindowInstance.showErrorMessage("The game was cancelled.", finalReason));
     }
 
     /**

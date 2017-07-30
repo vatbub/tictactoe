@@ -85,8 +85,20 @@ public class ServerMain {
             public void connected(Connection connection) {
                 connection.setTimeout(100000);
             }
-        });
-        server.addListener(new Listener() {
+
+            @Override
+            public void disconnected(Connection connection) {
+                if (connectionMap.containsKey(connection)) {
+                    // send the opponent the message that the game has been disconnected
+                    Connection matchingConnection = connectionMap.get(connection);
+                    matchingConnection.sendTCP(new CancelGameRequest("The opponent disconnected from the server."));
+
+                    connectionMap.remove(connection);
+                    connectionMap.remove(matchingConnection);
+                }
+            }
+
+            @Override
             public void received(Connection connection, Object object) {
                 try {
                     if (object instanceof OnlineMultiplayerRequestOpponentRequest) {

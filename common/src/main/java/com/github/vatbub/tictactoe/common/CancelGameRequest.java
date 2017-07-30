@@ -29,4 +29,21 @@ import java.io.Serializable;
  */
 @SuppressWarnings("WeakerAccess")
 public class CancelGameRequest implements Serializable {
+    private String reason;
+
+    public CancelGameRequest() {
+        this(null);
+    }
+
+    public CancelGameRequest(String reason) {
+        setReason(reason);
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 }
