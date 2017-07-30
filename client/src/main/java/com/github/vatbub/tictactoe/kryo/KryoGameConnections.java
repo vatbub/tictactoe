@@ -42,7 +42,7 @@ import java.util.logging.Level;
 public class KryoGameConnections {
     private static Client kryoClient;
     private static OnOpponentFoundRunnable onOpponentFoundRunnable;
-    private static Runnable onDisconnectRunnable;
+    private static Runnable onUnexpectedDisconnectRunnable;
     private static OnlineMultiplayerRequestOpponentRequest lastOpponentRequest;
 
     private static Board connectedBoard;
@@ -92,8 +92,8 @@ public class KryoGameConnections {
         kryoClient.addListener(new Listener() {
             @Override
             public void disconnected(Connection connection) {
-                if (onDisconnectRunnable != null) {
-                    onDisconnectRunnable.run();
+                if (onUnexpectedDisconnectRunnable != null) {
+                    onUnexpectedDisconnectRunnable.run();
                 }
             }
 
@@ -131,23 +131,23 @@ public class KryoGameConnections {
         }
     }
 
-    public static void requestOpponent(String clientIdentifier, String desiredOpponentIdentifier, OnOpponentFoundRunnable onOpponentFound, Runnable onDisconnect) {
+    public static void requestOpponent(String clientIdentifier, String desiredOpponentIdentifier, OnOpponentFoundRunnable onOpponentFound, Runnable onUnexpectedDisconnect) {
         OnlineMultiplayerRequestOpponentRequest request = new OnlineMultiplayerRequestOpponentRequest();
         request.setClientIdentifier(clientIdentifier);
         request.setDesiredOpponentIdentifier(desiredOpponentIdentifier);
         request.setOperation(Operation.RequestOpponent);
 
-        requestOpponent(request, onOpponentFound, onDisconnect);
+        requestOpponent(request, onOpponentFound, onUnexpectedDisconnect);
     }
 
-    public static void requestOpponent(OnlineMultiplayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound, Runnable onDisconnect) {
+    public static void requestOpponent(OnlineMultiplayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound, Runnable onUnexpectedDisconnect) {
         if (kryoClient == null) {
             throw new IllegalStateException("Not connected to the relay server");
         }
 
         FOKLogger.info(KryoGameConnections.class.getName(), "Requesting an opponent...");
         onOpponentFoundRunnable = onOpponentFound;
-        onDisconnectRunnable = onDisconnect;
+        onUnexpectedDisconnectRunnable = onUnexpectedDisconnect;
         lastOpponentRequest = request;
         kryoClient.sendTCP(request);
     }
@@ -222,6 +222,7 @@ public class KryoGameConnections {
      */
     public static void resetConnections() {
         FOKLogger.info(KryoGameConnections.class.getName(), "Resetting all kryo connections...");
+        onUnexpectedDisconnectRunnable = null;
         if (kryoClient != null) {
             Client oldRelayKryoClient = kryoClient;
             abortLastOpponentRequestIfApplicable();
