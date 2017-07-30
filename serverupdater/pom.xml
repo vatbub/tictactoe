@@ -51,9 +51,9 @@
             <version>0.0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>de.taimos</groupId>
-            <artifactId>totp</artifactId>
-            <version>1.0</version>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-ec2</artifactId>
+            <version>1.11.168</version>
         </dependency>
     </dependencies>
 

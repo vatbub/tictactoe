@@ -26,7 +26,6 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.github.vatbub.tictactoe.common.*;
 import common.Common;
-import de.taimos.totp.TOTP;
 import logging.FOKLogger;
 
 import java.io.IOException;
@@ -191,38 +190,6 @@ public class ServerMain {
                             if (object instanceof CancelGameRequest) {
                                 connectionMap.remove(connection);
                                 connectionMap.remove(matchingConnection);
-                            }
-                        }
-                    } else if (object instanceof UpdateServerRequest) {
-                        UpdateServerRequest request = (UpdateServerRequest) object;
-                        String key = System.getenv("updateServerTOTPKey");
-                        String fokLauncherJar = System.getenv("foklauncherJar");
-                        UpdateServerResponse response = new UpdateServerResponse();
-
-                        if (!TOTP.getOTP(key).equals(request.getTotpPassword())) {
-                            response.setResponseText("TOTP not matching.");
-                            connection.sendTCP(response);
-                        } else {
-                            // launch autolaunchrepourl=https://dl.bintray.com/vatbub/fokprojectsReleases autolaunchsnapshotrepourl=https://oss.jfrog.org/artifactory/repo autolaunchgroupid=com.git
-                            ProcessBuilder foklauncherProcessBuilder = new ProcessBuilder("java", "-jar", fokLauncherJar, "launch", "autolaunchrepourl=" + ServerConfig.updateMavenRepoURL.toString(), "autolaunchsnapshotrepourl=" + ServerConfig.updateMavenSnapshotRepoURL.toString(), "autolaunchgroupid=" + ServerConfig.groupID, "autolaunchartifactid=" + ServerConfig.artifactID, "autolaunchclassifier=" + ServerConfig.classifier, "autolaunchenablesnapshots");
-                            foklauncherProcessBuilder.inheritIO();
-                            FOKLogger.info(ServerMain.class.getName(), "Launching a server update...");
-                            Process foklauncherProcess = foklauncherProcessBuilder.start();
-                            if (foklauncherProcess.isAlive()) {
-                                response.setResponseText("Updating now...");
-                                connection.sendTCP(response);
-                                Thread shutdownThread = new Thread(() -> {
-                                    // to make sure the response goes through
-                                    try {
-                                        Thread.sleep(1000);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                    shutDown();
-                                });
-                                shutdownThread.setName("shutdownThread");
-                                shutdownThread.start();
                             }
                         }
                     }

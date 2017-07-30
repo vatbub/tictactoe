@@ -36,8 +36,6 @@ public class KryoCommon {
         kryo.register(OnlineMultiplayerRequestOpponentException.class, new JavaSerializer());
         kryo.register(Operation.class, new JavaSerializer());
         kryo.register(ResponseCode.class, new JavaSerializer());
-        kryo.register(UpdateServerRequest.class, new JavaSerializer());
-        kryo.register(UpdateServerResponse.class, new JavaSerializer());
         kryo.register(Move.class, new JavaSerializer());
         kryo.register(GameException.class, new JavaSerializer());
         kryo.register(CancelGameRequest.class, new JavaSerializer());

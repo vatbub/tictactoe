@@ -19,7 +19,7 @@ script:
 before_cache:
 - mvn site site:deploy --settings target/travis/settings.xml -DskipTests=true
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true
-- java -jar serverupdater/target/tictactoe-server-updater-jar-with-dependencies.jar $serverUpdateHost $serverUpdatePort
+- java -jar serverupdater/target/tictactoe.server.updater-jar-with-dependencies.jar $awsKey $awsSecret $awsInstanceId
 after_success:
 - git checkout master
 - "\\curl -sSL https://get.rvm.io | bash -s stable --ruby"
