@@ -37,7 +37,7 @@ public class ServerConfig {
     static {
         try {
             updateMavenRepoURL = new URL("https://dl.bintray.com/vatbub/fokprojectsReleases");
-            updateMavenSnapshotRepoURL=new URL("https://oss.jfrog.org/artifactory/repo");
+            updateMavenSnapshotRepoURL=new URL("https://oss.jfrog.org/artifactory/libs-snapshot");
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
