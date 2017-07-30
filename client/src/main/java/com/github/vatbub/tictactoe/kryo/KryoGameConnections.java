@@ -74,7 +74,10 @@ public class KryoGameConnections {
         // vatbubtictactoeserver.herokuapp.com
         // connect("52.59.117.143", onConnected);
         // connect("localhost", onConnected);
-        connect("SURFACEFREDERIK", onConnected);
+        // connect("SURFACEFREDERIK", onConnected);
+        // connect("ec2-35-158-95-215.eu-central-1.compute.amazonaws.com", onConnected);
+        // connect("35.156.178.255", onConnected);
+        connect("ec2-35-156-178-255.eu-central-1.compute.amazonaws.com", onConnected);
     }
 
     public static void connect(String host, Runnable onConnected) throws IOException {
