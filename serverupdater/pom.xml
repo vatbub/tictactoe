@@ -46,11 +46,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.vatbub</groupId>
-            <artifactId>tictactoe.common</artifactId>
-            <version>0.0.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-ec2</artifactId>
             <version>1.11.168</version>
