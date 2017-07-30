@@ -95,7 +95,19 @@ public class ServerMain {
                 if (connectionMap.containsKey(connection)) {
                     // send the opponent the message that the game has been disconnected
                     Connection matchingConnection = connectionMap.get(connection);
-                    matchingConnection.sendTCP(new CancelGameRequest("The opponent disconnected from the server."));
+
+                    Thread sendCancelRequestThread = new Thread(() -> {
+                        try {
+                            Thread.sleep(10000);
+                        } catch (InterruptedException e) {
+                            FOKLogger.log(ServerMain.class.getName(), Level.SEVERE, "Error while a thread was sleeping", e);
+                        }
+                        if (matchingConnection.isConnected()) {
+                            matchingConnection.sendTCP(new CancelGameRequest("The opponent disconnected from the server."));
+                        }
+                    });
+                    sendCancelRequestThread.setName("sendCancelRequestThread");
+                    sendCancelRequestThread.start();
 
                     connectionMap.remove(connection);
                     connectionMap.remove(matchingConnection);
