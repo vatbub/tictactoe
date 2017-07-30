@@ -83,16 +83,6 @@ public class KryoGameConnections {
 
         kryoClient = new Client();
 
-        // ping the host to wake him up (e. g. om heroku)
-        String pingAddress = "http://" + host;
-        FOKLogger.info(KryoGameConnections.class.getName(), "Pinging the host " + pingAddress + " to wake him up...");
-        try {
-            String pingResponse = Internet.webread(new URL(pingAddress));
-            FOKLogger.info(KryoGameConnections.class.getName(), "Ping response: " + pingResponse);
-        } catch (Exception e) {
-            FOKLogger.severe(KryoGameConnections.class.getName(), "Ping failed. Still trying to connect using KryoNet, reason for the failed ping: " + e.getLocalizedMessage());
-        }
-
         kryoClient.start();
         KryoCommon.registerRequiredClasses(kryoClient.getKryo());
         kryoClient.getKryo().setReferences(true);
