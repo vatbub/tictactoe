@@ -21,18 +21,17 @@ package com.github.vatbub.tictactoe;
  */
 
 
+import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.tictactoe.common.Move;
 import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
 import com.github.vatbub.tictactoe.view.AILevel;
 import com.github.vatbub.tictactoe.view.Main;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import logging.FOKLogger;
 import org.apache.commons.io.output.NullOutputStream;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -167,7 +166,7 @@ public class Board {
 
         this.setPlayerAt(move.getRow(), move.getColumn(), getCurrentPlayer());
 
-        if (getOpponent(getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman) && !ignoreAI){
+        if (getOpponent(getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman) && !ignoreAI) {
             KryoGameConnections.sendMove(move);
         }
 

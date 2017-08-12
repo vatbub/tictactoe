@@ -28,8 +28,8 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.*;
-import common.Common;
-import logging.FOKLogger;
+import com.github.vatbub.common.core.Common;
+import com.github.vatbub.common.core.logging.FOKLogger;
 
 import java.util.ArrayList;
 import java.util.List;

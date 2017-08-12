@@ -38,6 +38,7 @@ public class OnlineMultiplayerRequestOpponentRequest implements Serializable {
 
     /**
      * Generates a random string with a length of 8 characters.
+     *
      * @return A random string with a length of 8 characters.
      */
     private static String generateSalt() {

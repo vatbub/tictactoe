@@ -24,9 +24,9 @@ package com.github.vatbub.tictactoe.server;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
+import com.github.vatbub.common.core.Common;
+import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.tictactoe.common.*;
-import common.Common;
-import logging.FOKLogger;
 
 import java.io.IOException;
 import java.util.*;

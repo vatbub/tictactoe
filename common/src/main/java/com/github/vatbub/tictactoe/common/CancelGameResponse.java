@@ -25,6 +25,7 @@ import java.io.Serializable;
 
 /**
  * Sent as a response to a {@link CancelGameRequest}
+ *
  * @see CancelGameRequest
  */
 @SuppressWarnings("WeakerAccess")

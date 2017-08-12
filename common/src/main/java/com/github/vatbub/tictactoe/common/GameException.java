@@ -22,12 +22,11 @@ package com.github.vatbub.tictactoe.common;
 
 
 import java.io.Serializable;
-import java.net.InetSocketAddress;
 
 /**
  * Sent if an online game cannot be started for any reason.
  */
-@SuppressWarnings({"SameParameterValue", "WeakerAccess"})
+@SuppressWarnings({"SameParameterValue", "WeakerAccess", "unused"})
 public class GameException extends RuntimeException implements Serializable {
     /**
      * Constructs a new runtime exception with {@code null} as its

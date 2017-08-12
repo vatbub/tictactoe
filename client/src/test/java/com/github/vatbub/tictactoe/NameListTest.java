@@ -28,7 +28,7 @@ import org.junit.Test;
  */
 public class NameListTest {
     @Test
-    public void dummyTest(){
+    public void dummyTest() {
         assert true;
     }
 }

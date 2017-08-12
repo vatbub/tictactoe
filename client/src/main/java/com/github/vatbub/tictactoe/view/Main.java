@@ -21,6 +21,9 @@ package com.github.vatbub.tictactoe.view;
  */
 
 
+import com.github.vatbub.common.core.Common;
+import com.github.vatbub.common.core.logging.FOKLogger;
+import com.github.vatbub.common.view.core.ExceptionAlert;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
@@ -33,7 +36,6 @@ import com.github.vatbub.tictactoe.kryo.OnOpponentFoundRunnable;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import com.sun.javafx.tk.Toolkit;
-import common.Common;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -70,12 +72,10 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
-import logging.FOKLogger;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.controlsfx.control.ToggleSwitch;
-import view.ExceptionAlert;
 
 import java.awt.*;
 import java.io.IOException;

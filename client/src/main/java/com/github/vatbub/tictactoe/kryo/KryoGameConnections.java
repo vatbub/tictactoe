@@ -25,11 +25,11 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.FrameworkMessage;
 import com.esotericsoftware.kryonet.Listener;
+import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.common.*;
 import com.github.vatbub.tictactoe.view.Main;
 import javafx.application.Platform;
-import logging.FOKLogger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;

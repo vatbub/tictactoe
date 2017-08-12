@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <repositories>
@@ -20,7 +21,7 @@
             <url>http://dl.bintray.com/vatbub/fokprojectsSnapshots</url>
         </repository>
         <repository>
-            <snapshots />
+            <snapshots/>
             <id>snapshots</id>
             <name>libs-snapshot</name>
             <url>https://oss.jfrog.org/artifactory/libs-snapshot</url>
@@ -53,9 +54,9 @@
     <artifactId>tictactoe.parent</artifactId>
     <version>0.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
-	
-	<modules>
-		<module>client</module>
+
+    <modules>
+        <module>client</module>
         <module>server</module>
         <module>common</module>
         <module>serverupdater</module>
@@ -75,7 +76,12 @@
         </dependency>
         <dependency>
             <groupId>com.github.vatbub</groupId>
-            <artifactId>common</artifactId>
+            <artifactId>common.core</artifactId>
+            <version>0.0.25-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.vatbub</groupId>
+            <artifactId>common.view.core</artifactId>
             <version>0.0.25-SNAPSHOT</version>
         </dependency>
         <dependency>

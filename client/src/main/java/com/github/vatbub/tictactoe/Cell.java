@@ -30,16 +30,17 @@ import org.jetbrains.annotations.Nullable;
 public class Cell {
     private Player currentPlayer;
 
-    public Cell(){
+    public Cell() {
         this(null);
     }
 
-    public Cell(@SuppressWarnings("SameParameterValue") @Nullable Player currentPlayer){
+    public Cell(@SuppressWarnings("SameParameterValue") @Nullable Player currentPlayer) {
         this.currentPlayer = currentPlayer;
     }
 
     /**
      * Returns the {@link Player} that currently occupies this cell or {@code null} if the cell is free.
+     *
      * @return The {@link Player} that currently occupies this cell or {@code null} if the cell is free.
      */
     @Nullable
@@ -49,6 +50,7 @@ public class Cell {
 
     /**
      * Set the {@link Player} that currently occupies this cell. Set it to {@code null} to free this cell.
+     *
      * @param currentPlayer The {@link Player} that currently occupies this cell. Set it to {@code null} to free this cell.
      */
     public void setCurrentPlayer(Player currentPlayer) {

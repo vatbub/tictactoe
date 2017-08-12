@@ -23,6 +23,6 @@ package com.github.vatbub.tictactoe.common;
 
 import java.io.Serializable;
 
-public enum ResponseCode implements Serializable{
+public enum ResponseCode implements Serializable {
     OpponentFound, WaitForOpponent, RequestAborted
 }

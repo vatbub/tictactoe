@@ -27,7 +27,7 @@ import java.io.Serializable;
  * Sent by the server if a client sends a inappropriate request or any other error occurs while processing a clients request
  */
 @SuppressWarnings("unused")
-public class OnlineMultiplayerRequestOpponentException extends RuntimeException implements Serializable{
+public class OnlineMultiplayerRequestOpponentException extends RuntimeException implements Serializable {
     /**
      * Constructs a new runtime exception with {@code null} as its
      * detail message.  The cause is not initialized, and may subsequently be

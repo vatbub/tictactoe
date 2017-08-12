@@ -69,7 +69,7 @@ public class RefreshableNodeList extends ArrayList<Refreshable> {
      * @param newWindowHeight The height of the window after to resizing
      */
     public void refreshAll(double oldWindowWidth, double oldWindowHeight, double newWindowWidth, double newWindowHeight) {
-        for (Refreshable node:this){
+        for (Refreshable node : this) {
             node.refresh(oldWindowWidth, oldWindowHeight, newWindowWidth, newWindowHeight);
         }
     }

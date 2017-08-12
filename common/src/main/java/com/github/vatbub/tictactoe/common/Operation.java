@@ -23,6 +23,6 @@ package com.github.vatbub.tictactoe.common;
 
 import java.io.Serializable;
 
-public enum Operation implements Serializable{
+public enum Operation implements Serializable {
     RequestOpponent, AbortRequest
 }

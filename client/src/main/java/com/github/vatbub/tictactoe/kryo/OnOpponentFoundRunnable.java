@@ -21,11 +21,13 @@ package com.github.vatbub.tictactoe.kryo;
  */
 
 
+import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequestOpponentRequest;
 import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequestOpponentResponse;
 
 /**
- * Called when a opponent was found using {@link KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable)}
- * @see KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable)
+ * Called when a opponent was found using {@link KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable, Runnable)}
+ * @see KryoGameConnections#requestOpponent(OnlineMultiplayerRequestOpponentRequest, OnOpponentFoundRunnable, Runnable)
+ * @see KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable, Runnable)
  */
 public interface OnOpponentFoundRunnable {
     void run(OnlineMultiplayerRequestOpponentResponse response);

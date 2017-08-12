@@ -25,6 +25,7 @@ import java.io.Serializable;
 
 /**
  * Sent when one of the online players wishes to cancel the current game.
+ *
  * @see CancelGameResponse
  */
 @SuppressWarnings("WeakerAccess")

@@ -30,7 +30,7 @@ import java.util.List;
 public class Row {
     private List<String> values;
 
-    public Row(List<String> values){
+    public Row(List<String> values) {
         setValues(values);
     }
 

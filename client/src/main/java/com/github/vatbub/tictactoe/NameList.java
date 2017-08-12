@@ -37,6 +37,6 @@ public class NameList {
         RandomUser.RandomUserSpec randomUserSpec = new RandomUser.RandomUserSpec();
         randomUserSpec.setNationalities(Collections.singletonList(Nationality.getFromCurrentDefaultLocale()));
         RandomUser randomUser = Generator.generateRandomUser(randomUserSpec);
-        return WordUtils.capitalize(randomUser.getName().getFirstName() +" " + randomUser.getName().getLastName());
+        return WordUtils.capitalize(randomUser.getName().getFirstName() + " " + randomUser.getName().getLastName());
     }
 }
