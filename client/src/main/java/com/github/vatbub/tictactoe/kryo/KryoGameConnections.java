@@ -77,7 +77,7 @@ public class KryoGameConnections {
     }
 
     public static void connect(String host, int tcpPort, Runnable onConnected) throws IOException {
-        if (kryoClient != null) {
+        if (isGameConnected()) {
             resetConnections();
         }
 
@@ -141,7 +141,7 @@ public class KryoGameConnections {
     }
 
     public static void requestOpponent(OnlineMultiplayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound, Runnable onUnexpectedDisconnect) {
-        if (kryoClient == null) {
+        if (!isGameConnected()) {
             throw new IllegalStateException("Not connected to the relay server");
         }
 
@@ -163,7 +163,7 @@ public class KryoGameConnections {
     }
 
     public static void abortOpponentRequest(OnlineMultiplayerRequestOpponentRequest request) {
-        if (kryoClient == null) {
+        if (!isGameConnected()) {
             throw new IllegalStateException("Not connected to the relay server");
         }
 
@@ -192,7 +192,7 @@ public class KryoGameConnections {
 
     public static void sendMove(Move move) {
         FOKLogger.info(KryoGameConnections.class.getName(), "Sending a move...");
-        if (kryoClient != null) {
+        if (isGameConnected()) {
             kryoClient.sendTCP(move);
         } else {
             throw new IllegalStateException("Game not connected");
@@ -201,11 +201,15 @@ public class KryoGameConnections {
 
     public static void sendCancelGameRequest() {
         FOKLogger.info(KryoGameConnections.class.getName(), "Cancelling the game...");
-        if (kryoClient != null) {
+        if (isGameConnected()) {
             kryoClient.sendTCP(new CancelGameRequest());
         } else {
             throw new IllegalStateException("Game not connected");
         }
+    }
+
+    public static boolean isGameConnected() {
+        return kryoClient != null;
     }
 
     public static void cancelGame(@Nullable String reason) {
@@ -223,7 +227,7 @@ public class KryoGameConnections {
     public static void resetConnections() {
         FOKLogger.info(KryoGameConnections.class.getName(), "Resetting all kryo connections...");
         onUnexpectedDisconnectRunnable = null;
-        if (kryoClient != null) {
+        if (isGameConnected()) {
             Client oldRelayKryoClient = kryoClient;
             abortLastOpponentRequestIfApplicable();
             oldRelayKryoClient.stop();

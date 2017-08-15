@@ -466,7 +466,9 @@ public class Main extends Application {
     @Override
     public void stop() {
         try {
-            KryoGameConnections.sendCancelGameRequest();
+            if (KryoGameConnections.isGameConnected()) {
+                KryoGameConnections.sendCancelGameRequest();
+            }
             KryoGameConnections.resetConnections();
         } catch (Exception e) {
             FOKLogger.log(Main.class.getName(), Level.SEVERE, "Exception in the application stop method", e);
@@ -486,6 +488,8 @@ public class Main extends Application {
             }
             Platform.runLater(() -> new ExceptionAlert(exception).showAndWait());
         });
+
+        opponentsTurnHBox.heightProperty().addListener((observable, oldValue, newValue) -> updateOpponentsTurnHBox(false));
 
         aiLevelLabelClipRectangle = new Rectangle(0, 0, 0, 0);
         aiLevelLabelClipRectangle.setEffect(new MotionBlur(0, 10));
@@ -687,10 +691,8 @@ public class Main extends Application {
     }
 
     public void initNewGame() {
-        try {
+        if (KryoGameConnections.isGameConnected()) {
             KryoGameConnections.sendCancelGameRequest();
-        } catch (IllegalStateException e) {
-            FOKLogger.log(Main.class.getName(), Level.INFO, "Could not cancel the online game as no online game is running.", e);
         }
 
         KryoGameConnections.resetConnections();
@@ -706,7 +708,6 @@ public class Main extends Application {
             }
 
             updateAILevelLabel(true);
-            updateOpponentsTurnHBox(true, false);
             if (!isMenuShown()) {
                 showMenu();
             }
