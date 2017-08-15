@@ -52,10 +52,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.effect.Blend;
-import javafx.scene.effect.BlendMode;
-import javafx.scene.effect.GaussianBlur;
-import javafx.scene.effect.MotionBlur;
+import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -198,6 +195,12 @@ public class Main extends Application {
     private TextField onlineMyUsername;
     @FXML
     private TextField onlineDesiredOpponentName;
+    @FXML
+    private HBox opponentsTurnHBox;
+    @FXML
+    private AnchorPane opponentsTurnAnchorPane;
+    @FXML
+    private Label opponentsTurnLabel;
 
     public Main() {
         super();
@@ -608,6 +611,8 @@ public class Main extends Application {
             board.getCurrentPlayer().doAiTurn(board, AILevel.UNBEATABLE);
             updateCurrentPlayerLabel(false, opponentIsInternetPlayer);
             renderRows();
+        } else {
+            flashOpponentsTurnHBox();
         }
     }
 
@@ -701,6 +706,7 @@ public class Main extends Application {
             }
 
             updateAILevelLabel(true);
+            updateOpponentsTurnHBox(true, false);
             if (!isMenuShown()) {
                 showMenu();
             }
@@ -859,6 +865,7 @@ public class Main extends Application {
                 if (board.getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman) || board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman)) {
                     KryoGameConnections.resetConnections();
                 }
+                updateOpponentsTurnHBox(false, false);
                 FOKLogger.info(Main.class.getName(), "The winner is: " + winnerInfo.winningPlayer.getName());
                 if (winnerInfo.isTie()) {
                     showTie();
@@ -900,6 +907,8 @@ public class Main extends Application {
                                 board.doTurn(new Move(cell.getIndex(), gameTable.getColumns().indexOf(col)));
                                 updateCurrentPlayerLabel(false, opponentIsInternetPlayer);
                                 renderRows();
+                            } else if (isBlockedForInput()) {
+                                flashOpponentsTurnHBox();
                             }
                         });
                         return cell;
@@ -1433,6 +1442,63 @@ public class Main extends Application {
 
     public void setBlockedForInput(boolean blockedForInput) {
         this.blockedForInput = blockedForInput;
+        updateOpponentsTurnHBox();
+    }
+
+    public void updateOpponentsTurnHBox() {
+        updateOpponentsTurnHBox(false);
+    }
+
+    public void updateOpponentsTurnHBox(boolean noAnimation) {
+        updateOpponentsTurnHBox(noAnimation, isBlockedForInput());
+    }
+
+    public void updateOpponentsTurnHBox(boolean noAnimation, boolean isShown) {
+        double destinationTranslate;
+        if (!isShown) {
+            destinationTranslate = opponentsTurnHBox.getHeight() + 3;
+        } else {
+            destinationTranslate = 0;
+            String opponentsName;
+            if (board.getCurrentPlayer() == null || board.getOpponent(board.getCurrentPlayer()) == null) {
+                opponentsName = "Opponent";
+            } else {
+                Player player;
+                if (board.getCurrentPlayer().getPlayerMode() == PlayerMode.localHuman) {
+                    player = board.getOpponent(board.getCurrentPlayer());
+                } else {
+                    player = board.getCurrentPlayer();
+                }
+                opponentsName = player.getName();
+            }
+            opponentsTurnLabel.setText(opponentsName + "'s turn...");
+        }
+
+        if (noAnimation) {
+            opponentsTurnHBox.setTranslateY(destinationTranslate);
+        } else {
+            KeyValue keyValue = new KeyValue(opponentsTurnHBox.translateYProperty(), destinationTranslate);
+            KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
+            Timeline timeline = new Timeline(keyFrame);
+            timeline.play();
+        }
+    }
+
+    public void flashOpponentsTurnHBox() {
+        KeyValue keyValue1Color = new KeyValue(((DropShadow) opponentsTurnAnchorPane.getEffect()).colorProperty(), Color.RED);
+        KeyValue keyValue1Width = new KeyValue(((DropShadow) opponentsTurnAnchorPane.getEffect()).widthProperty(), 30);
+        KeyValue keyValue1Height = new KeyValue(((DropShadow) opponentsTurnAnchorPane.getEffect()).heightProperty(), 30);
+        KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(animationSpeed / 2), keyValue1Color, keyValue1Width, keyValue1Height);
+
+        KeyValue keyValue2Color = new KeyValue(((DropShadow) opponentsTurnAnchorPane.getEffect()).colorProperty(), Color.BLACK);
+        KeyValue keyValue2Width = new KeyValue(((DropShadow) opponentsTurnAnchorPane.getEffect()).widthProperty(), 12);
+        KeyValue keyValue2Height = new KeyValue(((DropShadow) opponentsTurnAnchorPane.getEffect()).heightProperty(), 12);
+        KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed), keyValue2Color, keyValue2Width, keyValue2Height);
+
+        Timeline timeline = new Timeline(keyFrame1, keyFrame2);
+        // play it twice
+        timeline.setOnFinished((event -> new Timeline(keyFrame1, keyFrame2).play()));
+        timeline.play();
     }
 
     private static class KunamiCode {

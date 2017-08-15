@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--suppress ALL -->
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.effect.*?>
 <?import javafx.scene.Group?>
@@ -238,6 +240,25 @@
             </HBox>
          </children>
       </VBox>
+       <HBox fx:id="opponentsTurnHBox" alignment="CENTER" layoutX="583.0" layoutY="607.0" AnchorPane.bottomAnchor="0.0"
+             AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+           <children>
+               <AnchorPane fx:id="opponentsTurnAnchorPane" layoutX="588.0" layoutY="612.0"
+                           style="-fx-background-color: #DDDDDD; -fx-background-radius: 13 13 0 0;">
+                   <effect>
+                       <DropShadow height="12.0" radius="5.5" width="12.0"/>
+                   </effect>
+                   <children>
+                       <Label fx:id="opponentsTurnLabel" text="Opponent's turn..." textAlignment="CENTER"
+                              AnchorPane.bottomAnchor="3.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+                              AnchorPane.topAnchor="3.0"/>
+                   </children>
+                   <opaqueInsets>
+                       <Insets/>
+                   </opaqueInsets>
+               </AnchorPane>
+           </children>
+       </HBox>
       <AnchorPane layoutY="616.0" style="-fx-background-color: #DDDDDD; -fx-background-radius: 0 13 0 0;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
          <children>
             <Hyperlink onAction="#aboutLinkOnAction" text="About" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
