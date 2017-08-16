@@ -93,6 +93,7 @@ public class Main extends Application {
     private static final int gameCols = 3;
     private static final String player1Letter = "X";
     private static final String player2Letter = "O";
+    private static final double opponentsTurnLabelShownForAtLeastSeconds = 2;
     public static Main currentMainWindowInstance;
     private static Stage stage;
     final StringProperty style = new SimpleStringProperty("");
@@ -107,6 +108,7 @@ public class Main extends Application {
     private ObjectProperty<Font> rowFont;
     private Rectangle aiLevelLabelClipRectangle;
     private boolean blockedForInput;
+    private Calendar opponentsTurnLabelLastShown = Calendar.getInstance();
     /**
      * We need to save this manually since {@code aiLevelSlider.isVisible} is delayed due to the animation
      */
@@ -1456,8 +1458,12 @@ public class Main extends Application {
 
     public void updateOpponentsTurnHBox(boolean noAnimation, boolean isShown) {
         double destinationTranslate;
+        double animationOffsetInSeconds = 0;
         if (!isShown) {
             destinationTranslate = opponentsTurnHBox.getHeight() + 3;
+            double timeSinceLastShownInMillis = Calendar.getInstance().getTime().getTime() - opponentsTurnLabelLastShown.getTime().getTime();
+            double timeSinceLastShownInSeconds = timeSinceLastShownInMillis / 1000;
+            animationOffsetInSeconds = Math.max(opponentsTurnLabelShownForAtLeastSeconds - timeSinceLastShownInSeconds, 0);
         } else {
             destinationTranslate = 0;
             String opponentsName;
@@ -1478,9 +1484,17 @@ public class Main extends Application {
         if (noAnimation) {
             opponentsTurnHBox.setTranslateY(destinationTranslate);
         } else {
-            KeyValue keyValue = new KeyValue(opponentsTurnHBox.translateYProperty(), destinationTranslate);
-            KeyFrame keyFrame = new KeyFrame(Duration.seconds(animationSpeed), keyValue);
-            Timeline timeline = new Timeline(keyFrame);
+            KeyValue keyValue1 = new KeyValue(opponentsTurnHBox.translateYProperty(), opponentsTurnHBox.getTranslateY());
+            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(animationOffsetInSeconds), keyValue1);
+
+            KeyValue keyValue2 = new KeyValue(opponentsTurnHBox.translateYProperty(), destinationTranslate);
+            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed + animationOffsetInSeconds), keyValue2);
+            Timeline timeline = new Timeline(keyFrame1, keyFrame2);
+            timeline.setOnFinished((event) -> {
+                if (isShown) {
+                    opponentsTurnLabelLastShown = Calendar.getInstance();
+                }
+            });
             timeline.play();
         }
     }
