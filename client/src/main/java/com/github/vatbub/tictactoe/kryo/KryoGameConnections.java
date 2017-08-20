@@ -69,7 +69,7 @@ public class KryoGameConnections {
         // connect("SURFACEFREDERIK", onConnected);
         // connect("ec2-35-158-95-215.eu-central-1.compute.amazonaws.com", onConnected);
         // connect("35.156.178.255", onConnected);
-        connect("ec2-35-156-178-255.eu-central-1.compute.amazonaws.com", onConnected);
+        connect(Main.getApplicationConfiguration().getValue("defaultServerURL"), onConnected);
     }
 
     public static void connect(String host, Runnable onConnected) throws IOException {

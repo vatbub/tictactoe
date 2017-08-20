@@ -22,6 +22,7 @@ package com.github.vatbub.tictactoe.view;
 
 
 import com.github.vatbub.common.core.Common;
+import com.github.vatbub.common.core.Config;
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.common.view.core.ExceptionAlert;
 import com.github.vatbub.tictactoe.Board;
@@ -75,9 +76,11 @@ import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.controlsfx.control.ToggleSwitch;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -95,6 +98,7 @@ public class Main extends Application {
     private static final String player2Letter = "O";
     private static final double opponentsTurnLabelShownForAtLeastSeconds = 2;
     public static Main currentMainWindowInstance;
+    private static Config applicationConfiguration;
     private static Stage stage;
     final StringProperty style = new SimpleStringProperty("");
     private final AnimationThreadPoolExecutor guiAnimationQueue = new AnimationThreadPoolExecutor(2);
@@ -207,6 +211,18 @@ public class Main extends Application {
     public Main() {
         super();
         currentMainWindowInstance = this;
+    }
+
+    public static Config getApplicationConfiguration() {
+        if (applicationConfiguration == null) {
+            try {
+                applicationConfiguration = new Config(new URL("https://raw.githubusercontent.com/vatbub/tictactoe/master/remoteconfig/client.properties"), new File(Main.class.getResource("fallbackConfig.properties").toURI()), "tictactoeClientConfigCache.properties");
+            } catch (IOException | URISyntaxException e) {
+                FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not read the remote config", e);
+            }
+        }
+
+        return applicationConfiguration;
     }
 
     public static void main(String[] args) {
