@@ -76,7 +76,6 @@ import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.controlsfx.control.ToggleSwitch;
 
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -216,8 +215,8 @@ public class Main extends Application {
     public static Config getApplicationConfiguration() {
         if (applicationConfiguration == null) {
             try {
-                applicationConfiguration = new Config(new URL("https://raw.githubusercontent.com/vatbub/tictactoe/master/remoteconfig/client.properties"), new File(Main.class.getResource("fallbackConfig.properties").toURI()), "tictactoeClientConfigCache.properties");
-            } catch (IOException | URISyntaxException e) {
+                applicationConfiguration = new Config(new URL("https://raw.githubusercontent.com/vatbub/tictactoe/master/remoteconfig/client.properties"), Main.class.getResource("fallbackConfig.properties"), "tictactoeClientConfigCache.properties");
+            } catch (IOException e) {
                 FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not read the remote config", e);
             }
         }
