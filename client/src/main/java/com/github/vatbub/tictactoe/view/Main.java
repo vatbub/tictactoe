@@ -206,6 +206,14 @@ public class Main extends Application {
     private AnchorPane opponentsTurnAnchorPane;
     @FXML
     private Label opponentsTurnLabel;
+    @FXML
+    private AnchorPane twoHumansWinnerPane;
+    @FXML
+    private ImageView twoHumansWinnerImage;
+    @FXML
+    private AnchorPane twoHumansWinMessage;
+    @FXML
+    private Label twoHumansWinnerText;
 
     public Main() {
         super();
@@ -723,6 +731,9 @@ public class Main extends Application {
             if (winPane.isVisible()) {
                 blurWinPane();
             }
+            if (twoHumansWinnerPane.isVisible()) {
+                blurTwoHumansWinnerPane();
+            }
 
             updateAILevelLabel(true);
             if (!isMenuShown()) {
@@ -745,6 +756,9 @@ public class Main extends Application {
         }
         if (winPane.isVisible()) {
             fadeNode(winPane, 0);
+        }
+        if (twoHumansWinnerPane.isVisible()) {
+            fadeNode(twoHumansWinnerPane, 0);
         }
         hideMenu();
         hideOnlineMenu();
@@ -889,6 +903,8 @@ public class Main extends Application {
                     showTie();
                 } else if (winnerInfo.winningPlayer.getPlayerMode().equals(PlayerMode.localHuman) && !board.getOpponent(winnerInfo.winningPlayer).getPlayerMode().equals(PlayerMode.localHuman)) {
                     showWinner(winnerInfo);
+                } else if (winnerInfo.winningPlayer.getPlayerMode().equals(PlayerMode.localHuman) && board.getOpponent(winnerInfo.winningPlayer).getPlayerMode().equals(PlayerMode.localHuman)) {
+                    showWinnerWithTwoHumanPlayers(winnerInfo);
                 } else {
                     showLooser(winnerInfo);
                 }
@@ -1051,10 +1067,10 @@ public class Main extends Application {
     }
 
     private void showWinner(Board.WinnerInfo winnerInfo) {
-        guiAnimationQueue.submitWaitForUnlock(() -> addWinLineOnWin(winnerInfo, () -> {
+        guiAnimationQueue.submitWaitForUnlock(() -> addWinLineOnWin(winnerInfo, new Color(1.0, 145.0 / 255.0, 30.0 / 255.0, 1.0), () -> {
             winnerText.setText(winnerInfo.winningPlayer.getName() + " won :)");
             double endX = winningGirl.getX();
-            double endY = winPane.getHeight() - winningGirl.getFitHeight();
+            double endY = winningGirl.getY();
 
             double confettiOffset = 30;
 
@@ -1097,16 +1113,51 @@ public class Main extends Application {
 
             timeline.setOnFinished((event) -> fadeNode(winMessage, 1, () -> {
                 AnchorPane.setRightAnchor(winningGirl, 0.0);
-                AnchorPane.setBottomAnchor(winningGirl, winPane.getHeight() - winningGirl.getFitHeight() - endY);
+                AnchorPane.setBottomAnchor(winningGirl, 0.0);
             }));
 
             timeline.play();
         }));
     }
 
-    private void addWinLineOnWin(Board.WinnerInfo winnerInfo, Runnable onFinished) {
-        final Paint color = new Color(1.0, 145.0 / 255.0, 30.0 / 255.0, 1.0);
+    private void showWinnerWithTwoHumanPlayers(Board.WinnerInfo winnerInfo) {
+        guiAnimationQueue.submitWaitForUnlock(() -> addWinLineOnWin(winnerInfo, Color.YELLOW, () -> {
+            twoHumansWinnerText.setText(winnerInfo.winningPlayer.getName() + " won :)");
+            double endX = twoHumansWinnerImage.getX();
+            double endY = twoHumansWinnerImage.getY();
 
+            AnchorPane.clearConstraints(twoHumansWinnerImage);
+            twoHumansWinnerImage.setX(endX);
+            twoHumansWinnerImage.setY(twoHumansWinnerImage.getY() + 300);
+
+            // blurGamePane();
+            blurGamePane(10.0);
+            twoHumansWinMessage.setOpacity(0);
+            twoHumansWinnerImage.setOpacity(0);
+            twoHumansWinnerPane.setOpacity(1);
+            twoHumansWinnerPane.setVisible(true);
+            twoHumansWinnerImage.setVisible(true);
+
+            Timeline timeline = new Timeline();
+            double S4 = 1.45;
+            double x0 = 0.33;
+
+            KeyValue twoHumansWinnerImageKeyValue1x = new KeyValue(twoHumansWinnerImage.xProperty(), endX, new CustomEaseOutInterpolator(S4, x0));
+            KeyValue twoHumansWinnerImageKeyValue1y = new KeyValue(twoHumansWinnerImage.yProperty(), endY, new CustomEaseOutInterpolator(S4, x0));
+            KeyValue twoHumansWinnerImageKeyValue1Opacity = new KeyValue(twoHumansWinnerImage.opacityProperty(), 1);
+            KeyFrame twoHumansWinnerImageKeyFrame1 = new KeyFrame(Duration.millis(600), twoHumansWinnerImageKeyValue1x, twoHumansWinnerImageKeyValue1y, twoHumansWinnerImageKeyValue1Opacity);
+            timeline.getKeyFrames().addAll(twoHumansWinnerImageKeyFrame1);
+
+            timeline.setOnFinished((event) -> fadeNode(twoHumansWinMessage, 1, () -> {
+                AnchorPane.setLeftAnchor(twoHumansWinnerImage, 0.0);
+                AnchorPane.setBottomAnchor(twoHumansWinnerImage, 0.0);
+            }));
+
+            timeline.play();
+        }));
+    }
+
+    private void addWinLineOnWin(Board.WinnerInfo winnerInfo, Paint color, Runnable onFinished) {
         Line originLine = new Line(0, 0, 0, 0);
         winLineGroup.getChildren().add(originLine);
 
@@ -1306,6 +1357,10 @@ public class Main extends Application {
         blurNode(winPane, 7);
     }
 
+    private void blurTwoHumansWinnerPane() {
+        blurNode(twoHumansWinnerPane, 7);
+    }
+
     private void blurNode(Node node, double toValue) {
         blurNode(node, toValue, null);
     }
@@ -1467,7 +1522,7 @@ public class Main extends Application {
         updateOpponentsTurnHBox(false);
     }
 
-    public void updateOpponentsTurnHBox(boolean noAnimation) {
+    public void updateOpponentsTurnHBox(@SuppressWarnings("SameParameterValue") boolean noAnimation) {
         updateOpponentsTurnHBox(noAnimation, isBlockedForInput());
     }
 

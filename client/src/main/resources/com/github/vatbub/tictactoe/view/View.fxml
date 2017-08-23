@@ -11,7 +11,8 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.*?>
 <?import org.controlsfx.control.ToggleSwitch?>
-<AnchorPane fx:id="root" prefHeight="645.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.vatbub.tictactoe.view.Main">
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="root" prefHeight="645.0" prefWidth="600.0"
+            xmlns="http://javafx.com/javafx/8" fx:controller="com.github.vatbub.tictactoe.view.Main">
    <children>
       <AnchorPane fx:id="gamePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
@@ -148,17 +149,61 @@
                   <VBox alignment="CENTER" spacing="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
                      <children>
                         <Label fx:id="winnerText" text="You won :)">
-                           <font>
-                              <Font name="System Bold" size="15.0" />
-                           </font>
+                            <font>
+                                <Font name="System Bold" size="15.0"/>
+                            </font>
                         </Label>
-                        <Button mnemonicParsing="false" onAction="#newGameOnAction" text="New Game" />
+                         <Button mnemonicParsing="false" onAction="#newGameOnAction" text="New Game"/>
                      </children>
                   </VBox>
                </children>
             </AnchorPane>
          </children>
       </AnchorPane>
+       <AnchorPane fx:id="twoHumansWinnerPane" layoutX="10.0" layoutY="10.0" visible="false"
+                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                   AnchorPane.topAnchor="0.0">
+           <children>
+               <ImageView fx:id="twoHumansWinnerImage" fitHeight="501.0" fitWidth="618.0" pickOnBounds="true"
+                          preserveRatio="true" x="72.0" y="350.0" AnchorPane.bottomAnchor="0.0"
+                          AnchorPane.leftAnchor="0.0">
+                   <effect>
+                       <DropShadow height="40.0" offsetX="3.0" offsetY="3.0" radius="19.5" width="40.0"/>
+                   </effect>
+                   <image>
+                       <Image url="@twoHumansWinner.png"/>
+                   </image>
+               </ImageView>
+               <AnchorPane fx:id="twoHumansWinMessage" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="80.0">
+                   <children>
+                       <AnchorPane layoutX="-9.0" layoutY="-9.0" opacity="0.6" style="-fx-background-color: #FFFFFF;"
+                                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-9.0"
+                                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                               <AnchorPane layoutX="9.0" layoutY="9.0" opacity="0.2"
+                                           style="-fx-background-color: #DDDDDD;" AnchorPane.bottomAnchor="0.0"
+                                           AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                           AnchorPane.topAnchor="0.0"/>
+                           </children>
+                           <effect>
+                               <DropShadow/>
+                           </effect>
+                       </AnchorPane>
+                       <VBox alignment="CENTER" spacing="10.0" AnchorPane.bottomAnchor="10.0"
+                             AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+                           <children>
+                               <Label fx:id="twoHumansWinnerText" text="You won :)">
+                                   <font>
+                                       <Font name="System Bold" size="15.0"/>
+                                   </font>
+                               </Label>
+                               <Button mnemonicParsing="false" onAction="#newGameOnAction" text="New Game"/>
+                           </children>
+                       </VBox>
+                   </children>
+               </AnchorPane>
+           </children>
+       </AnchorPane>
       <AnchorPane fx:id="menuBackground" opacity="0.12" style="-fx-background-color: gray;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
       <VBox fx:id="menuBox" alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
