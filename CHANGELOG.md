@@ -1,5 +1,13 @@
 # Change Log
 
+## [Unreleased](https://github.com/vatbub/tictactoe/tree/HEAD)
+
+[Full Changelog](https://github.com/vatbub/tictactoe/compare/tictactoe.parent-0.0.2...HEAD)
+
+**Implemented enhancements:**
+
+- Create the animation if two local human players play [\#3](https://github.com/vatbub/tictactoe/issues/3)
+
 ## [tictactoe.parent-0.0.2](https://github.com/vatbub/tictactoe/tree/tictactoe.parent-0.0.2) (2017-07-26)
 [Full Changelog](https://github.com/vatbub/tictactoe/compare/tictactoe-0.0.1...tictactoe.parent-0.0.2)
 
