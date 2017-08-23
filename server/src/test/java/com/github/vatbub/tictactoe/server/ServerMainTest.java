@@ -73,9 +73,11 @@ public class ServerMainTest {
     }
 
     /**
-     * Launches an instance of the relay server
+     * Launches an instance of the relay server.
+     * If a environment variable called "PORT" is defined, the value of it will be used as the server's tcp port.
+     * If no such variable can be sound, port 1025 is sued.
      *
-     * @throws IOException
+     * @throws IOException If the port is already used by another application.
      */
     private static void launchServer() throws IOException {
         // launch a server

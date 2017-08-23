@@ -38,9 +38,9 @@ import java.util.logging.Level;
 @SuppressWarnings("WeakerAccess")
 public class ServerMain {
     private static final Server server = new Server();
+    private static final Map<Connection, Connection> connectionMap = new HashMap<>();
     private static Map<Connection, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static int currentTcpPort;
-    private static Map<Connection, Connection> connectionMap = new HashMap<>();
 
     public static void main(String[] args) throws IOException {
         Common.setAppName("tictactoeserver");
@@ -71,6 +71,12 @@ public class ServerMain {
         Runtime.getRuntime().addShutdownHook(new Thread(ServerMain::shutDown));
     }
 
+    /**
+     * Starts the kyro.net server and binds it to the specified port
+     *
+     * @param tcpPort The port to use for the tcp protocol
+     * @throws IOException If the specified port is already in use by another program
+     */
     public static void startServer(int tcpPort) throws IOException {
         FOKLogger.info(ServerMain.class.getName(), "VatbubTicTacToeServer version " + Common.getAppVersion());
         resetServer();
