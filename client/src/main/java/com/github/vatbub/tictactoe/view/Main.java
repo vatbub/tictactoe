@@ -46,10 +46,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -57,6 +54,7 @@ import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -112,6 +110,7 @@ public class Main extends Application {
     private Rectangle aiLevelLabelClipRectangle;
     private boolean blockedForInput;
     private Calendar opponentsTurnLabelLastShown = Calendar.getInstance();
+    private ResourceBundle accessibilityBundle = ResourceBundle.getBundle("com.github.vatbub.tictactoe.view.accessibleDescriptions");
     /**
      * We need to save this manually since {@code aiLevelSlider.isVisible} is delayed due to the animation
      */
@@ -594,6 +593,9 @@ public class Main extends Application {
         onlineMyUsername.promptTextProperty().bind(player1Name.promptTextProperty());
         onlineMyUsername.textProperty().bindBidirectional(player1Name.textProperty());
 
+        setAccessibleTextsForNodesThatDoNotChange();
+        updateAccessibleTexts();
+
         initBoard();
         initNewGame();
     }
@@ -645,6 +647,81 @@ public class Main extends Application {
         }
     }
 
+    @FXML
+    void player1AIToggleOnClick(MouseEvent event) {
+        updateAccessibleTexts();
+        player1AIToggle.requestFocus();
+        player1AIToggle.notifyAccessibleAttributeChanged(AccessibleAttribute.SELECTED);
+    }
+
+    @FXML
+    void player2AIToggleOnClick(MouseEvent event) {
+        updateAccessibleTexts();
+        player2AIToggle.requestFocus();
+        player2AIToggle.notifyAccessibleAttributeChanged(AccessibleAttribute.SELECTED);
+    }
+
+    private void setAccessibleTextsForNodesThatDoNotChange() {
+        player1AIToggle.setAccessibleRole(AccessibleRole.TOGGLE_BUTTON);
+        player2AIToggle.setAccessibleRole(AccessibleRole.TOGGLE_BUTTON);
+
+        aiLevelLabelHBox.getChildren().get(0).setAccessibleText(accessibilityBundle.getString("aiStupid"));
+        aiLevelLabelHBox.getChildren().get(1).setAccessibleText(accessibilityBundle.getString("aiMedium"));
+        aiLevelLabelHBox.getChildren().get(2).setAccessibleText(accessibilityBundle.getString("aiGood"));
+        aiLevelLabelHBox.getChildren().get(3).setAccessibleText(accessibilityBundle.getString("aiUnbeatable"));
+    }
+
+    @FXML
+    void updateAccessibleTexts() {
+        String name1;
+        if (player1Name.getText().equals("")) {
+            name1 = player1Name.getPromptText();
+        } else {
+            name1 = player1Name.getText();
+        }
+        player1Name.setAccessibleText(accessibilityBundle.getString("playerNameTextField").replace("%n", "1") + " " + name1);
+
+        String name2;
+        if (player2Name.getText().equals("")) {
+            name2 = player2Name.getPromptText();
+        } else {
+            name2 = player2Name.getText();
+        }
+        player2Name.setAccessibleText(accessibilityBundle.getString("playerNameTextField").replace("%n", "2") + " " + name2);
+
+        player1AIToggle.setAccessibleText(getAccessibilityAIToggleText(1, player1AIToggle.isSelected()));
+        player2AIToggle.setAccessibleText(getAccessibilityAIToggleText(2, player2AIToggle.isSelected()));
+
+        String aiAccessibilityText = accessibilityBundle.getString("aiLevelPrefix") + " ";
+        int sliderPos = (int) Math.round(aiLevelSlider.getValue() * 3.0 / 100.0);
+        switch (sliderPos) {
+            case 0:
+                aiAccessibilityText += accessibilityBundle.getString("aiStupid");
+                break;
+            case 1:
+                aiAccessibilityText += accessibilityBundle.getString("aiMedium");
+                break;
+            case 2:
+                aiAccessibilityText += accessibilityBundle.getString("aiGood");
+                break;
+            case 3:
+                aiAccessibilityText += accessibilityBundle.getString("aiUnbeatable");
+                break;
+        }
+        aiLevelSlider.setAccessibleText(aiAccessibilityText);
+    }
+
+    private String getAccessibilityAIToggleText(int playerNumber, boolean status) {
+        String statusText;
+        if (status) {
+            statusText = accessibilityBundle.getString("ai");
+        } else {
+            statusText = accessibilityBundle.getString("human");
+        }
+
+        return accessibilityBundle.getString("playerAIStatus").replace("%n", Integer.toString(playerNumber)) + " " + statusText;
+    }
+
     private double getAILevelLabelCenter(int labelIndex) {
         double res = 0;
 
@@ -667,6 +744,10 @@ public class Main extends Application {
 
         if (sliderPos != aiLevelLabelPositionProperty.get() || forceUpdate) {
             aiLevelLabelPositionProperty.set(sliderPos);
+
+            // request focus of the current ai label for accessibility
+            aiLevelLabelHBox.getChildren().get((int) (sliderPos * 3 / 100)).requestFocus();
+            updateAccessibleTexts();
 
             // get the slider position
             double[] xDouble = new double[]{0, 100.0 / 3.0, 200.0 / 3.0, 300.0 / 3.0};
