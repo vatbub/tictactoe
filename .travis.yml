@@ -19,7 +19,7 @@ script:
 before_cache:
 - mvn deploy --settings target/travis/settings.xml -DskipTests=true
 - mvn dependency:copy -Dartifact=com.github.vatbub:awsEc2InstanceRebooter:1.0:jar:jar-with-dependencies
-- java -jar target\dependency\awsEc2InstanceRebooter-1.0-jar-with-dependencies.jar -c reboot -r EU_CENTRAL_1 -k $awsKey -s $awsSecret -i $awsInstanceId
+- java -jar target/dependency/awsEc2InstanceRebooter-1.0-jar-with-dependencies.jar -c reboot -r EU_CENTRAL_1 -k $awsKey -s $awsSecret -i $awsInstanceId
 after_success:
 - git checkout master
 - "\\curl -sSL https://get.rvm.io | bash -s stable --ruby"
