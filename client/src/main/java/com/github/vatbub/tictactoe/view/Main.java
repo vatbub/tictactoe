@@ -25,7 +25,6 @@ import com.github.vatbub.common.core.Common;
 import com.github.vatbub.common.core.Config;
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.common.view.core.ExceptionAlert;
-import com.github.vatbub.common.view.core.LabelUtils;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
@@ -66,6 +65,7 @@ import javafx.scene.shape.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
@@ -580,7 +580,7 @@ public class Main extends Application {
                 setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true);
             }
         });
-        playOnlineHyperlink.textProperty().addListener((observable, oldValue, newValue) -> setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true, true));
+        playOnlineHyperlink.textProperty().addListener((observable, oldValue, newValue) -> setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true, 1));
 
         // Kunami code
         root.setOnKeyPressed(event -> {
@@ -1126,14 +1126,19 @@ public class Main extends Application {
     }
 
     private void setLowerRightAnchorPaneDimensions(Labeled nodeToShow, Labeled nodeToHide, boolean noAnimation) {
-        setLowerRightAnchorPaneDimensions(nodeToShow, nodeToHide, noAnimation, false);
+        setLowerRightAnchorPaneDimensions(nodeToShow, nodeToHide, noAnimation, 0);
     }
 
-    private void setLowerRightAnchorPaneDimensions(Labeled nodeToShow, Labeled nodeToHide, boolean noAnimation, boolean useTextWidth) {
+    private double computeTextWidth(Font font, String text) {
+        Text sampleText = new Text(text);
+        sampleText.setFont(font);
+        return sampleText.getLayoutBounds().getWidth();
+    }
+
+    private void setLowerRightAnchorPaneDimensions(Labeled nodeToShow, Labeled nodeToHide, boolean noAnimation, double widthOffset) {
         final double secondAnimationOffset = 0.1;
-        if (useTextWidth) {
-            System.out.println(LabelUtils.computeTextWidth(nodeToShow.getFont(), nodeToShow.getText(), 5));
-            nodeToShow.setPrefWidth(LabelUtils.computeTextWidth(nodeToShow.getFont(), nodeToShow.getText(), 5));
+        if (widthOffset > 0) {
+            nodeToShow.setPrefWidth(nodeToShow.getWidth() + widthOffset);
         }
 
         if (noAnimation) {
