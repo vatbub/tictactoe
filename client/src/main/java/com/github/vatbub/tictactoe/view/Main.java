@@ -25,6 +25,7 @@ import com.github.vatbub.common.core.Common;
 import com.github.vatbub.common.core.Config;
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.common.view.core.ExceptionAlert;
+import com.github.vatbub.common.view.core.LabelUtils;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
@@ -173,8 +174,6 @@ public class Main extends Application {
     private VBox menuSubBox;
     @FXML
     private Line aiLevelCenterLine;
-    @FXML
-    private AnchorPane currentPlayerLabelAnchorPane;
     @FXML
     private AnchorPane playOnlineAnchorPane;
     @FXML
@@ -570,6 +569,20 @@ public class Main extends Application {
         confetti.fitWidthProperty().addListener((observable, oldValue, newValue) -> reloadImage(confetti, getClass().getResource("confetti.png").toString(), newValue.doubleValue(), confetti.getFitWidth()));
 
         aiLevelSlider.valueProperty().addListener((observable, oldValue, newValue) -> updateAILevelLabel());
+
+        playOnlineHyperlink.widthProperty().addListener((observable, oldValue, newValue) -> {
+            if (playOnlineAnchorPane.isVisible()) {
+                setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true);
+            }
+        });
+        playOnlineHyperlink.heightProperty().addListener((observable, oldValue, newValue) -> {
+            if (playOnlineAnchorPane.isVisible()) {
+                setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true);
+            }
+        });
+        playOnlineHyperlink.textProperty().addListener((observable, oldValue, newValue) -> {
+            setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true, true);
+        });
 
         // Kunami code
         root.setOnKeyPressed(event -> {
@@ -1100,21 +1113,8 @@ public class Main extends Application {
         guiAnimationQueue.submit(() -> {
             fadeNode(menuBackground, 0.12);
 
-            if (currentPlayerLabelAnchorPane.isVisible()) {
-                playOnlineAnchorPane.setVisible(true);
-                KeyValue keyValuePlayOnline1 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 3 + playOnlineAnchorPane.getHeight());
-                KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(0), keyValuePlayOnline1);
-
-                KeyValue keyValuePlayOnline2 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 3 + playOnlineAnchorPane.getHeight());
-                KeyValue keyValueCurrentPlayer2 = new KeyValue(currentPlayerLabelAnchorPane.translateYProperty(), 3 + currentPlayerLabelAnchorPane.getHeight());
-                KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed), keyValueCurrentPlayer2, keyValuePlayOnline2);
-
-                KeyValue keyValuePlayOnline3 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 0);
-                KeyFrame keyFrame3 = new KeyFrame(Duration.seconds(2 * animationSpeed), keyValuePlayOnline3);
-
-                Timeline timeline = new Timeline(keyFrame1, keyFrame2, keyFrame3);
-                timeline.setOnFinished((event) -> currentPlayerLabelAnchorPane.setVisible(false));
-                timeline.play();
+            if (currentPlayerLabel.isVisible()) {
+                setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel);
             }
 
             blurGamePane();
@@ -1123,25 +1123,79 @@ public class Main extends Application {
         });
     }
 
+    private void setLowerRightAnchorPaneDimensions(Labeled nodeToShow, Labeled nodeToHide) {
+        setLowerRightAnchorPaneDimensions(nodeToShow, nodeToHide, false);
+    }
+
+    private void setLowerRightAnchorPaneDimensions(Labeled nodeToShow, Labeled nodeToHide, boolean noAnimation) {
+        setLowerRightAnchorPaneDimensions(nodeToShow, nodeToHide, noAnimation, false);
+    }
+
+    private void setLowerRightAnchorPaneDimensions(Labeled nodeToShow, Labeled nodeToHide, boolean noAnimation, boolean useTextWidth) {
+        final double secondAnimationOffset = 0.1;
+        if (useTextWidth) {
+            System.out.println(LabelUtils.computeTextWidth(nodeToShow.getFont(), nodeToShow.getText(), 5));
+            nodeToShow.setPrefWidth(LabelUtils.computeTextWidth(nodeToShow.getFont(), nodeToShow.getText(), 5));
+        }
+
+        if (noAnimation) {
+            nodeToShow.setOpacity(1);
+            nodeToShow.setVisible(true);
+            nodeToHide.setVisible(false);
+            playOnlineAnchorPane.setPrefHeight(nodeToShow.getHeight());
+            playOnlineAnchorPane.setPrefWidth(nodeToShow.getWidth());
+        } else {
+            nodeToShow.setOpacity(0);
+            nodeToShow.setVisible(true);
+            nodeToShow.setPrefWidth(nodeToShow.getWidth());
+            nodeToShow.setPrefHeight(nodeToShow.getHeight());
+
+            DoubleProperty firstProperty;
+            DoubleProperty secondProperty;
+            double firstPropertyValue;
+            double secondPropertyValue;
+            double secondPropertyInitialValue;
+
+            if (nodeToShow.getHeight() > nodeToShow.getWidth()) {
+                firstProperty = playOnlineAnchorPane.prefHeightProperty();
+                firstPropertyValue = nodeToShow.getHeight() + AnchorPane.getBottomAnchor(nodeToShow);
+                secondProperty = playOnlineAnchorPane.prefWidthProperty();
+                secondPropertyValue = nodeToShow.getWidth() + AnchorPane.getRightAnchor(nodeToShow);
+                secondPropertyInitialValue = nodeToHide.getWidth();
+            } else {
+                firstProperty = playOnlineAnchorPane.prefWidthProperty();
+                firstPropertyValue = nodeToShow.getWidth() + AnchorPane.getRightAnchor(nodeToShow);
+                secondProperty = playOnlineAnchorPane.prefHeightProperty();
+                secondPropertyValue = nodeToShow.getHeight() + AnchorPane.getBottomAnchor(nodeToShow);
+                secondPropertyInitialValue = nodeToHide.getHeight();
+            }
+
+            KeyValue keyValueFirstProperty = new KeyValue(firstProperty, firstPropertyValue, Interpolator.EASE_BOTH);
+            KeyValue keyValueNodeToHideOpacity1 = new KeyValue(nodeToHide.opacityProperty(), 0, Interpolator.EASE_IN);
+            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(animationSpeed), keyValueFirstProperty, keyValueNodeToHideOpacity1);
+
+
+            KeyValue keyValueSecondProperty1 = new KeyValue(secondProperty, secondPropertyInitialValue);
+            KeyValue keyValueNodeToShowOpacity1 = new KeyValue(nodeToShow.opacityProperty(), nodeToShow.getOpacity());
+            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(secondAnimationOffset * animationSpeed), keyValueSecondProperty1, keyValueNodeToShowOpacity1);
+
+            KeyValue keyValueSecondProperty2 = new KeyValue(secondProperty, secondPropertyValue, Interpolator.EASE_BOTH);
+            KeyValue keyValueNodeToShowOpacity2 = new KeyValue(nodeToShow.opacityProperty(), 1, Interpolator.EASE_OUT);
+            KeyFrame keyFrame3 = new KeyFrame(Duration.seconds((1 + secondAnimationOffset) * animationSpeed), keyValueSecondProperty2, keyValueNodeToShowOpacity2);
+
+
+            Timeline timeline = new Timeline(keyFrame1, keyFrame2, keyFrame3);
+            timeline.setOnFinished((event) -> nodeToHide.setVisible(false));
+            timeline.play();
+        }
+    }
+
     private void hideMenu() {
         guiAnimationQueue.submit(() -> {
             fadeNode(menuBackground, 0);
             fadeNode(menuBox, 0);
 
-            currentPlayerLabelAnchorPane.setVisible(true);
-            KeyValue keyValueCurrentPlayer1 = new KeyValue(currentPlayerLabelAnchorPane.translateYProperty(), 3 + currentPlayerLabelAnchorPane.getHeight());
-            KeyFrame keyFrame1 = new KeyFrame(Duration.seconds(0), keyValueCurrentPlayer1);
-
-            KeyValue keyValuePlayOnline2 = new KeyValue(playOnlineAnchorPane.translateYProperty(), 3 + playOnlineAnchorPane.getHeight());
-            KeyValue keyValueCurrentPlayer2 = new KeyValue(currentPlayerLabelAnchorPane.translateYProperty(), 3 + currentPlayerLabelAnchorPane.getHeight());
-            KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(animationSpeed), keyValueCurrentPlayer2, keyValuePlayOnline2);
-
-            KeyValue keyValueCurrentPlayer3 = new KeyValue(currentPlayerLabelAnchorPane.translateYProperty(), 0);
-            KeyFrame keyFrame3 = new KeyFrame(Duration.seconds(2 * animationSpeed), keyValueCurrentPlayer3);
-
-            Timeline timeline = new Timeline(keyFrame1, keyFrame2, keyFrame3);
-            timeline.setOnFinished((event) -> playOnlineAnchorPane.setVisible(false));
-            timeline.play();
+            setLowerRightAnchorPaneDimensions(currentPlayerLabel, playOnlineHyperlink);
 
             unblurGamePane();
         });
