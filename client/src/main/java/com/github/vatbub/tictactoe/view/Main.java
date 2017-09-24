@@ -580,9 +580,7 @@ public class Main extends Application {
                 setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true);
             }
         });
-        playOnlineHyperlink.textProperty().addListener((observable, oldValue, newValue) -> {
-            setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true, true);
-        });
+        playOnlineHyperlink.textProperty().addListener((observable, oldValue, newValue) -> setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true, true));
 
         // Kunami code
         root.setOnKeyPressed(event -> {
