@@ -580,7 +580,15 @@ public class Main extends Application {
                 setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true);
             }
         });
-        playOnlineHyperlink.textProperty().addListener((observable, oldValue, newValue) -> setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true, 1));
+        playOnlineHyperlink.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.equals(oldValue)) {
+                if (newValue.contains("ff")) {
+                    setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true, 1);
+                } else {
+                    setLowerRightAnchorPaneDimensions(playOnlineHyperlink, currentPlayerLabel, true, -1);
+                }
+            }
+        });
 
         // Kunami code
         root.setOnKeyPressed(event -> {
