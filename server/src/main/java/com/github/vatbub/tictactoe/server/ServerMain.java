@@ -43,7 +43,7 @@ public class ServerMain {
     private static int currentTcpPort;
 
     public static void main(String[] args) throws IOException {
-        Common.setAppName("tictactoeserver");
+        Common.getInstance().setAppName("tictactoeserver");
         List<String> argList = new ArrayList<>(args.length);
         argList.addAll(Arrays.asList(args));
         boolean launchSucceeded = false;
@@ -78,7 +78,7 @@ public class ServerMain {
      * @throws IOException If the specified port is already in use by another program
      */
     public static void startServer(int tcpPort) throws IOException {
-        FOKLogger.info(ServerMain.class.getName(), "VatbubTicTacToeServer version " + Common.getAppVersion());
+        FOKLogger.info(ServerMain.class.getName(), "VatbubTicTacToeServer version " + Common.getInstance().getAppVersion());
         resetServer();
         currentTcpPort = tcpPort;
         server.getKryo().setReferences(true);
