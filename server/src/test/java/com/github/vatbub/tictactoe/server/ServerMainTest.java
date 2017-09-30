@@ -59,7 +59,7 @@ public class ServerMainTest {
 
     @BeforeClass
     public static void doYourOneTimeSetup() throws InterruptedException, IOException {
-        Common.setAppName("TicTacToeServerTests");
+        Common.getInstance().setAppName("TicTacToeServerTests");
         Thread.sleep(2000);
         FOKLogger.info(ServerMainTest.class.getName(), "Launching server...");
         launchServer();
