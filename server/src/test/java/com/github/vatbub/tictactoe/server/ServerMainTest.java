@@ -54,7 +54,7 @@ public class ServerMainTest {
     private Client client;
 
     private Thread shutDownThread;
-    private boolean shutServerDown;
+    private boolean shutClientDown;
     private Throwable throwable;
 
     @BeforeClass
@@ -94,14 +94,25 @@ public class ServerMainTest {
     @Before
     public void setUp() throws IOException, InterruptedException {
         ServerMain.resetServer();
-        setupClient();
-        setupRequests();
+        // set up the client
+        client = new Client();
+        KryoCommon.registerRequiredClasses(client.getKryo());
+        client.getKryo().setReferences(true);
+        client.start();
+
+        client.connect(100000, "localhost", port);
+
+        // set up the requests
+        request1 = new OnlineMultiplayerRequestOpponentRequest();
+        request2 = new OnlineMultiplayerRequestOpponentRequest();
+        request1.setClientIdentifier(identifier1);
+        request2.setClientIdentifier(identifier2);
 
         shutDownThread = new Thread(() -> {
             boolean isShutDown = false;
             while (!isShutDown) {
                 System.out.print("");
-                if (shutServerDown) {
+                if (shutClientDown) {
                     try {
                         // shut client down
                         client.close();
@@ -475,41 +486,8 @@ public class ServerMainTest {
         }
     }
 
-    /**
-     * Prepares the requests to make them ready to be sent
-     */
-    private void setupRequests() {
-        request1 = new OnlineMultiplayerRequestOpponentRequest();
-        request2 = new OnlineMultiplayerRequestOpponentRequest();
-        request1.setClientIdentifier(identifier1);
-        request2.setClientIdentifier(identifier2);
-    }
-
-    /**
-     * Sets the relay client up
-     *
-     * @throws IOException If the client cannot connect for any reason
-     */
-    private void setupClient() throws IOException {
-        client = new Client();
-        KryoCommon.registerRequiredClasses(client.getKryo());
-        client.getKryo().setReferences(true);
-        client.start();
-
-        connect();
-    }
-
-    /**
-     * Connects the relay client
-     *
-     * @throws IOException If the client cannot connect for any reason
-     */
-    private void connect() throws IOException {
-        client.connect(100000, "localhost", port);
-    }
-
     private void tearDown() {
         FOKLogger.info(ServerMainTest.class.getName(), "Resetting server...");
-        shutServerDown = true;
+        shutClientDown = true;
     }
 }
