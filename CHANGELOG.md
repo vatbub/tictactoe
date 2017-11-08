@@ -6,6 +6,7 @@
 
 **Implemented enhancements:**
 
+- Optimize the process to load the remote config to avoid long waiting times when connecting to the relay server for the first time [\#5](https://github.com/vatbub/tictactoe/issues/5)
 - Create the animation if two local human players play [\#3](https://github.com/vatbub/tictactoe/issues/3)
 
 ## [tictactoe.parent-0.0.2](https://github.com/vatbub/tictactoe/tree/tictactoe.parent-0.0.2) (2017-07-26)
