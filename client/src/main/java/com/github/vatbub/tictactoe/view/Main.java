@@ -219,20 +219,18 @@ public class Main extends Application {
     }
 
     public static Config getApplicationConfiguration() {
-        if (applicationConfiguration == null) {
-            try {
-                applicationConfiguration = new Config(new URL("https://raw.githubusercontent.com/vatbub/tictactoe/master/remoteconfig/client.properties"), Main.class.getResource("fallbackConfig.properties"), "tictactoeClientConfigCache.properties");
-            } catch (IOException e) {
-                FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not read the remote config", e);
-            }
-        }
-
         return applicationConfiguration;
     }
 
     public static void main(String[] args) {
         Common.getInstance().setAppName("tictactoev2");
         FOKLogger.enableLoggingOfUncaughtExceptions();
+
+        try {
+            applicationConfiguration = new Config(new URL("https://raw.githubusercontent.com/vatbub/tictactoe/master/remoteconfig/client.properties"), Main.class.getResource("fallbackConfig.properties"), true, "tictactoeClientConfigCache.properties", true);
+        } catch (IOException e) {
+            FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not read the remote config", e);
+        }
 
         for (String arg : args) {
             if (arg.toLowerCase().matches("mockappversion=.*")) {
