@@ -1,24 +1,24 @@
 package com.github.vatbub.tictactoe.view;
 
-/*-
- * #%L
- * tictactoe
- * %%
- * Copyright (C) 2016 - 2017 Frederik Kammel
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
- */
+        /*-
+         * #%L
+         * tictactoe
+         * %%
+         * Copyright (C) 2016 - 2017 Frederik Kammel
+         * %%
+         * Licensed under the Apache License, Version 2.0 (the "License");
+         * you may not use this file except in compliance with the License.
+         * You may obtain a copy of the License at
+         *
+         *      http://www.apache.org/licenses/LICENSE-2.0
+         *
+         * Unless required by applicable law or agreed to in writing, software
+         * distributed under the License is distributed on an "AS IS" BASIS,
+         * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+         * See the License for the specific language governing permissions and
+         * limitations under the License.
+         * #L%
+         */
 
 
 import com.github.vatbub.common.core.Common;
@@ -517,6 +517,11 @@ public class Main extends Application {
         aiLevelLabelPane.setClip(aiLevelLabelClipRectangle);
         aiLevelLabelClipRectangle.heightProperty().bind(aiLevelLabelPane.heightProperty());
         aiLevelLabelPane.widthProperty().addListener((observable, oldValue, newValue) -> updateAILevelLabel(true));
+
+        Rectangle menuSubBoxClipRectangle = new Rectangle(0, 0, 0, 0);
+        menuSubBox.setClip(menuSubBoxClipRectangle);
+        menuSubBoxClipRectangle.heightProperty().bind(menuSubBox.heightProperty());
+        menuSubBoxClipRectangle.widthProperty().bind(menuSubBox.heightProperty());
 
         player1SetSampleName();
         player2SetSampleName();
@@ -1549,31 +1554,26 @@ public class Main extends Application {
     }
 
     private void fadeAILevelSliderOut() {
-        guiAnimationQueue.submitWaitForUnlock(() -> {
-            guiAnimationQueue.setBlocked(true);
+        guiAnimationQueue.submit(() -> {
             menuSubBox.setPrefHeight(menuSubBox.getHeight());
-            fadeNode(aiLevelTitleLabel, 0, false, () -> menuSubBox.getChildren().remove(aiLevelTitleLabel));
-            fadeNode(aiLevelSlider, 0, false, () -> menuSubBox.getChildren().remove(aiLevelSlider));
-            fadeNode(aiLevelLabelPane, 0, false, () -> {
-                menuSubBox.getChildren().remove(aiLevelLabelPane);
-                updateMenuHeight(false);
-            });
+            updateMenuHeight(false);
         });
     }
 
     private void fadeAILevelSliderIn() {
-        guiAnimationQueue.submitWaitForUnlock(() -> {
-            guiAnimationQueue.setBlocked(true);
+        guiAnimationQueue.submit(() -> {
             menuSubBox.setPrefHeight(menuSubBox.getHeight());
             updateMenuHeight(true);
         });
     }
 
+    private Timeline updateMenuHeightTimeline;
+
     private void updateMenuHeight(boolean includeAILevelSlider) {
         double toHeight = 0;
         int effectiveChildCount = 0;
         for (Node child : menuSubBox.getChildren()) {
-            if (child.isVisible()) {
+            if (child.isVisible() && child != aiLevelTitleLabel && child != aiLevelSlider && child != aiLevelLabelPane) {
                 toHeight = toHeight + child.getBoundsInParent().getHeight();
                 effectiveChildCount = effectiveChildCount + 1;
             }
@@ -1588,23 +1588,16 @@ public class Main extends Application {
 
         toHeight = toHeight + menuSubBox.getSpacing() * (effectiveChildCount - 1);
 
-        Timeline timeline = new Timeline();
-        KeyValue keyValue0 = new KeyValue(menuSubBox.prefHeightProperty(), toHeight, Interpolator.EASE_BOTH);
-        KeyFrame keyFrame0 = new KeyFrame(Duration.seconds(animationSpeed), keyValue0);
-        timeline.getKeyFrames().add(keyFrame0);
-
-        if (includeAILevelSlider) {
-            timeline.setOnFinished((event) -> {
-                menuSubBox.getChildren().addAll(aiLevelTitleLabel, aiLevelSlider, aiLevelLabelPane);
-                fadeNode(aiLevelTitleLabel, 1, true);
-                fadeNode(aiLevelSlider, 1);
-                fadeNode(aiLevelLabelPane, 1);
-            });
-        } else {
-            timeline.setOnFinished((event -> guiAnimationQueue.setBlocked(false)));
+        if (updateMenuHeightTimeline != null && updateMenuHeightTimeline.getStatus() == Animation.Status.RUNNING) {
+            updateMenuHeightTimeline.stop();
         }
 
-        timeline.play();
+        updateMenuHeightTimeline = new Timeline();
+        KeyValue keyValue0 = new KeyValue(menuSubBox.prefHeightProperty(), toHeight, Interpolator.EASE_BOTH);
+        KeyFrame keyFrame0 = new KeyFrame(Duration.seconds(animationSpeed), keyValue0);
+        updateMenuHeightTimeline.getKeyFrames().add(keyFrame0);
+
+        updateMenuHeightTimeline.play();
     }
 
     private void fadeNode(Node node, double toValue) {
