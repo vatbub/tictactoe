@@ -212,6 +212,8 @@ public class Main extends Application {
     private AnchorPane twoHumansWinMessage;
     @FXML
     private Label twoHumansWinnerText;
+    @FXML
+    private AnchorPane playOnlineClipAnchorPane;
 
     public Main() {
         super();
@@ -521,7 +523,12 @@ public class Main extends Application {
         Rectangle menuSubBoxClipRectangle = new Rectangle(0, 0, 0, 0);
         menuSubBox.setClip(menuSubBoxClipRectangle);
         menuSubBoxClipRectangle.heightProperty().bind(menuSubBox.heightProperty());
-        menuSubBoxClipRectangle.widthProperty().bind(menuSubBox.heightProperty());
+        menuSubBoxClipRectangle.widthProperty().bind(menuSubBox.widthProperty());
+
+        Rectangle playOnlineClipRectangle = new Rectangle(0, 0, 0, 0);
+        playOnlineClipAnchorPane.setClip(playOnlineClipRectangle);
+        playOnlineClipRectangle.heightProperty().bind(playOnlineClipAnchorPane.heightProperty());
+        playOnlineClipRectangle.widthProperty().bind(playOnlineClipAnchorPane.widthProperty());
 
         player1SetSampleName();
         player2SetSampleName();

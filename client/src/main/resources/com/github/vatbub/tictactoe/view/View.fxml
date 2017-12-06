@@ -2,6 +2,11 @@
 
 <!--suppress ALL -->
 
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.shape.*?>
+<?import org.controlsfx.control.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.effect.*?>
@@ -11,6 +16,7 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.*?>
 <?import org.controlsfx.control.ToggleSwitch?>
+
 <AnchorPane fx:id="root" prefHeight="645.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.vatbub.tictactoe.view.Main">
    <children>
       <AnchorPane fx:id="gamePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -290,16 +296,19 @@
             <DropShadow height="12.0" radius="5.5" width="12.0" />
          </effect>
          <children>
-            <Hyperlink fx:id="playOnlineHyperlink" onAction="#playOnlineHyperlinkOnAction" text="Play online" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" />
-             <Label fx:id="currentPlayerLabel" alignment="CENTER" prefWidth="48.0" text="X" textAlignment="CENTER"
-                    textOverrun="CLIP" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
-               <font>
-                  <Font size="36.0" />
-               </font>
-               <padding>
-                   <Insets left="5.0" right="5.0"/>
-               </padding>
-            </Label>
+            <AnchorPane fx:id="playOnlineClipAnchorPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+               <children>
+                  <Hyperlink fx:id="playOnlineHyperlink" layoutY="24.0" onAction="#playOnlineHyperlinkOnAction" text="Play online" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                   <Label fx:id="currentPlayerLabel" alignment="CENTER" layoutX="34.0" prefWidth="48.0" text="X" textAlignment="CENTER" textOverrun="CLIP" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                     <font>
+                        <Font size="36.0" />
+                     </font>
+                     <padding>
+                         <Insets left="5.0" right="5.0" />
+                     </padding>
+                  </Label>
+               </children>
+            </AnchorPane>
          </children>
       </AnchorPane>
       <AnchorPane fx:id="loadingBackground" opacity="0.8" style="-fx-background-color: #000000;" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
