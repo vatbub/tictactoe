@@ -95,12 +95,12 @@
         <dependency>
             <groupId>com.github.vatbub</groupId>
             <artifactId>common.core</artifactId>
-            <version>0.1.3-SNAPSHOT</version>
+            <version>0.1.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.github.vatbub</groupId>
             <artifactId>common.view.core</artifactId>
-            <version>0.1.3-SNAPSHOT</version>
+            <version>0.1.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -110,7 +110,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.6</version>
+            <version>3.7</version>
         </dependency>
     </dependencies>
 </project>
