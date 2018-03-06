@@ -1,7 +1,7 @@
 package com.github.vatbub.tictactoe.view;
 
-        /*-
-         * #%L
+/*-
+ * #%L
  * tictactoe
  * %%
  * Copyright (C) 2016 - 2017 Frederik Kammel
@@ -18,7 +18,7 @@ package com.github.vatbub.tictactoe.view;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * #L%
-         */
+ */
 
 
 import com.github.vatbub.common.core.Common;
@@ -214,6 +214,7 @@ public class Main extends Application {
     private Label twoHumansWinnerText;
     @FXML
     private AnchorPane playOnlineClipAnchorPane;
+    private Timeline updateMenuHeightTimeline;
 
     public Main() {
         super();
@@ -1574,8 +1575,6 @@ public class Main extends Application {
         });
     }
 
-    private Timeline updateMenuHeightTimeline;
-
     private void updateMenuHeight(boolean includeAILevelSlider) {
         double toHeight = 0;
         int effectiveChildCount = 0;
@@ -1764,7 +1763,7 @@ public class Main extends Application {
         WinLineGeometry(Board.WinnerInfo winnerInfo, double newHeight, double newWidth) {
             double cellWidth = newWidth / board.getColumnCount();
             double cellHeight = newHeight / board.getRowCount();
-            winLineWidth = cellHeight / 2;
+            winLineWidth = Math.min(cellHeight, cellWidth) / 2;
             startX = (winnerInfo.winLineStartColumn * cellWidth) + (cellWidth / 2.0);
             startY = (winnerInfo.winLineStartRow * cellHeight) + (cellHeight / 2.0);
             endX = (winnerInfo.winLineEndColumn * cellWidth) + (cellWidth / 2.0);
