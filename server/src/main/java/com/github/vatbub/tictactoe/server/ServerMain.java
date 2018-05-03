@@ -9,9 +9,9 @@ package com.github.vatbub.tictactoe.server;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,11 +25,13 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.github.vatbub.common.core.Common;
+import com.github.vatbub.common.core.SystemUtils;
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.tictactoe.common.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 /**
@@ -37,18 +39,26 @@ import java.util.logging.Level;
  */
 @SuppressWarnings("WeakerAccess")
 public class ServerMain {
+    private static final String AUTO_SHUTDOWN_ARG = "-autoShutdown";
     private static final Server server = new Server();
     private static final Map<Connection, Connection> connectionMap = new HashMap<>();
     private static Map<Connection, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static int currentTcpPort;
+    private static final int SHUTDOWN_DAEMON_PERIOD_IN_MINUTES = 5;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Common.getInstance().setAppName("tictactoeserver");
         List<String> argList = new ArrayList<>(args.length);
         argList.addAll(Arrays.asList(args));
         boolean launchSucceeded = false;
         while (!launchSucceeded) {
             try {
+                if (argList.contains(AUTO_SHUTDOWN_ARG)) {
+                    argList.remove(AUTO_SHUTDOWN_ARG);
+                    FOKLogger.info(ServerMain.class.getName(), "Enabling auto-shutdown when idle");
+                    SystemUtils.getInstance().startAutoShutdownDaemon(() -> connectionMap.isEmpty()&& openRequests.isEmpty(), SHUTDOWN_DAEMON_PERIOD_IN_MINUTES, TimeUnit.MINUTES);
+                }
+
                 if (argList.size() == 0) {
                     startServer(Integer.parseInt(System.getenv("PORT")));
                     launchSucceeded = true;
@@ -68,7 +78,10 @@ public class ServerMain {
             }
         }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(ServerMain::shutDown));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            shutDown();
+            SystemUtils.getInstance().cancelAutoShutdownDaemon();
+        }));
     }
 
     /**

@@ -9,9 +9,9 @@ package com.github.vatbub.tictactoe.view;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -81,6 +81,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 /**
@@ -353,14 +354,33 @@ public class Main extends Application {
         setLoadingStatusText("Connecting to the server...", true);
         showLoadingScreen();
         Thread connectionThread = new Thread(() -> {
-            try {
-                KryoGameConnections.connect(() -> Platform.runLater(() -> {
-                    hideLoadingScreen();
-                    showOnlineMenu();
-                }));
-            } catch (IOException e) {
-                FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
-                Platform.runLater(() -> showErrorMessage(e));
+            int maxRetries = 10;
+            int remainingRetries = maxRetries;
+            AtomicBoolean readyWithoutException = new AtomicBoolean(false);
+            Exception lastException = null;
+
+            while (remainingRetries > 0 && !readyWithoutException.get()) {
+                try {
+                    KryoGameConnections.connect(() -> Platform.runLater(() -> {
+                        readyWithoutException.set(true);
+                        hideLoadingScreen();
+                        showOnlineMenu();
+                    }));
+                } catch (Exception e) {
+                    remainingRetries--;
+                    setLoadingStatusText("This is taking longer than usual, hang tight (Retry " + (maxRetries - remainingRetries) + " of " + maxRetries + ")...");
+                    FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
+                    lastException = e;
+                }
+            }
+
+            if (!readyWithoutException.get()) {
+                if (lastException == null) {
+                    Platform.runLater(() -> showErrorMessage("Something went wrong.", "Unknown"));
+                } else {
+                    Exception finalLastException = lastException;
+                    Platform.runLater(() -> showErrorMessage(finalLastException));
+                }
             }
         });
         connectionThread.setName("connectionThread");

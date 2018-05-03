@@ -33,6 +33,7 @@ import javafx.application.Platform;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.logging.Level;
 
 /**
@@ -48,7 +49,7 @@ public class KryoGameConnections {
     private static Board connectedBoard;
 
     @SuppressWarnings("unused")
-    public static void connect() throws IOException {
+    public static void connect() throws Exception {
         connect((Runnable) null);
     }
 
@@ -62,14 +63,10 @@ public class KryoGameConnections {
         connect(host, tcpPort, null);
     }
 
-    public static void connect(Runnable onConnected) throws IOException {
-        // vatbubtictactoeserver.herokuapp.com
-        // connect("52.59.117.143", onConnected);
-        // connect("localhost", onConnected);
-        // connect("SURFACEFREDERIK", onConnected);
-        // connect("ec2-35-158-95-215.eu-central-1.compute.amazonaws.com", onConnected);
-        // connect("35.156.178.255", onConnected);
-        connect(Main.getApplicationConfiguration().getValue("defaultServerURL"), onConnected);
+    public static void connect(Runnable onConnected) throws Exception {
+        com.github.vatbub.awsec2wakelauncher.applicationclient.Client wakeLauncherClient = new com.github.vatbub.awsec2wakelauncher.applicationclient.Client(new URL(Main.getApplicationConfiguration().getValue("defaultWakeServerURL")));
+        com.github.vatbub.awsec2wakelauncher.applicationclient.Client.IpInfo ipInfo = wakeLauncherClient.launchAndWaitForInstance(Main.getApplicationConfiguration().getValue("defaultInstanceId"));
+        connect(ipInfo.getInstanceDns(), onConnected);
     }
 
     public static void connect(String host, Runnable onConnected) throws IOException {
