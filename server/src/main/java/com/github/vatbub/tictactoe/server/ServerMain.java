@@ -44,7 +44,7 @@ public class ServerMain {
     private static final Map<Connection, Connection> connectionMap = new HashMap<>();
     private static Map<Connection, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static int currentTcpPort;
-    private static final int SHUTDOWN_DAEMON_PERIOD_IN_MINUTES = 5;
+    private static final int AUTO_SHUTDOWN_IDLE_TIMEOUT = 5;
     private static boolean autoShutdownEnabled;
 
     public static void main(String[] args) {
@@ -58,6 +58,7 @@ public class ServerMain {
                     argList.remove(AUTO_SHUTDOWN_ARG);
                     FOKLogger.info(ServerMain.class.getName(), "Enabling auto-shutdown when idle");
                     autoShutdownEnabled=true;
+                    SystemUtils.getInstance().startAutoShutdownTimer(AUTO_SHUTDOWN_IDLE_TIMEOUT, TimeUnit.MINUTES);
                 }
 
                 if (argList.size() == 0) {
@@ -132,7 +133,7 @@ public class ServerMain {
                 }
 
                 if (autoShutdownEnabled && connectionMap.isEmpty() && openRequests.isEmpty())
-                    SystemUtils.getInstance().startAutoShutdownTimer(SHUTDOWN_DAEMON_PERIOD_IN_MINUTES, TimeUnit.MINUTES);
+                    SystemUtils.getInstance().startAutoShutdownTimer(AUTO_SHUTDOWN_IDLE_TIMEOUT, TimeUnit.MINUTES);
             }
 
             @Override
