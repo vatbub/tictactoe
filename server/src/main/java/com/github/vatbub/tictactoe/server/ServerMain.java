@@ -45,6 +45,7 @@ public class ServerMain {
     private static Map<Connection, List<OnlineMultiplayerRequestOpponentRequest>> openRequests;
     private static int currentTcpPort;
     private static final int SHUTDOWN_DAEMON_PERIOD_IN_MINUTES = 5;
+    private static boolean autoShutdownEnabled;
 
     public static void main(String[] args) {
         Common.getInstance().setAppName("tictactoeserver");
@@ -56,7 +57,7 @@ public class ServerMain {
                 if (argList.contains(AUTO_SHUTDOWN_ARG)) {
                     argList.remove(AUTO_SHUTDOWN_ARG);
                     FOKLogger.info(ServerMain.class.getName(), "Enabling auto-shutdown when idle");
-                    SystemUtils.getInstance().startAutoShutdownDaemon(() -> connectionMap.isEmpty()&& openRequests.isEmpty(), SHUTDOWN_DAEMON_PERIOD_IN_MINUTES, TimeUnit.MINUTES);
+                    autoShutdownEnabled=true;
                 }
 
                 if (argList.size() == 0) {
@@ -78,10 +79,7 @@ public class ServerMain {
             }
         }
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            shutDown();
-            SystemUtils.getInstance().cancelAutoShutdownDaemon();
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(ServerMain::shutDown));
     }
 
     /**
@@ -103,6 +101,7 @@ public class ServerMain {
             @Override
             public void connected(Connection connection) {
                 connection.setTimeout(100000);
+                SystemUtils.getInstance().cancelAutoShutdownTimer();
             }
 
             @Override
@@ -131,11 +130,15 @@ public class ServerMain {
                     connectionMap.remove(connection);
                     connectionMap.remove(matchingConnection);
                 }
+
+                if (autoShutdownEnabled && connectionMap.isEmpty() && openRequests.isEmpty())
+                    SystemUtils.getInstance().startAutoShutdownTimer(SHUTDOWN_DAEMON_PERIOD_IN_MINUTES, TimeUnit.MINUTES);
             }
 
             @Override
             public void received(Connection connection, Object object) {
                 try {
+                    SystemUtils.getInstance().cancelAutoShutdownTimer();
                     if (object instanceof OnlineMultiplayerRequestOpponentRequest) {
                         OnlineMultiplayerRequestOpponentRequest receivedRequest = (OnlineMultiplayerRequestOpponentRequest) object;
 
