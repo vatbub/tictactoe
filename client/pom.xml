@@ -91,7 +91,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.vatbub</groupId>
-            <artifactId>awsEc2wakelauncher.applicationclient</artifactId>
+            <artifactId>awsec2wakelauncher.applicationclient</artifactId>
             <version>1.1</version>
         </dependency>
     </dependencies>
