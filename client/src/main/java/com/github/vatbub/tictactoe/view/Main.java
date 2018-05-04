@@ -9,9 +9,9 @@ package com.github.vatbub.tictactoe.view;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -351,7 +351,7 @@ public class Main extends Application {
     }
 
     private void connectToRelayServer() {
-        setLoadingStatusText("Connecting to the server...", true);
+        setLoadingStatusText("The server is waking up, hang tight...", true);
         showLoadingScreen();
         Thread connectionThread = new Thread(() -> {
             int maxRetries = 10;
@@ -361,11 +361,18 @@ public class Main extends Application {
 
             while (remainingRetries > 0 && !readyWithoutException.get()) {
                 try {
-                    KryoGameConnections.connect(() -> Platform.runLater(() -> {
-                        readyWithoutException.set(true);
-                        hideLoadingScreen();
-                        showOnlineMenu();
-                    }));
+                    int finalRemainingRetries = remainingRetries;
+                    KryoGameConnections.connect(
+                            () -> {
+                                if (maxRetries == finalRemainingRetries)
+                                    // should only appear the first time
+                                    setLoadingStatusText("Connecting to the server...");
+                            },
+                            () -> Platform.runLater(() -> {
+                                readyWithoutException.set(true);
+                                hideLoadingScreen();
+                                showOnlineMenu();
+                            }));
                 } catch (Exception e) {
                     remainingRetries--;
                     setLoadingStatusText("This is taking longer than usual, hang tight (Retry " + (maxRetries - remainingRetries) + " of " + maxRetries + ")...");
