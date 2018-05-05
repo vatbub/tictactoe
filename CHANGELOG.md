@@ -1,5 +1,8 @@
 # Change Log
 
+## [tictactoe.parent-0.0.4](https://github.com/vatbub/tictactoe/tree/tictactoe.parent-0.0.4) (2018-05-05)
+[Full Changelog](https://github.com/vatbub/tictactoe/compare/tictactoe.parent-0.0.3...tictactoe.parent-0.0.4)
+
 ## [tictactoe.parent-0.0.3](https://github.com/vatbub/tictactoe/tree/tictactoe.parent-0.0.3) (2017-12-17)
 [Full Changelog](https://github.com/vatbub/tictactoe/compare/tictactoe.parent-0.0.2...tictactoe.parent-0.0.3)
 
