@@ -343,12 +343,11 @@ public class Main extends Application {
     }
 
     private void connectToRelayServer() {
-        setLoadingStatusText("The server is waking up, hang tight...", true);
+        setLoadingStatusText("Connecting to the server...", true);
         showLoadingScreen();
         Thread connectionThread = new Thread(() -> {
             try {
-                // KryoGameConnections.getInstance().connect(new URL(getApplicationConfiguration().getValue("defaultServerURL")),
-                KryoGameConnections.getInstance().connect(new URL("http://localhost:8080/tictactoe"),
+                KryoGameConnections.getInstance().connect(new URL(getApplicationConfiguration().getValue("newDefaultServerUrl")),
                         () -> Platform.runLater(() -> {
                             hideLoadingScreen();
                             showOnlineMenu();
