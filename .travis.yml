@@ -44,6 +44,11 @@ notifications:
     - vatbub123+travisbuildnotification@googlemail.com
     on_success: never
 on_failure: always
+deploy:
+  provider: heroku
+  api_key:
+    secure: ${herokuApiKey}
+  app: vatbubtictactoe
 env:
   global:
   - secure: m3dsGi+8WnjVKznMbMsDKO5Pdb7N1mXVjmSBgKegBbPZog8Ds9RDiuIYF3trkkiY/O3G7A0fTaHcpbicLDl7qZLtXu9vaIiximOaT1ay/Kx0oFd8xFOMhlWbziikPRrUMe/PzMnvlvBe5x7dZZb5to/BpUT6gUBzsCcqza76T7ZEVJw9bjKmD6AvMh6deGvznpQzoHjSSs6l78YK47kky2kWJPQxbii/87nWCAgUs02ItlPunCVFi6ALdZnf1K/TAt6yzmM3opIZP8wa2EYpSqSbKzcC2T35rZMCqNbWZxALisb8UGJOUElWSjSfjqGtTdTUoZhx3fjw9PJHvXaPLfjQH9ou2cUN4mX2bi3zgdSWJOB1+k4QTPPZBoxUzw+mnX6kfGM7uLX4/g3WqSOcu+8BXoO8FbR9GQtt/SqhmgNZ0x+aQd2w04UXWZOye2cKNSVBW8YeEPn+vy269flCI3K6UsqPe7ghLmVir+gc6NJaVTp4v5fsJ4Fi/l5Smsg+44r+OyaTE96rpZ0rKJL697bcGx6A56fe04pEaDixerI2WIslM2LnsL3Vy2yIEKjaKzrm5qQZRtrGOeoJ5mFQXOvoDDqbVPnKWdffxucn1poDvEU1NQAXYFoFHyjCVUkx1XBtF4AN4/SIoL5Xk+AEwN9b0xKn7GUMXHrBVdcaZzY=
