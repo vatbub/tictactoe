@@ -9,9 +9,9 @@ package com.github.vatbub.tictactoe.view;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,8 +30,7 @@ import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
 import com.github.vatbub.tictactoe.PlayerMode;
 import com.github.vatbub.tictactoe.common.Move;
-import com.github.vatbub.tictactoe.common.OnlineMultiplayerRequestOpponentResponse;
-import com.github.vatbub.tictactoe.common.ResponseCode;
+import com.github.vatbub.tictactoe.common.OnlineMultiPlayerRequestOpponentResponse;
 import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
 import com.github.vatbub.tictactoe.kryo.OnOpponentFoundRunnable;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
@@ -81,7 +80,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 /**
@@ -297,19 +295,13 @@ public class Main extends Application {
             desiredOpponentIdentifier = onlineDesiredOpponentName.getText();
         }
 
-        KryoGameConnections.requestOpponent(clientIdentifier, desiredOpponentIdentifier, new OnOpponentFoundRunnable() {
-            private boolean inversePlayerOrder = true;
-
+        KryoGameConnections.getInstance().requestOpponent(clientIdentifier, desiredOpponentIdentifier, new OnOpponentFoundRunnable() {
             @Override
-            public void run(OnlineMultiplayerRequestOpponentResponse response) {
-                if (response.getResponseCode() == ResponseCode.WaitForOpponent) {
-                    inversePlayerOrder = false;
-                } else {
-                    Main.this.setLoadingStatusText("Waiting for the opponent...");
-                    Platform.runLater(() -> Main.this.startGame(response.getOpponentIdentifier(), inversePlayerOrder));
-                }
+            public void run(OnlineMultiPlayerRequestOpponentResponse response) {
+                Main.this.setLoadingStatusText("Waiting for the opponent...");
+                Platform.runLater(() -> Main.this.startGame(response.getOpponentIdentifier(), !response.hasFirstTurn()));
             }
-        }, () -> Platform.runLater(() -> showErrorMessage("The game was cancelled.", "Disconnected from the server.")));
+        });
     }
 
     public void showErrorMessage(Throwable e) {
@@ -354,40 +346,16 @@ public class Main extends Application {
         setLoadingStatusText("The server is waking up, hang tight...", true);
         showLoadingScreen();
         Thread connectionThread = new Thread(() -> {
-            int maxRetries = 10;
-            int remainingRetries = maxRetries;
-            AtomicBoolean readyWithoutException = new AtomicBoolean(false);
-            Exception lastException = null;
-
-            while (remainingRetries > 0 && !readyWithoutException.get()) {
-                try {
-                    int finalRemainingRetries = remainingRetries;
-                    KryoGameConnections.connect(
-                            () -> {
-                                if (maxRetries == finalRemainingRetries)
-                                    // should only appear the first time
-                                    setLoadingStatusText("Connecting to the server...");
-                            },
-                            () -> Platform.runLater(() -> {
-                                readyWithoutException.set(true);
-                                hideLoadingScreen();
-                                showOnlineMenu();
-                            }));
-                } catch (Exception e) {
-                    remainingRetries--;
-                    setLoadingStatusText("This is taking longer than usual, hang tight (Retry " + (maxRetries - remainingRetries) + " of " + maxRetries + ")...");
-                    FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
-                    lastException = e;
-                }
-            }
-
-            if (!readyWithoutException.get()) {
-                if (lastException == null) {
-                    Platform.runLater(() -> showErrorMessage("Something went wrong.", "Unknown"));
-                } else {
-                    Exception finalLastException = lastException;
-                    Platform.runLater(() -> showErrorMessage(finalLastException));
-                }
+            try {
+                // KryoGameConnections.getInstance().connect(new URL(getApplicationConfiguration().getValue("defaultServerURL")),
+                KryoGameConnections.getInstance().connect(new URL("http://localhost:8080/tictactoe"),
+                        () -> Platform.runLater(() -> {
+                            hideLoadingScreen();
+                            showOnlineMenu();
+                        }));
+            } catch (Exception e) {
+                FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
+                Platform.runLater(() -> showErrorMessage(e));
             }
         });
         connectionThread.setName("connectionThread");
@@ -517,10 +485,10 @@ public class Main extends Application {
     @Override
     public void stop() {
         try {
-            if (KryoGameConnections.isGameConnected()) {
-                KryoGameConnections.sendCancelGameRequest();
+            if (KryoGameConnections.getInstance().isGameConnected()) {
+                KryoGameConnections.getInstance().sendCancelGameRequest();
             }
-            KryoGameConnections.resetConnections();
+            KryoGameConnections.getInstance().resetConnections();
         } catch (Exception e) {
             FOKLogger.log(Main.class.getName(), Level.SEVERE, "Exception in the application stop method", e);
         }
@@ -854,30 +822,34 @@ public class Main extends Application {
     }
 
     public void initNewGame() {
-        if (KryoGameConnections.isGameConnected()) {
-            KryoGameConnections.sendCancelGameRequest();
+        try {
+            if (KryoGameConnections.getInstance().isGameConnected()) {
+                KryoGameConnections.getInstance().sendCancelGameRequest();
+            }
+
+            KryoGameConnections.getInstance().resetConnections();
+            guiAnimationQueue.submit(() -> {
+                if (looserPane.isVisible()) {
+                    blurLooserPane();
+                }
+                if (tiePane.isVisible()) {
+                    blurTiePane();
+                }
+                if (winPane.isVisible()) {
+                    blurWinPane();
+                }
+                if (twoHumansWinnerPane.isVisible()) {
+                    blurTwoHumansWinnerPane();
+                }
+
+                updateAILevelLabel(true);
+                if (!isMenuShown()) {
+                    showMenu();
+                }
+            });
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
-
-        KryoGameConnections.resetConnections();
-        guiAnimationQueue.submit(() -> {
-            if (looserPane.isVisible()) {
-                blurLooserPane();
-            }
-            if (tiePane.isVisible()) {
-                blurTiePane();
-            }
-            if (winPane.isVisible()) {
-                blurWinPane();
-            }
-            if (twoHumansWinnerPane.isVisible()) {
-                blurTwoHumansWinnerPane();
-            }
-
-            updateAILevelLabel(true);
-            if (!isMenuShown()) {
-                showMenu();
-            }
-        });
     }
 
     private void startGame() {
@@ -918,7 +890,7 @@ public class Main extends Application {
                 }
                 updateCurrentPlayerLabel(true, inversePlayerOrderForOnlineGame);
 
-                KryoGameConnections.setConnectedBoard(board);
+                KryoGameConnections.getInstance().setConnectedBoard(board);
             });
         } else {
             guiAnimationQueue.submit(() -> {
@@ -1033,7 +1005,11 @@ public class Main extends Application {
             board.setGameEndCallback((winnerInfo) -> guiAnimationQueue.submit(() -> {
                 // disconnect after ending the game
                 if (board.getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman) || board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman)) {
-                    KryoGameConnections.resetConnections();
+                    try {
+                        KryoGameConnections.getInstance().resetConnections(false);
+                    } catch (URISyntaxException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 updateOpponentsTurnHBox(false, false);
                 FOKLogger.info(Main.class.getName(), "The winner is: " + winnerInfo.winningPlayer.getName());

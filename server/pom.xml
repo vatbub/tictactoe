@@ -63,7 +63,7 @@
     </ciManagement>
 
     <artifactId>tictactoe.server</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <name>tictactoe.server</name>
     <description>The server component required for online multiplayer gaming</description>
 
@@ -71,7 +71,7 @@
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <gitRepoName>tictactoe</gitRepoName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mainClass>com.github.vatbub.tictactoe.server.ServerMain</mainClass>
+        <mainClass>com.github.vatbub.tictactoe.server.ServerServlet</mainClass>
     </properties>
 
     <dependencies>
@@ -80,24 +80,16 @@
             <artifactId>tictactoe.common</artifactId>
             <version>0.0.5-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+        </dependency>
     </dependencies>
 
     <build>
         <finalName>${project.name}</finalName>
         <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <!-- Create the jar-with-dependencies -->
-                        <id>buildMainExecutableJar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>com.heroku.sdk</groupId>
                 <artifactId>heroku-maven-plugin</artifactId>

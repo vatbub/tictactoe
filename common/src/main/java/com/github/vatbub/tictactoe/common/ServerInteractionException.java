@@ -4,14 +4,14 @@ package com.github.vatbub.tictactoe.common;
  * #%L
  * tictactoe.common
  * %%
- * Copyright (C) 2016 - 2017 Frederik Kammel
+ * Copyright (C) 2016 - 2018 Frederik Kammel
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,20 +20,17 @@ package com.github.vatbub.tictactoe.common;
  * #L%
  */
 
+public abstract class ServerInteractionException extends RuntimeException implements ServerInteraction {
+    private String connectionId;
 
-import java.io.Serializable;
-
-/**
- * Sent by the server if a client sends a inappropriate request or any other error occurs while processing a clients request
- */
-@SuppressWarnings("unused")
-public class OnlineMultiplayerRequestOpponentException extends RuntimeException implements Serializable {
     /**
      * Constructs a new runtime exception with {@code null} as its
      * detail message.  The cause is not initialized, and may subsequently be
      * initialized by a call to {@link #initCause}.
      */
-    public OnlineMultiplayerRequestOpponentException() {
+    public ServerInteractionException(String connectionId) {
+        super();
+        setConnectionId(connectionId);
     }
 
     /**
@@ -44,8 +41,9 @@ public class OnlineMultiplayerRequestOpponentException extends RuntimeException 
      * @param message the detail message. The detail message is saved for
      *                later retrieval by the {@link #getMessage()} method.
      */
-    public OnlineMultiplayerRequestOpponentException(String message) {
+    public ServerInteractionException(String connectionId, String message) {
         super(message);
+        setConnectionId(connectionId);
     }
 
     /**
@@ -62,8 +60,9 @@ public class OnlineMultiplayerRequestOpponentException extends RuntimeException 
      *                unknown.)
      * @since 1.4
      */
-    public OnlineMultiplayerRequestOpponentException(String message, Throwable cause) {
+    public ServerInteractionException(String connectionId, String message, Throwable cause) {
         super(message, cause);
+        setConnectionId(connectionId);
     }
 
     /**
@@ -79,8 +78,9 @@ public class OnlineMultiplayerRequestOpponentException extends RuntimeException 
      *              unknown.)
      * @since 1.4
      */
-    public OnlineMultiplayerRequestOpponentException(Throwable cause) {
+    public ServerInteractionException(String connectionId, Throwable cause) {
         super(cause);
+        setConnectionId(connectionId);
     }
 
     /**
@@ -97,8 +97,18 @@ public class OnlineMultiplayerRequestOpponentException extends RuntimeException 
      *                           be writable
      * @since 1.7
      */
-    public OnlineMultiplayerRequestOpponentException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public ServerInteractionException(String connectionId, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
+        setConnectionId(connectionId);
     }
 
+    @Override
+    public String getConnectionId() {
+        return connectionId;
+    }
+
+    @Override
+    public void setConnectionId(String connectionId) {
+        this.connectionId = connectionId;
+    }
 }

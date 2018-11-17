@@ -32,6 +32,7 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -167,7 +168,11 @@ public class Board {
         this.setPlayerAt(move.getRow(), move.getColumn(), getCurrentPlayer());
 
         if (getOpponent(getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman) && !ignoreAI) {
-            KryoGameConnections.sendMove(move);
+            try {
+                KryoGameConnections.getInstance().sendMove(move);
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         WinnerInfo winnerInfo = getWinner(move.getRow(), move.getColumn());

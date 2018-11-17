@@ -2,9 +2,9 @@ package com.github.vatbub.tictactoe.common;
 
 /*-
  * #%L
- * tictactoe.client
+ * tictactoe.common
  * %%
- * Copyright (C) 2016 - 2017 Frederik Kammel
+ * Copyright (C) 2016 - 2018 Frederik Kammel
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +20,18 @@ package com.github.vatbub.tictactoe.common;
  * #L%
  */
 
+public class RemoveDataRequest extends Request {
+    private boolean cancelGames;
 
-/**
- * Sent as a response to a {@link CancelGameRequest}
- *
- * @see CancelGameRequest
- */
-public class CancelGameResponse extends Response {
-    private String reason;
-
-    public CancelGameResponse(String connectionId) {
-        this(connectionId, null);
+    public RemoveDataRequest(String connectionId) {
+        super(connectionId, RemoveDataRequest.class.getCanonicalName());
     }
 
-    public CancelGameResponse(String connectionId, String reason) {
-        super(connectionId, CancelGameResponse.class.getCanonicalName());
-        setReason(reason);
+    public boolean isCancelGames() {
+        return cancelGames;
     }
 
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
+    public void setCancelGames(boolean cancelGames) {
+        this.cancelGames = cancelGames;
     }
 }

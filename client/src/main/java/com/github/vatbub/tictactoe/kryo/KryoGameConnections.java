@@ -9,9 +9,9 @@ package com.github.vatbub.tictactoe.kryo;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,18 +21,19 @@ package com.github.vatbub.tictactoe.kryo;
  */
 
 
-import com.esotericsoftware.kryonet.Client;
-import com.esotericsoftware.kryonet.Connection;
-import com.esotericsoftware.kryonet.FrameworkMessage;
-import com.esotericsoftware.kryonet.Listener;
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.tictactoe.Board;
 import com.github.vatbub.tictactoe.common.*;
 import com.github.vatbub.tictactoe.view.Main;
+import com.google.gson.Gson;
+import com.jsunsoft.http.HttpRequest;
+import com.jsunsoft.http.HttpRequestBuilder;
+import com.jsunsoft.http.NoSuchContentException;
+import com.jsunsoft.http.ResponseDeserializer;
 import javafx.application.Platform;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.logging.Level;
 
@@ -41,128 +42,34 @@ import java.util.logging.Level;
  */
 @SuppressWarnings({"WeakerAccess"})
 public class KryoGameConnections {
-    private static Client kryoClient;
-    private static OnOpponentFoundRunnable onOpponentFoundRunnable;
-    private static Runnable onUnexpectedDisconnectRunnable;
-    private static OnlineMultiplayerRequestOpponentRequest lastOpponentRequest;
+    public static final String COMMON_PACKAGE_NAME = "com.github.vatbub.tictactoe.common";
+    private static KryoGameConnections instance;
+    private final Gson gson = new Gson();
+    private String connectionId;
+    private URL serverUrl;
+    private OnlineMultiPlayerRequestOpponentRequest lastOpponentRequest;
+    private Board connectedBoard;
+    private boolean gameConnected;
+    private Thread requestAndProcessGameDataThread;
+    private boolean stopGameDataProcessing;
 
-    private static Board connectedBoard;
-
-    @SuppressWarnings("unused")
-    public static void connect() throws Exception {
-        connect((Runnable) null, null);
+    public static KryoGameConnections getInstance() {
+        if (instance == null)
+            instance = new KryoGameConnections();
+        return instance;
     }
 
-    @SuppressWarnings("unused")
-    public static void connect(String host) throws IOException {
-        connect(host, null);
-    }
-
-    @SuppressWarnings("unused")
-    public static void connect(String host, int tcpPort) throws IOException {
-        connect(host, tcpPort, null);
-    }
-
-    public static void connect(Runnable onServerWakeUpCompleted, Runnable onConnected) throws Exception {
-        com.github.vatbub.awsec2wakelauncher.applicationclient.Client wakeLauncherClient = new com.github.vatbub.awsec2wakelauncher.applicationclient.Client(new URL(Main.getApplicationConfiguration().getValue("defaultWakeServerURL")));
-        com.github.vatbub.awsec2wakelauncher.applicationclient.Client.IpInfo ipInfo = wakeLauncherClient.launchAndWaitForInstance(Main.getApplicationConfiguration().getValue("defaultInstanceId"));
-
-        if (onServerWakeUpCompleted != null)
-            onServerWakeUpCompleted.run();
-        connect(ipInfo.getInstanceDns(), onConnected);
-    }
-
-    public static void connect(String host, Runnable onConnected) throws IOException {
-        connect(host, 90, onConnected);
-    }
-
-    public static void connect(String host, int tcpPort, Runnable onConnected) throws IOException {
-        if (isGameConnected()) {
-            resetConnections();
-        }
-
-        kryoClient = new Client();
-
-        kryoClient.start();
-        KryoCommon.registerRequiredClasses(kryoClient.getKryo());
-        kryoClient.getKryo().setReferences(true);
-        //registerGameClasses(kryoClient.getKryo());
-        kryoClient.setKeepAliveTCP(2500);
-
-        kryoClient.addListener(new Listener() {
-            @Override
-            public void disconnected(Connection connection) {
-                if (onUnexpectedDisconnectRunnable != null) {
-                    onUnexpectedDisconnectRunnable.run();
-                }
-            }
-
-            @Override
-            public void received(Connection connection, Object object) {
-                if (object instanceof OnlineMultiplayerRequestOpponentResponse) {
-                    OnlineMultiplayerRequestOpponentResponse response = (OnlineMultiplayerRequestOpponentResponse) object;
-                    FOKLogger.info(KryoGameConnections.class.getName(), "Received OnlineMultiplayerRequestOpponentResponse");
-                    FOKLogger.info(KryoGameConnections.class.getName(), "Response code: " + response.getResponseCode());
-
-                    if (onOpponentFoundRunnable != null) {
-                        onOpponentFoundRunnable.run(response);
-                    }
-                } else if (object instanceof Move && connection != null) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "The game received a move!");
-                    doMove((Move) object);
-                } else if (object instanceof CancelGameRequest && connection != null) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "The game received a CancelGameRequest!");
-                    connection.sendTCP(new CancelGameResponse());
-                    cancelGame(((CancelGameRequest) object).getReason());
-                } else if (object instanceof FrameworkMessage.KeepAlive) {
-                    FOKLogger.info(KryoGameConnections.class.getName(), "Received keepAlive message from server");
-                } else if (object instanceof GameException) {
-                    FOKLogger.log(KryoGameConnections.class.getName(), Level.SEVERE, "Received a GameException!", (GameException) object);
-                } else {
-                    FOKLogger.severe(KryoGameConnections.class.getName(), "Received illegal object");
-                }
-            }
-        });
-
-        kryoClient.connect(5000, host, tcpPort);
-
-        if (onConnected != null) {
-            onConnected.run();
-        }
-    }
-
-    public static void requestOpponent(String clientIdentifier, String desiredOpponentIdentifier, OnOpponentFoundRunnable onOpponentFound, Runnable onUnexpectedDisconnect) {
-        OnlineMultiplayerRequestOpponentRequest request = new OnlineMultiplayerRequestOpponentRequest();
-        request.setClientIdentifier(clientIdentifier);
-        request.setDesiredOpponentIdentifier(desiredOpponentIdentifier);
-        request.setOperation(Operation.RequestOpponent);
-
-        requestOpponent(request, onOpponentFound, onUnexpectedDisconnect);
-    }
-
-    public static void requestOpponent(OnlineMultiplayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound, Runnable onUnexpectedDisconnect) {
-        if (!isGameConnected()) {
-            throw new IllegalStateException("Not connected to the relay server");
-        }
-
-        FOKLogger.info(KryoGameConnections.class.getName(), "Requesting an opponent...");
-        onOpponentFoundRunnable = onOpponentFound;
-        onUnexpectedDisconnectRunnable = onUnexpectedDisconnect;
-        lastOpponentRequest = request;
-        kryoClient.sendTCP(request);
-    }
-
-    public static void abortLastOpponentRequestIfApplicable() {
+    public void abortLastOpponentRequestIfApplicable() throws URISyntaxException {
         if (lastOpponentRequest != null) {
             abortLastOpponentRequest();
         }
     }
 
-    public static void abortLastOpponentRequest() {
+    public void abortLastOpponentRequest() throws URISyntaxException {
         abortOpponentRequest(lastOpponentRequest);
     }
 
-    public static void abortOpponentRequest(OnlineMultiplayerRequestOpponentRequest request) {
+    public void abortOpponentRequest(OnlineMultiPlayerRequestOpponentRequest request) throws URISyntaxException {
         if (!isGameConnected()) {
             throw new IllegalStateException("Not connected to the relay server");
         }
@@ -170,10 +77,10 @@ public class KryoGameConnections {
         FOKLogger.info(KryoGameConnections.class.getName(), "Aborting the opponent request with id " + request.getRequestId() + "...");
 
         request.setOperation(Operation.AbortRequest);
-        kryoClient.sendTCP(request);
+        doRequest(serverUrl, request);
     }
 
-    private static void doMove(Move move) {
+    private void doMove(Move move) {
         if (getConnectedBoard().getPlayerAt(move.getRow(), move.getColumn()) == null && Main.currentMainWindowInstance.isBlockedForInput()) {
             getConnectedBoard().doTurn(move);
             Main.currentMainWindowInstance.updateCurrentPlayerLabel();
@@ -181,39 +88,36 @@ public class KryoGameConnections {
         }
     }
 
-
-    public static Board getConnectedBoard() {
+    public Board getConnectedBoard() {
         return connectedBoard;
     }
 
-    public static void setConnectedBoard(Board connectedBoard) {
-        KryoGameConnections.connectedBoard = connectedBoard;
+    public void setConnectedBoard(Board connectedBoard) {
+        this.connectedBoard = connectedBoard;
     }
 
-    public static void sendMove(Move move) {
+    public void sendMove(Move move) throws URISyntaxException {
         FOKLogger.info(KryoGameConnections.class.getName(), "Sending a move...");
         if (isGameConnected()) {
-            kryoClient.sendTCP(move);
+            doRequest(serverUrl, new MoveRequest(connectionId, move));
         } else {
             throw new IllegalStateException("Game not connected");
         }
     }
 
-    public static void sendCancelGameRequest() {
+    public void sendCancelGameRequest() throws URISyntaxException {
         FOKLogger.info(KryoGameConnections.class.getName(), "Cancelling the game...");
         if (isGameConnected()) {
-            kryoClient.sendTCP(new CancelGameRequest());
-        } else {
-            throw new IllegalStateException("Game not connected");
+            doRequest(serverUrl, new CancelGameRequest(connectionId));
         }
     }
 
-    public static boolean isGameConnected() {
-        return kryoClient != null;
+    public boolean isGameConnected() {
+        return connectionId != null;
     }
 
-    public static void cancelGame(@Nullable String reason) {
-        KryoGameConnections.resetConnections();
+    public void cancelGame(@Nullable String reason) throws URISyntaxException {
+        resetConnections(false);
         if (reason == null) {
             reason = "The opponent cancelled the game.";
         }
@@ -221,17 +125,167 @@ public class KryoGameConnections {
         Platform.runLater(() -> Main.currentMainWindowInstance.showErrorMessage("The game was cancelled.", finalReason));
     }
 
+    public void resetConnections() throws URISyntaxException {
+        resetConnections(true);
+    }
+
     /**
      * Closes all internet connections and aborts pending opponent requests
      */
-    public static void resetConnections() {
+    public void resetConnections(boolean cancelGamesOnServer) throws URISyntaxException {
         FOKLogger.info(KryoGameConnections.class.getName(), "Resetting all kryo connections...");
-        onUnexpectedDisconnectRunnable = null;
+
         if (isGameConnected()) {
-            Client oldRelayKryoClient = kryoClient;
             abortLastOpponentRequestIfApplicable();
-            oldRelayKryoClient.stop();
-            kryoClient = null;
+            RemoveDataRequest removeDataRequest = new RemoveDataRequest(connectionId);
+            removeDataRequest.setCancelGames(cancelGamesOnServer);
+            doRequest(serverUrl, removeDataRequest);
+        }
+
+        if (cancelGamesOnServer)
+            stopGameDataProcessing();
+
+        connectionId = null;
+        serverUrl = null;
+    }
+
+    private String doRequest(URL url, String json) throws URISyntaxException {
+        FOKLogger.info(getClass().getName(), "Sending the following json:\n" + json);
+        HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(url.toURI(), String.class)
+                .responseDeserializer(ResponseDeserializer.ignorableDeserializer()).build();
+        String responseJson = httpRequest.executeWithBody(json).get();
+        FOKLogger.info(getClass().getName(), "Received the following json:\n" + responseJson);
+        return responseJson;
+    }
+
+    private <T extends ServerInteraction> T doRequestWithType(URL url, ServerInteraction request) throws URISyntaxException {
+        ServerInteraction response = doRequest(url, request);
+        //noinspection unchecked
+        return (T) response;
+    }
+
+    private ServerInteraction doRequest(URL url, ServerInteraction request) throws URISyntaxException {
+        String json = doRequest(url, gson.toJson(request));
+        ServerInteraction response = gson.fromJson(json, ServerInteractionImpl.class);
+        switch (response.getClassName()) {
+            case COMMON_PACKAGE_NAME + ".CancelGameResponse":
+                return gson.fromJson(json, CancelGameResponse.class);
+            case COMMON_PACKAGE_NAME + ".BadRequestException":
+                return gson.fromJson(json, BadRequestException.class);
+            case COMMON_PACKAGE_NAME + ".GetConnectionIdResponse":
+                return gson.fromJson(json, GetConnectionIdResponse.class);
+            case COMMON_PACKAGE_NAME + ".GetGameDataResponse":
+                return gson.fromJson(json, GetGameDataResponse.class);
+            case COMMON_PACKAGE_NAME + ".OnlineMultiPlayerRequestOpponentException":
+                return gson.fromJson(json, OnlineMultiPlayerRequestOpponentException.class);
+            case COMMON_PACKAGE_NAME + ".OnlineMultiPlayerRequestOpponentResponse":
+                return gson.fromJson(json, OnlineMultiPlayerRequestOpponentResponse.class);
+            case COMMON_PACKAGE_NAME + ".RemoveDataResponse":
+                return gson.fromJson(json, RemoveDataResponse.class);
+            case COMMON_PACKAGE_NAME + ".MoveResponse":
+                return gson.fromJson(json, MoveResponse.class);
+            default:
+                return response;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void connect(URL serverUrl) throws URISyntaxException {
+        connect(serverUrl, null);
+    }
+
+    public void connect(URL serverUrl, Runnable onConnected) throws URISyntaxException {
+        if (isGameConnected()) {
+            resetConnections();
+        }
+
+        this.serverUrl = serverUrl;
+        GetConnectionIdResponse getConnectionIdResponse = doRequestWithType(serverUrl, new GetConnectionIdRequest());
+        connectionId = getConnectionIdResponse.getConnectionId();
+
+        if (onConnected != null) {
+            onConnected.run();
+        }
+    }
+
+    public void requestOpponent(String clientIdentifier, String desiredOpponentIdentifier, OnOpponentFoundRunnable onOpponentFound) {
+        OnlineMultiPlayerRequestOpponentRequest request = new OnlineMultiPlayerRequestOpponentRequest(connectionId);
+        request.setClientIdentifier(clientIdentifier);
+        request.setDesiredOpponentIdentifier(desiredOpponentIdentifier);
+        request.setOperation(Operation.RequestOpponent);
+
+        requestOpponent(request, onOpponentFound);
+    }
+
+    public void requestOpponent(OnlineMultiPlayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound) {
+        if (!isGameConnected()) {
+            throw new IllegalStateException("Not connected to the relay server");
+        }
+
+        FOKLogger.info(KryoGameConnections.class.getName(), "Requesting an opponent...");
+        lastOpponentRequest = request;
+
+        Thread pollThread = new Thread(() -> {
+            try {
+                OnlineMultiPlayerRequestOpponentResponse response;
+                int waitTime = 10;
+                do {
+                    Thread.sleep(waitTime);
+                    waitTime = waitTime * 2;
+                    FOKLogger.info(KryoGameConnections.class.getName(), "Waiting for an opponent...");
+                    response = doRequestWithType(serverUrl, request);
+                    FOKLogger.info(KryoGameConnections.class.getName(), "Response code: " + response.getResponseCode());
+                } while (response.getResponseCode() == ResponseCode.WaitForOpponent);
+
+                lastOpponentRequest = null;
+                if (response.getResponseCode() == ResponseCode.OpponentFound && onOpponentFound != null)
+                    onOpponentFound.run(response);
+
+                requestAndProcessGameData();
+            } catch (URISyntaxException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        pollThread.start();
+    }
+
+    private void requestAndProcessGameData() {
+        stopGameDataProcessing = false;
+        requestAndProcessGameDataThread = new Thread(() -> {
+            try {
+                GetGameDataResponse response;
+                while (!stopGameDataProcessing) {
+                    response = doRequestWithType(serverUrl, new GetGameDataRequest(connectionId));
+                    if (response.isGameCancelled()) {
+                        cancelGame(response.getCancelReason());
+                        break;
+                    }
+
+                    if (response.getMoves() == null)
+                        continue;
+
+                    for (Move move : response.getMoves())
+                        doMove(move);
+                }
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            } catch (NoSuchContentException e) {
+                FOKLogger.log(getClass().getName(), Level.SEVERE, "Unable to get game data", e);
+            }
+        });
+        requestAndProcessGameDataThread.start();
+    }
+
+    private void stopGameDataProcessing() {
+        if (requestAndProcessGameDataThread == null || !requestAndProcessGameDataThread.isAlive())
+            return;
+
+        stopGameDataProcessing = true;
+        try {
+            requestAndProcessGameDataThread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 }

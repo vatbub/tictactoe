@@ -24,17 +24,19 @@ package com.github.vatbub.tictactoe.common;
 import com.google.common.base.Charsets;
 import com.google.common.hash.Hashing;
 
-import java.io.Serializable;
-
 /**
  * Request sent bz the client to specify that it seeks a opponent
  */
 @SuppressWarnings("WeakerAccess")
-public class OnlineMultiplayerRequestOpponentRequest implements Serializable {
+public class OnlineMultiPlayerRequestOpponentRequest extends Request {
     private final String salt = generateSalt();
     private String clientIdentifier;
     private String desiredOpponentIdentifier;
     private int operation;
+
+    public OnlineMultiPlayerRequestOpponentRequest(String connectionId) {
+        super(connectionId, OnlineMultiPlayerRequestOpponentRequest.class.getCanonicalName());
+    }
 
     /**
      * Generates a random string with a length of 8 characters.
@@ -87,17 +89,17 @@ public class OnlineMultiplayerRequestOpponentRequest implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof OnlineMultiplayerRequestOpponentRequest)) {
+        if (!(obj instanceof OnlineMultiPlayerRequestOpponentRequest)) {
             return false;
         } else {
-            OnlineMultiplayerRequestOpponentRequest castObj = (OnlineMultiplayerRequestOpponentRequest) obj;
+            OnlineMultiPlayerRequestOpponentRequest castObj = (OnlineMultiPlayerRequestOpponentRequest) obj;
             return getRequestId().equals(castObj.getRequestId());
         }
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
-    public OnlineMultiplayerRequestOpponentRequest clone() {
-        OnlineMultiplayerRequestOpponentRequest res = new OnlineMultiplayerRequestOpponentRequest();
+    public OnlineMultiPlayerRequestOpponentRequest clone() {
+        OnlineMultiPlayerRequestOpponentRequest res = new OnlineMultiPlayerRequestOpponentRequest(this.getConnectionId());
         res.setOperation(this.getOperation());
         res.setDesiredOpponentIdentifier(this.getDesiredOpponentIdentifier());
         res.setClientIdentifier(this.getClientIdentifier());

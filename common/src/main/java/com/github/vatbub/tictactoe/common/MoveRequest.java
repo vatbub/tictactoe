@@ -2,9 +2,9 @@ package com.github.vatbub.tictactoe.common;
 
 /*-
  * #%L
- * tictactoe.client
+ * tictactoe.common
  * %%
- * Copyright (C) 2016 - 2017 Frederik Kammel
+ * Copyright (C) 2016 - 2018 Frederik Kammel
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,29 +20,19 @@ package com.github.vatbub.tictactoe.common;
  * #L%
  */
 
+public class MoveRequest extends Request {
+    private Move move;
 
-/**
- * Sent as a response to a {@link CancelGameRequest}
- *
- * @see CancelGameRequest
- */
-public class CancelGameResponse extends Response {
-    private String reason;
-
-    public CancelGameResponse(String connectionId) {
-        this(connectionId, null);
+    public MoveRequest(String connectionId, Move move) {
+        super(connectionId, MoveRequest.class.getCanonicalName());
+        setMove(move);
     }
 
-    public CancelGameResponse(String connectionId, String reason) {
-        super(connectionId, CancelGameResponse.class.getCanonicalName());
-        setReason(reason);
+    public Move getMove() {
+        return move;
     }
 
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
+    public void setMove(Move move) {
+        this.move = move;
     }
 }

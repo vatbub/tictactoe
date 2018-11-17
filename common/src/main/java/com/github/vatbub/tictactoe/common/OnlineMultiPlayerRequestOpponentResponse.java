@@ -21,22 +21,22 @@ package com.github.vatbub.tictactoe.common;
  */
 
 
-import java.io.Serializable;
-
 /**
- * Response to a {@link OnlineMultiplayerRequestOpponentRequest} that tells the requesting client if it has to wait or not
+ * Response to a {@link OnlineMultiPlayerRequestOpponentRequest} that tells the requesting client if it has to wait or not
  * and if not, who the opponent is.
  */
 @SuppressWarnings("WeakerAccess")
-public class OnlineMultiplayerRequestOpponentResponse implements Serializable {
+public class OnlineMultiPlayerRequestOpponentResponse extends Response {
     private ResponseCode responseCode;
     private String opponentIdentifier;
+    private boolean hasFirstTurn;
 
-    public OnlineMultiplayerRequestOpponentResponse(ResponseCode responseCode) {
-        this(responseCode, null);
+    public OnlineMultiPlayerRequestOpponentResponse(String connectionId, ResponseCode responseCode) {
+        this(connectionId, responseCode, null);
     }
 
-    public OnlineMultiplayerRequestOpponentResponse(ResponseCode responseCode, String opponentIdentifier) {
+    public OnlineMultiPlayerRequestOpponentResponse(String connectionId, ResponseCode responseCode, String opponentIdentifier) {
+        super(connectionId, OnlineMultiPlayerRequestOpponentResponse.class.getCanonicalName());
         setResponseCode(responseCode);
         setOpponentIdentifier(opponentIdentifier);
     }
@@ -55,5 +55,13 @@ public class OnlineMultiplayerRequestOpponentResponse implements Serializable {
 
     public void setOpponentIdentifier(String opponentIdentifier) {
         this.opponentIdentifier = opponentIdentifier;
+    }
+
+    public boolean hasFirstTurn() {
+        return hasFirstTurn;
+    }
+
+    public void setHasFirstTurn(boolean hasFirstTurn) {
+        this.hasFirstTurn = hasFirstTurn;
     }
 }
