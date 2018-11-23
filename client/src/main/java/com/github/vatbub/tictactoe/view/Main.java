@@ -30,9 +30,7 @@ import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
 import com.github.vatbub.tictactoe.PlayerMode;
 import com.github.vatbub.tictactoe.common.Move;
-import com.github.vatbub.tictactoe.common.OnlineMultiPlayerRequestOpponentResponse;
 import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
-import com.github.vatbub.tictactoe.kryo.OnOpponentFoundRunnable;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import com.sun.javafx.tk.Toolkit;
@@ -64,7 +62,6 @@ import javafx.scene.shape.*;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.util.Duration;
@@ -213,6 +210,8 @@ public class Main extends Application {
     private Label twoHumansWinnerText;
     @FXML
     private AnchorPane playOnlineClipAnchorPane;
+    @FXML
+    private TextField onlineServerUrl;
     private Timeline updateMenuHeightTimeline;
 
     public Main() {
@@ -283,25 +282,7 @@ public class Main extends Application {
     @FXML
     void onlineStartButtonOnAction(ActionEvent event) {
         hideOnlineMenu();
-        setLoadingStatusText("Searching for an opponent...", true);
-        showLoadingScreen();
-        String clientIdentifier = onlineMyUsername.getText();
-        if (clientIdentifier.equals("")) {
-            clientIdentifier = onlineMyUsername.getPromptText();
-        }
-
-        String desiredOpponentIdentifier = null;
-        if (!onlineDesiredOpponentName.getText().equals("")) {
-            desiredOpponentIdentifier = onlineDesiredOpponentName.getText();
-        }
-
-        KryoGameConnections.getInstance().requestOpponent(clientIdentifier, desiredOpponentIdentifier, new OnOpponentFoundRunnable() {
-            @Override
-            public void run(OnlineMultiPlayerRequestOpponentResponse response) {
-                Main.this.setLoadingStatusText("Waiting for the opponent...");
-                Platform.runLater(() -> Main.this.startGame(response.getOpponentIdentifier(), !response.hasFirstTurn()));
-            }
-        });
+        connectToRelayServer();
     }
 
     public void showErrorMessage(Throwable e) {
@@ -332,7 +313,7 @@ public class Main extends Application {
     @FXML
     void playOnlineHyperlinkOnAction(ActionEvent event) {
         if (!onlineMenuBox.isVisible()) {
-            connectToRelayServer();
+            showOnlineMenu();
         } else {
             guiAnimationQueue.submit(() -> {
                 guiAnimationQueue.setBlocked(true);
@@ -347,10 +328,22 @@ public class Main extends Application {
         showLoadingScreen();
         Thread connectionThread = new Thread(() -> {
             try {
-                KryoGameConnections.getInstance().connect(new URL(getApplicationConfiguration().getValue("newDefaultServerUrl")),
+                String serverUrl = onlineServerUrl.getText().isEmpty() ? getApplicationConfiguration().getValue("newDefaultServerUrl") : onlineServerUrl.getText();
+                KryoGameConnections.getInstance().connect(new URL(serverUrl),
                         () -> Platform.runLater(() -> {
-                            hideLoadingScreen();
-                            showOnlineMenu();
+                            setLoadingStatusText("Searching for an opponent...");
+                            String clientIdentifier = onlineMyUsername.getText();
+                            if (clientIdentifier.isEmpty())
+                                clientIdentifier = onlineMyUsername.getPromptText();
+
+                            String desiredOpponentIdentifier = null;
+                            if (!onlineDesiredOpponentName.getText().isEmpty())
+                                desiredOpponentIdentifier = onlineDesiredOpponentName.getText();
+
+                            KryoGameConnections.getInstance().requestOpponent(clientIdentifier, desiredOpponentIdentifier, response -> {
+                                Main.this.setLoadingStatusText("Waiting for the opponent...");
+                                Platform.runLater(() -> Main.this.startGame(response.getOpponentIdentifier(), !response.hasFirstTurn()));
+                            });
                         }));
             } catch (Exception e) {
                 FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
@@ -422,9 +415,16 @@ public class Main extends Application {
         guiAnimationQueue.submit(() -> {
             guiAnimationQueue.setBlocked(true);
             playOnlineHyperlink.setText("Play offline");
-            fadeNode(menuBox, 0);
-            showMenuBackground();
-            fadeNode(onlineMenuBox, 1, () -> guiAnimationQueue.setBlocked(false));
+
+            String defaultUrl = getApplicationConfiguration().getValue("newDefaultServerUrl");
+            onlineServerUrl.setPromptText(defaultUrl);
+            if (onlineServerUrl.getText().isEmpty())
+                onlineServerUrl.setText(defaultUrl);
+
+            fadeNode(menuBox, 0, () -> {
+                showMenuBackground();
+                fadeNode(onlineMenuBox, 1, () -> guiAnimationQueue.setBlocked(false));
+            });
         });
     }
 
@@ -439,7 +439,8 @@ public class Main extends Application {
     @FXML
     void errorRetryOnAction(ActionEvent event) {
         hideErrorScreen();
-        connectToRelayServer();
+        hideLoadingScreen();
+        showOnlineMenu();
     }
 
     @FXML
@@ -484,10 +485,10 @@ public class Main extends Application {
     @Override
     public void stop() {
         try {
-            if (KryoGameConnections.getInstance().isGameConnected()) {
+            if (KryoGameConnections.getInstance().isConnectedToServer() && KryoGameConnections.getInstance().isGameConnected())
                 KryoGameConnections.getInstance().sendCancelGameRequest();
-            }
-            KryoGameConnections.getInstance().resetConnections();
+
+            KryoGameConnections.getInstance().resetConnections(true);
         } catch (Exception e) {
             FOKLogger.log(Main.class.getName(), Level.SEVERE, "Exception in the application stop method", e);
         }
@@ -822,7 +823,7 @@ public class Main extends Application {
 
     public void initNewGame() {
         try {
-            if (KryoGameConnections.getInstance().isGameConnected()) {
+            if (KryoGameConnections.getInstance().isConnectedToServer() && KryoGameConnections.getInstance().isGameConnected()) {
                 KryoGameConnections.getInstance().sendCancelGameRequest();
             }
 
@@ -1148,12 +1149,6 @@ public class Main extends Application {
 
     private void setLowerRightAnchorPaneDimensions(Labeled nodeToShow, Labeled nodeToHide, boolean noAnimation) {
         setLowerRightAnchorPaneDimensions(nodeToShow, nodeToHide, noAnimation, 0);
-    }
-
-    private double computeTextWidth(Font font, String text) {
-        Text sampleText = new Text(text);
-        sampleText.setFont(font);
-        return sampleText.getLayoutBounds().getWidth();
     }
 
     private void setLowerRightAnchorPaneDimensions(Labeled nodeToShow, Labeled nodeToHide, boolean noAnimation, double widthOffset) {

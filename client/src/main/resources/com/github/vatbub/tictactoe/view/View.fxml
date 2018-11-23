@@ -2,11 +2,6 @@
 
 <!--suppress ALL -->
 
-<?import java.lang.*?>
-<?import javafx.geometry.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.shape.*?>
-<?import org.controlsfx.control.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.effect.*?>
@@ -16,7 +11,6 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.text.*?>
 <?import org.controlsfx.control.ToggleSwitch?>
-
 <AnchorPane fx:id="root" prefHeight="645.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.vatbub.tictactoe.view.Main">
    <children>
       <AnchorPane fx:id="gamePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -271,6 +265,13 @@
                                  </font>
                               </Label>
                               <TextField fx:id="onlineDesiredOpponentName" promptText="Blank for a random player" style="-fx-prompt-text-fill: #888888;" />
+                               <Label text="Server URL">
+                                   <font>
+                                       <Font name="System Bold" size="15.0"/>
+                                   </font>
+                               </Label>
+                               <TextField fx:id="onlineServerUrl" promptText="http://example.com/tictactoe"
+                                          style="-fx-prompt-text-fill: #888888;"/>
                               <Button defaultButton="true" maxWidth="271.0" mnemonicParsing="false" onAction="#onlineStartButtonOnAction" text="Start" />
                            </children>
                         </VBox>
