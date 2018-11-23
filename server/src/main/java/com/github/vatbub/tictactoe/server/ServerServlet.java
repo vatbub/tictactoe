@@ -168,6 +168,11 @@ public class ServerServlet extends HttpServlet {
 
                     response = getOrCreateGameData(connection);
                     break;
+                case COMMON_PACKAGE_NAME + ".IsEnrolledInGameRequest":
+                    if (connection == null)
+                        throw new IllegalArgumentException("The connection id must not be null");
+                    response = new IsEnrolledInGameResponse(connection, connectionMap.containsKey(connection));
+                    break;
                 case COMMON_PACKAGE_NAME + ".OnlineMultiPlayerRequestOpponentRequest":
                     if (connection == null)
                         throw new IllegalArgumentException("The connection id must not be null");

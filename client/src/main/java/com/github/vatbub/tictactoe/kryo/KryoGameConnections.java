@@ -70,9 +70,8 @@ public class KryoGameConnections {
     }
 
     public void abortOpponentRequest(OnlineMultiPlayerRequestOpponentRequest request) throws URISyntaxException {
-        if (!isGameConnected()) {
+        if (!isConnectedToServer())
             throw new IllegalStateException("Not connected to the relay server");
-        }
 
         FOKLogger.info(KryoGameConnections.class.getName(), "Aborting the opponent request with id " + request.getRequestId() + "...");
 
@@ -98,22 +97,28 @@ public class KryoGameConnections {
 
     public void sendMove(Move move) throws URISyntaxException {
         FOKLogger.info(KryoGameConnections.class.getName(), "Sending a move...");
-        if (isGameConnected()) {
+        if (isConnectedToServer())
             doRequest(serverUrl, new MoveRequest(connectionId, move));
-        } else {
+        else
             throw new IllegalStateException("Game not connected");
-        }
     }
 
     public void sendCancelGameRequest() throws URISyntaxException {
         FOKLogger.info(KryoGameConnections.class.getName(), "Cancelling the game...");
-        if (isGameConnected()) {
+        if (isConnectedToServer()) {
             doRequest(serverUrl, new CancelGameRequest(connectionId));
         }
     }
 
-    public boolean isGameConnected() {
+    public boolean isConnectedToServer() {
         return connectionId != null;
+    }
+
+    public boolean isGameConnected() throws URISyntaxException {
+        if (!isConnectedToServer())
+            throw new IllegalStateException("Not connected to a server");
+        IsEnrolledInGameResponse response = doRequestWithType(serverUrl, new IsEnrolledInGameRequest(connectionId));
+        return response.isEnrolled();
     }
 
     public void cancelGame(@Nullable String reason) throws URISyntaxException {
@@ -135,7 +140,7 @@ public class KryoGameConnections {
     public void resetConnections(boolean cancelGamesOnServer) throws URISyntaxException {
         FOKLogger.info(KryoGameConnections.class.getName(), "Resetting all kryo connections...");
 
-        if (isGameConnected()) {
+        if (isConnectedToServer()) {
             abortLastOpponentRequestIfApplicable();
             RemoveDataRequest removeDataRequest = new RemoveDataRequest(connectionId);
             removeDataRequest.setCancelGames(cancelGamesOnServer);
@@ -182,6 +187,8 @@ public class KryoGameConnections {
                 return gson.fromJson(json, OnlineMultiPlayerRequestOpponentResponse.class);
             case COMMON_PACKAGE_NAME + ".RemoveDataResponse":
                 return gson.fromJson(json, RemoveDataResponse.class);
+            case COMMON_PACKAGE_NAME + ".IsEnrolledInGameResponse":
+                return gson.fromJson(json, IsEnrolledInGameResponse.class);
             case COMMON_PACKAGE_NAME + ".MoveResponse":
                 return gson.fromJson(json, MoveResponse.class);
             default:
@@ -195,7 +202,7 @@ public class KryoGameConnections {
     }
 
     public void connect(URL serverUrl, Runnable onConnected) throws URISyntaxException {
-        if (isGameConnected()) {
+        if (isConnectedToServer()) {
             resetConnections();
         }
 
@@ -218,9 +225,8 @@ public class KryoGameConnections {
     }
 
     public void requestOpponent(OnlineMultiPlayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound) {
-        if (!isGameConnected()) {
+        if (!isConnectedToServer())
             throw new IllegalStateException("Not connected to the relay server");
-        }
 
         FOKLogger.info(KryoGameConnections.class.getName(), "Requesting an opponent...");
         lastOpponentRequest = request;

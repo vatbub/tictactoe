@@ -59,7 +59,6 @@ public class ServerServletTest extends TomcatTest {
     private final String identifier2 = identifierPrefix + Math.round(Math.random() * 1000);
     private OnlineMultiPlayerRequestOpponentRequest request1;
     private OnlineMultiPlayerRequestOpponentRequest request2;
-    private Throwable throwable;
     private String connectionId1;
     private String connectionId2;
 
@@ -120,6 +119,8 @@ public class ServerServletTest extends TomcatTest {
                 return gson.fromJson(json, OnlineMultiPlayerRequestOpponentResponse.class);
             case ServerServlet.COMMON_PACKAGE_NAME + ".RemoveDataResponse":
                 return gson.fromJson(json, RemoveDataResponse.class);
+            case ServerServlet.COMMON_PACKAGE_NAME + ".IsEnrolledInGameResponse":
+                return gson.fromJson(json, IsEnrolledInGameResponse.class);
             case ServerServlet.COMMON_PACKAGE_NAME + ".MoveResponse":
                 return gson.fromJson(json, MoveResponse.class);
             default:
@@ -354,6 +355,24 @@ public class ServerServletTest extends TomcatTest {
         Assert.assertFalse(gameDataResponse2.isGameCancelled());
         Assert.assertEquals(1, gameDataResponse2.getMoves().size());
         Assert.assertEquals(moveRequest2.getMove(), gameDataResponse2.getMoves().get(0));
+    }
+
+    @Test
+    public void isEnrolledTestWhileNotEnrolledInGameTest() throws MalformedURLException, URISyntaxException {
+        ServerInteraction response = doRequest(new IsEnrolledInGameRequest(connectionId1));
+        Assert.assertTrue(response instanceof IsEnrolledInGameResponse);
+        IsEnrolledInGameResponse isEnrolledInGameResponse = (IsEnrolledInGameResponse) response;
+        Assert.assertFalse(isEnrolledInGameResponse.isEnrolled());
+    }
+
+    @Test
+    public void isEnrolledTestWhileEnrolledInGameTest() throws Throwable {
+        twoRequestsNoDesiredOpponent();
+
+        ServerInteraction response = doRequest(new IsEnrolledInGameRequest(connectionId1));
+        Assert.assertTrue(response instanceof IsEnrolledInGameResponse);
+        IsEnrolledInGameResponse isEnrolledInGameResponse = (IsEnrolledInGameResponse) response;
+        Assert.assertTrue(isEnrolledInGameResponse.isEnrolled());
     }
 
     @Test
