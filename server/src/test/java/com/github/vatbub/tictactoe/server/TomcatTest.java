@@ -1,4 +1,4 @@
-package com.github.vatbub.tictactoe.common.testing;
+package com.github.vatbub.tictactoe.server;
 
 /*-
  * #%L

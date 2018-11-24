@@ -23,7 +23,6 @@ package com.github.vatbub.tictactoe.server;
 
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.tictactoe.common.*;
-import com.github.vatbub.tictactoe.common.testing.TomcatTest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jsunsoft.http.HttpRequest;
