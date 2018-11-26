@@ -49,7 +49,6 @@ public class KryoGameConnections {
     private URL serverUrl;
     private OnlineMultiPlayerRequestOpponentRequest lastOpponentRequest;
     private Board connectedBoard;
-    private boolean gameConnected;
     private Thread requestAndProcessGameDataThread;
     private boolean stopGameDataProcessing;
 
@@ -60,8 +59,13 @@ public class KryoGameConnections {
     }
 
     public void abortLastOpponentRequestIfApplicable() throws URISyntaxException {
-        if (lastOpponentRequest != null) {
-            abortLastOpponentRequest();
+        try {
+            if (lastOpponentRequest != null)
+                abortLastOpponentRequest();
+        } catch (URISyntaxException e) {
+            throw e;
+        } catch (Exception e) {
+            FOKLogger.log(getClass().getName(), Level.SEVERE, "Unable to abort the last opponent request due to an exception", e);
         }
     }
 
@@ -215,16 +219,16 @@ public class KryoGameConnections {
         }
     }
 
-    public void requestOpponent(String clientIdentifier, String desiredOpponentIdentifier, OnOpponentFoundRunnable onOpponentFound) {
+    public void requestOpponent(String clientIdentifier, String desiredOpponentIdentifier, OnOpponentFoundRunnable onOpponentFound, OnExceptionRunnable onException) {
         OnlineMultiPlayerRequestOpponentRequest request = new OnlineMultiPlayerRequestOpponentRequest(connectionId);
         request.setClientIdentifier(clientIdentifier);
         request.setDesiredOpponentIdentifier(desiredOpponentIdentifier);
         request.setOperation(Operation.RequestOpponent);
 
-        requestOpponent(request, onOpponentFound);
+        requestOpponent(request, onOpponentFound, onException);
     }
 
-    public void requestOpponent(OnlineMultiPlayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound) {
+    public void requestOpponent(OnlineMultiPlayerRequestOpponentRequest request, OnOpponentFoundRunnable onOpponentFound, OnExceptionRunnable onException) {
         if (!isConnectedToServer())
             throw new IllegalStateException("Not connected to the relay server");
 
@@ -248,8 +252,8 @@ public class KryoGameConnections {
                     onOpponentFound.run(response);
 
                 requestAndProcessGameData();
-            } catch (URISyntaxException | InterruptedException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                onException.run(e);
             }
         });
 
@@ -293,5 +297,19 @@ public class KryoGameConnections {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Called when a opponent was found using {@link KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable, OnExceptionRunnable)}
+     *
+     * @see KryoGameConnections#requestOpponent(OnlineMultiPlayerRequestOpponentRequest, OnOpponentFoundRunnable, OnExceptionRunnable)
+     * @see KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable, OnExceptionRunnable)
+     */
+    public interface OnOpponentFoundRunnable {
+        void run(OnlineMultiPlayerRequestOpponentResponse response);
+    }
+
+    public interface OnExceptionRunnable {
+        void run(Throwable throwable);
     }
 }

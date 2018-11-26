@@ -343,7 +343,7 @@ public class Main extends Application {
                             KryoGameConnections.getInstance().requestOpponent(clientIdentifier, desiredOpponentIdentifier, response -> {
                                 Main.this.setLoadingStatusText("Waiting for the opponent...");
                                 Platform.runLater(() -> Main.this.startGame(response.getOpponentIdentifier(), !response.hasFirstTurn()));
-                            });
+                            }, (throwable) -> Platform.runLater(() -> Main.this.showErrorMessage(throwable)));
                         }));
             } catch (Exception e) {
                 FOKLogger.log(Main.class.getName(), Level.SEVERE, "Could not connect to the relay server: " + e.getMessage(), e);
