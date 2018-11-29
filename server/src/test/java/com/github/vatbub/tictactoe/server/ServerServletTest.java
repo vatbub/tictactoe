@@ -25,11 +25,10 @@ import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.tictactoe.common.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.jsunsoft.http.HttpRequest;
-import com.jsunsoft.http.HttpRequestBuilder;
-import com.jsunsoft.http.NoSuchContentException;
-import com.jsunsoft.http.ResponseDeserializer;
+import com.jsunsoft.http.*;
 import org.apache.catalina.LifecycleException;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -87,8 +86,32 @@ public class ServerServletTest extends TomcatTest {
 
     private String doRequest(String json) throws MalformedURLException, URISyntaxException {
         FOKLogger.info(getClass().getName(), "Sending the following json:\n" + json);
-        HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(new URL(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix).toURI(), String.class)
-                .responseDeserializer(ResponseDeserializer.ignorableDeserializer()).build();
+        HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(new URL(new URL("http", "localhost", TOMCAT_PORT, ""), apiSuffix).toURI(), String.class).addDefaultHeader("Content-Type", "application/json; charset=UTF-8")
+                .responseDeserializer(new ResponseDeserializer<String>() {
+                    @Override
+                    public String deserialize(ResponseContext responseContext) throws IOException {
+                        FOKLogger.info(getClass().getName(), "Response headers:");
+                        for (Header header : responseContext.getHttpResponse().getAllHeaders())
+                            FOKLogger.info(getClass().getName(), header.getName() + " = " + header.getValue());
+                        Header contentTypeHeader = responseContext.getHttpResponse().getFirstHeader("charset");
+                        String encoding = null;
+                        if (contentTypeHeader != null) {
+                            String[] contentTypeParts = contentTypeHeader.getValue().split(";");
+                            for (String contentTypePart : contentTypeParts)
+                                if (contentTypePart.startsWith("charset="))
+                                    encoding = contentTypePart.split("=")[1];
+                        }
+
+                        if (encoding == null) {
+                            FOKLogger.info(getClass().getName(), "Response has no charset specified");
+                            encoding = "UTF-8";
+                        }
+
+                        String responseString = IOUtils.toString(responseContext.getContent(), encoding);
+                        FOKLogger.info(getClass().getName(), "responseString = \n" + responseString);
+                        return responseString;
+                    }
+                }).build();
         String responseJson = httpRequest.executeWithBody(json).get();
         FOKLogger.info(getClass().getName(), "Received the following json:\n" + responseJson);
         return responseJson;
@@ -426,6 +449,18 @@ public class ServerServletTest extends TomcatTest {
     @Test
     public void removeDataTest() throws Throwable {
         removeDataTestImpl(true);
+    }
+
+    @Test
+    public void utf8CharacterTest() throws MalformedURLException, URISyntaxException {
+        String utf8Identifier = "üöä";
+        OnlineMultiPlayerRequestOpponentRequest utf8Request1 = new OnlineMultiPlayerRequestOpponentRequest(connectionId1);
+        utf8Request1.setClientIdentifier(utf8Identifier);
+
+        doRequest(utf8Request1);
+
+        OnlineMultiPlayerRequestOpponentResponse response2 = doRequestWithType(request2);
+        Assert.assertEquals(utf8Identifier, response2.getOpponentIdentifier());
     }
 
     private void removeDataTestImpl(boolean cancelGames) throws Throwable {

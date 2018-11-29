@@ -45,6 +45,7 @@ public class ServerServlet extends HttpServlet {
     private final Random random = new Random();
     private final Map<String, List<OnlineMultiPlayerRequestOpponentRequest>> openRequests = new HashMap<>();
     private Gson gson;
+    private final String encoding = "UTF-8";
 
     private Gson getGson() {
         if (gson == null)
@@ -297,8 +298,13 @@ public class ServerServlet extends HttpServlet {
         }
 
         resp.setContentType("application/json");
+        resp.setCharacterEncoding(encoding);
         resp.setStatus(statusCode);
-        resp.getOutputStream().print(responseJson);
+
+        byte[] responseBytes = responseJson.getBytes(encoding);
+        resp.getOutputStream().write(responseBytes);
+
         resp.getOutputStream().flush();
+        resp.getOutputStream().close();
     }
 }
