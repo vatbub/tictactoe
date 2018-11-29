@@ -41,9 +41,9 @@ import java.util.logging.Level;
  * Does all the networking tasks for the online multiplayer game.
  */
 @SuppressWarnings({"WeakerAccess"})
-public class KryoGameConnections {
+public class GameConnections {
     public static final String COMMON_PACKAGE_NAME = "com.github.vatbub.tictactoe.common";
-    private static KryoGameConnections instance;
+    private static GameConnections instance;
     private final Gson gson = new Gson();
     private String connectionId;
     private URL serverUrl;
@@ -52,9 +52,9 @@ public class KryoGameConnections {
     private Thread requestAndProcessGameDataThread;
     private boolean stopGameDataProcessing;
 
-    public static KryoGameConnections getInstance() {
+    public static GameConnections getInstance() {
         if (instance == null)
-            instance = new KryoGameConnections();
+            instance = new GameConnections();
         return instance;
     }
 
@@ -77,7 +77,7 @@ public class KryoGameConnections {
         if (!isConnectedToServer())
             throw new IllegalStateException("Not connected to the relay server");
 
-        FOKLogger.info(KryoGameConnections.class.getName(), "Aborting the opponent request with id " + request.getRequestId() + "...");
+        FOKLogger.info(GameConnections.class.getName(), "Aborting the opponent request with id " + request.getRequestId() + "...");
 
         request.setOperation(Operation.AbortRequest);
         doRequest(serverUrl, request);
@@ -100,7 +100,7 @@ public class KryoGameConnections {
     }
 
     public void sendMove(Move move) throws URISyntaxException {
-        FOKLogger.info(KryoGameConnections.class.getName(), "Sending a move...");
+        FOKLogger.info(GameConnections.class.getName(), "Sending a move...");
         if (isConnectedToServer())
             doRequest(serverUrl, new MoveRequest(connectionId, move));
         else
@@ -108,7 +108,7 @@ public class KryoGameConnections {
     }
 
     public void sendCancelGameRequest() throws URISyntaxException {
-        FOKLogger.info(KryoGameConnections.class.getName(), "Cancelling the game...");
+        FOKLogger.info(GameConnections.class.getName(), "Cancelling the game...");
         if (isConnectedToServer()) {
             doRequest(serverUrl, new CancelGameRequest(connectionId));
         }
@@ -142,7 +142,7 @@ public class KryoGameConnections {
      * Closes all internet connections and aborts pending opponent requests
      */
     public void resetConnections(boolean cancelGamesOnServer) throws URISyntaxException {
-        FOKLogger.info(KryoGameConnections.class.getName(), "Resetting all kryo connections...");
+        FOKLogger.info(GameConnections.class.getName(), "Resetting all kryo connections...");
 
         if (isConnectedToServer()) {
             abortLastOpponentRequestIfApplicable();
@@ -232,7 +232,7 @@ public class KryoGameConnections {
         if (!isConnectedToServer())
             throw new IllegalStateException("Not connected to the relay server");
 
-        FOKLogger.info(KryoGameConnections.class.getName(), "Requesting an opponent...");
+        FOKLogger.info(GameConnections.class.getName(), "Requesting an opponent...");
         lastOpponentRequest = request;
 
         Thread pollThread = new Thread(() -> {
@@ -242,9 +242,9 @@ public class KryoGameConnections {
                 do {
                     Thread.sleep(waitTime);
                     waitTime = waitTime * 2;
-                    FOKLogger.info(KryoGameConnections.class.getName(), "Waiting for an opponent...");
+                    FOKLogger.info(GameConnections.class.getName(), "Waiting for an opponent...");
                     response = doRequestWithType(serverUrl, request);
-                    FOKLogger.info(KryoGameConnections.class.getName(), "Response code: " + response.getResponseCode());
+                    FOKLogger.info(GameConnections.class.getName(), "Response code: " + response.getResponseCode());
                 } while (response.getResponseCode() == ResponseCode.WaitForOpponent);
 
                 lastOpponentRequest = null;
@@ -300,10 +300,10 @@ public class KryoGameConnections {
     }
 
     /**
-     * Called when a opponent was found using {@link KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable, OnExceptionRunnable)}
+     * Called when a opponent was found using {@link GameConnections#requestOpponent(String, String, OnOpponentFoundRunnable, OnExceptionRunnable)}
      *
-     * @see KryoGameConnections#requestOpponent(OnlineMultiPlayerRequestOpponentRequest, OnOpponentFoundRunnable, OnExceptionRunnable)
-     * @see KryoGameConnections#requestOpponent(String, String, OnOpponentFoundRunnable, OnExceptionRunnable)
+     * @see GameConnections#requestOpponent(OnlineMultiPlayerRequestOpponentRequest, OnOpponentFoundRunnable, OnExceptionRunnable)
+     * @see GameConnections#requestOpponent(String, String, OnOpponentFoundRunnable, OnExceptionRunnable)
      */
     public interface OnOpponentFoundRunnable {
         void run(OnlineMultiPlayerRequestOpponentResponse response);

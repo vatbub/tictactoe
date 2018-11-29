@@ -30,7 +30,7 @@ import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
 import com.github.vatbub.tictactoe.PlayerMode;
 import com.github.vatbub.tictactoe.common.Move;
-import com.github.vatbub.tictactoe.kryo.KryoGameConnections;
+import com.github.vatbub.tictactoe.kryo.GameConnections;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import com.sun.javafx.tk.Toolkit;
@@ -329,7 +329,7 @@ public class Main extends Application {
         Thread connectionThread = new Thread(() -> {
             try {
                 String serverUrl = onlineServerUrl.getText().isEmpty() ? getApplicationConfiguration().getValue("newDefaultServerUrl") : onlineServerUrl.getText();
-                KryoGameConnections.getInstance().connect(new URL(serverUrl),
+                GameConnections.getInstance().connect(new URL(serverUrl),
                         () -> Platform.runLater(() -> {
                             setLoadingStatusText("Searching for an opponent...");
                             String clientIdentifier = onlineMyUsername.getText();
@@ -340,7 +340,7 @@ public class Main extends Application {
                             if (!onlineDesiredOpponentName.getText().isEmpty())
                                 desiredOpponentIdentifier = onlineDesiredOpponentName.getText();
 
-                            KryoGameConnections.getInstance().requestOpponent(clientIdentifier, desiredOpponentIdentifier, response -> {
+                            GameConnections.getInstance().requestOpponent(clientIdentifier, desiredOpponentIdentifier, response -> {
                                 Main.this.setLoadingStatusText("Waiting for the opponent...");
                                 Platform.runLater(() -> Main.this.startGame(response.getOpponentIdentifier(), !response.hasFirstTurn()));
                             }, (throwable) -> Platform.runLater(() -> Main.this.showErrorMessage(throwable)));
@@ -485,10 +485,10 @@ public class Main extends Application {
     @Override
     public void stop() {
         try {
-            if (KryoGameConnections.getInstance().isConnectedToServer() && KryoGameConnections.getInstance().isGameConnected())
-                KryoGameConnections.getInstance().sendCancelGameRequest();
+            if (GameConnections.getInstance().isConnectedToServer() && GameConnections.getInstance().isGameConnected())
+                GameConnections.getInstance().sendCancelGameRequest();
 
-            KryoGameConnections.getInstance().resetConnections(true);
+            GameConnections.getInstance().resetConnections(true);
         } catch (Exception e) {
             FOKLogger.log(Main.class.getName(), Level.SEVERE, "Exception in the application stop method", e);
         }
@@ -823,11 +823,11 @@ public class Main extends Application {
 
     public void initNewGame() {
         try {
-            if (KryoGameConnections.getInstance().isConnectedToServer() && KryoGameConnections.getInstance().isGameConnected()) {
-                KryoGameConnections.getInstance().sendCancelGameRequest();
+            if (GameConnections.getInstance().isConnectedToServer() && GameConnections.getInstance().isGameConnected()) {
+                GameConnections.getInstance().sendCancelGameRequest();
             }
 
-            KryoGameConnections.getInstance().resetConnections();
+            GameConnections.getInstance().resetConnections();
             guiAnimationQueue.submit(() -> {
                 if (looserPane.isVisible()) {
                     blurLooserPane();
@@ -890,7 +890,7 @@ public class Main extends Application {
                 }
                 updateCurrentPlayerLabel(true, inversePlayerOrderForOnlineGame);
 
-                KryoGameConnections.getInstance().setConnectedBoard(board);
+                GameConnections.getInstance().setConnectedBoard(board);
             });
         } else {
             guiAnimationQueue.submit(() -> {
@@ -1006,7 +1006,7 @@ public class Main extends Application {
                 // disconnect after ending the game
                 if (board.getCurrentPlayer().getPlayerMode().equals(PlayerMode.internetHuman) || board.getOpponent(board.getCurrentPlayer()).getPlayerMode().equals(PlayerMode.internetHuman)) {
                     try {
-                        KryoGameConnections.getInstance().resetConnections(false);
+                        GameConnections.getInstance().resetConnections(false);
                     } catch (URISyntaxException e) {
                         throw new RuntimeException(e);
                     }
