@@ -23,7 +23,7 @@ package com.github.vatbub.tictactoe;
 
 import com.github.vatbub.common.core.logging.FOKLogger;
 import com.github.vatbub.tictactoe.common.Move;
-import com.github.vatbub.tictactoe.kryo.GameConnections;
+import com.github.vatbub.tictactoe.multiplayer.GameConnections;
 import com.github.vatbub.tictactoe.view.AILevel;
 import com.github.vatbub.tictactoe.view.Main;
 import javafx.beans.property.ObjectProperty;

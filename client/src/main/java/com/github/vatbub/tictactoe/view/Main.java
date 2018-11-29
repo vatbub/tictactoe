@@ -30,7 +30,7 @@ import com.github.vatbub.tictactoe.NameList;
 import com.github.vatbub.tictactoe.Player;
 import com.github.vatbub.tictactoe.PlayerMode;
 import com.github.vatbub.tictactoe.common.Move;
-import com.github.vatbub.tictactoe.kryo.GameConnections;
+import com.github.vatbub.tictactoe.multiplayer.GameConnections;
 import com.github.vatbub.tictactoe.view.refreshables.Refreshable;
 import com.github.vatbub.tictactoe.view.refreshables.RefreshableNodeList;
 import com.sun.javafx.tk.Toolkit;

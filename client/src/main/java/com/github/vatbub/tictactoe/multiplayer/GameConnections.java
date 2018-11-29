@@ -1,4 +1,4 @@
-package com.github.vatbub.tictactoe.kryo;
+package com.github.vatbub.tictactoe.multiplayer;
 
 /*-
  * #%L
@@ -142,7 +142,7 @@ public class GameConnections {
      * Closes all internet connections and aborts pending opponent requests
      */
     public void resetConnections(boolean cancelGamesOnServer) throws URISyntaxException {
-        FOKLogger.info(GameConnections.class.getName(), "Resetting all kryo connections...");
+        FOKLogger.info(GameConnections.class.getName(), "Resetting all game connections...");
 
         if (isConnectedToServer()) {
             abortLastOpponentRequestIfApplicable();
