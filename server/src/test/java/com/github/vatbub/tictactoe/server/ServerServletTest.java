@@ -71,10 +71,10 @@ public class ServerServletTest extends TomcatTest {
     public void setUp() throws MalformedURLException, URISyntaxException {
         api.resetServer();
 
-        GetConnectionIdResponse getConnectionIdResponse1 = doRequestWithType(new GetConnectionIdRequest());
+        GetConnectionIdResponse getConnectionIdResponse1 = doRequest(new GetConnectionIdRequest());
         connectionId1 = getConnectionIdResponse1.getConnectionId();
 
-        GetConnectionIdResponse getConnectionIdResponse2 = doRequestWithType(new GetConnectionIdRequest());
+        GetConnectionIdResponse getConnectionIdResponse2 = doRequest(new GetConnectionIdRequest());
         connectionId2 = getConnectionIdResponse2.getConnectionId();
 
         // set up the requests
@@ -117,36 +117,15 @@ public class ServerServletTest extends TomcatTest {
         return responseJson;
     }
 
-    private <T extends ServerInteraction> T doRequestWithType(ServerInteraction request) throws MalformedURLException, URISyntaxException {
-        ServerInteraction response = doRequest(request);
-        //noinspection unchecked
-        return (T) response;
-    }
-
-    private ServerInteraction doRequest(ServerInteraction request) throws MalformedURLException, URISyntaxException {
+    @SuppressWarnings("unchecked")
+    private <T extends ServerInteraction> T doRequest(ServerInteraction request) throws MalformedURLException, URISyntaxException {
         String json = doRequest(gson.toJson(request));
         ServerInteraction response = gson.fromJson(json, ServerInteractionImpl.class);
-        switch (response.getClassName()) {
-            case ServerServlet.COMMON_PACKAGE_NAME + ".CancelGameResponse":
-                return gson.fromJson(json, CancelGameResponse.class);
-            case ServerServlet.COMMON_PACKAGE_NAME + ".BadRequestException":
-                return gson.fromJson(json, BadRequestException.class);
-            case ServerServlet.COMMON_PACKAGE_NAME + ".GetConnectionIdResponse":
-                return gson.fromJson(json, GetConnectionIdResponse.class);
-            case ServerServlet.COMMON_PACKAGE_NAME + ".GetGameDataResponse":
-                return gson.fromJson(json, GetGameDataResponse.class);
-            case ServerServlet.COMMON_PACKAGE_NAME + ".OnlineMultiPlayerRequestOpponentException":
-                return gson.fromJson(json, OnlineMultiPlayerRequestOpponentException.class);
-            case ServerServlet.COMMON_PACKAGE_NAME + ".OnlineMultiPlayerRequestOpponentResponse":
-                return gson.fromJson(json, OnlineMultiPlayerRequestOpponentResponse.class);
-            case ServerServlet.COMMON_PACKAGE_NAME + ".RemoveDataResponse":
-                return gson.fromJson(json, RemoveDataResponse.class);
-            case ServerServlet.COMMON_PACKAGE_NAME + ".IsEnrolledInGameResponse":
-                return gson.fromJson(json, IsEnrolledInGameResponse.class);
-            case ServerServlet.COMMON_PACKAGE_NAME + ".MoveResponse":
-                return gson.fromJson(json, MoveResponse.class);
-            default:
-                return response;
+        try {
+            Class clazz = Class.forName(response.getClassName());
+            return (T) gson.<ServerInteraction>fromJson(json, clazz);
+        } catch (ClassNotFoundException e) {
+            return (T) response;
         }
     }
 
@@ -459,7 +438,7 @@ public class ServerServletTest extends TomcatTest {
 
         doRequest(utf8Request1);
 
-        OnlineMultiPlayerRequestOpponentResponse response2 = doRequestWithType(request2);
+        OnlineMultiPlayerRequestOpponentResponse response2 = doRequest(request2);
         Assert.assertEquals(utf8Identifier, response2.getOpponentIdentifier());
     }
 

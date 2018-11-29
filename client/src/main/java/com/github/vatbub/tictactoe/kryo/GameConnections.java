@@ -33,6 +33,7 @@ import com.jsunsoft.http.ResponseDeserializer;
 import javafx.application.Platform;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Type;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.logging.Level;
@@ -42,7 +43,6 @@ import java.util.logging.Level;
  */
 @SuppressWarnings({"WeakerAccess"})
 public class GameConnections {
-    public static final String COMMON_PACKAGE_NAME = "com.github.vatbub.tictactoe.common";
     private static GameConnections instance;
     private final Gson gson = new Gson();
     private String connectionId;
@@ -121,7 +121,7 @@ public class GameConnections {
     public boolean isGameConnected() throws URISyntaxException {
         if (!isConnectedToServer())
             throw new IllegalStateException("Not connected to a server");
-        IsEnrolledInGameResponse response = doRequestWithType(serverUrl, new IsEnrolledInGameRequest(connectionId));
+        IsEnrolledInGameResponse response = doRequest(serverUrl, new IsEnrolledInGameRequest(connectionId));
         return response.isEnrolled();
     }
 
@@ -167,36 +167,15 @@ public class GameConnections {
         return responseJson;
     }
 
-    private <T extends ServerInteraction> T doRequestWithType(URL url, ServerInteraction request) throws URISyntaxException {
-        ServerInteraction response = doRequest(url, request);
-        //noinspection unchecked
-        return (T) response;
-    }
-
-    private ServerInteraction doRequest(URL url, ServerInteraction request) throws URISyntaxException {
+    @SuppressWarnings("unchecked")
+    private <T extends ServerInteraction> T doRequest(URL url, ServerInteraction request) throws URISyntaxException {
         String json = doRequest(url, gson.toJson(request));
         ServerInteraction response = gson.fromJson(json, ServerInteractionImpl.class);
-        switch (response.getClassName()) {
-            case COMMON_PACKAGE_NAME + ".CancelGameResponse":
-                return gson.fromJson(json, CancelGameResponse.class);
-            case COMMON_PACKAGE_NAME + ".BadRequestException":
-                return gson.fromJson(json, BadRequestException.class);
-            case COMMON_PACKAGE_NAME + ".GetConnectionIdResponse":
-                return gson.fromJson(json, GetConnectionIdResponse.class);
-            case COMMON_PACKAGE_NAME + ".GetGameDataResponse":
-                return gson.fromJson(json, GetGameDataResponse.class);
-            case COMMON_PACKAGE_NAME + ".OnlineMultiPlayerRequestOpponentException":
-                return gson.fromJson(json, OnlineMultiPlayerRequestOpponentException.class);
-            case COMMON_PACKAGE_NAME + ".OnlineMultiPlayerRequestOpponentResponse":
-                return gson.fromJson(json, OnlineMultiPlayerRequestOpponentResponse.class);
-            case COMMON_PACKAGE_NAME + ".RemoveDataResponse":
-                return gson.fromJson(json, RemoveDataResponse.class);
-            case COMMON_PACKAGE_NAME + ".IsEnrolledInGameResponse":
-                return gson.fromJson(json, IsEnrolledInGameResponse.class);
-            case COMMON_PACKAGE_NAME + ".MoveResponse":
-                return gson.fromJson(json, MoveResponse.class);
-            default:
-                return response;
+        try {
+            Class clazz = Class.forName(response.getClassName());
+            return gson.fromJson(json, (Type) clazz);
+        } catch (ClassNotFoundException e) {
+            return (T) response;
         }
     }
 
@@ -211,7 +190,7 @@ public class GameConnections {
         }
 
         this.serverUrl = serverUrl;
-        GetConnectionIdResponse getConnectionIdResponse = doRequestWithType(serverUrl, new GetConnectionIdRequest());
+        GetConnectionIdResponse getConnectionIdResponse = doRequest(serverUrl, new GetConnectionIdRequest());
         connectionId = getConnectionIdResponse.getConnectionId();
 
         if (onConnected != null) {
@@ -243,7 +222,7 @@ public class GameConnections {
                     Thread.sleep(waitTime);
                     waitTime = waitTime * 2;
                     FOKLogger.info(GameConnections.class.getName(), "Waiting for an opponent...");
-                    response = doRequestWithType(serverUrl, request);
+                    response = doRequest(serverUrl, request);
                     FOKLogger.info(GameConnections.class.getName(), "Response code: " + response.getResponseCode());
                 } while (response.getResponseCode() == ResponseCode.WaitForOpponent);
 
@@ -266,7 +245,7 @@ public class GameConnections {
             try {
                 GetGameDataResponse response;
                 while (!stopGameDataProcessing) {
-                    response = doRequestWithType(serverUrl, new GetGameDataRequest(connectionId));
+                    response = doRequest(serverUrl, new GetGameDataRequest(connectionId));
                     if (response.isGameCancelled()) {
                         cancelGame(response.getCancelReason());
                         break;
