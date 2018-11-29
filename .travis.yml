@@ -5,9 +5,8 @@ jdk:
 addons:
   sonarcloud:
     organization: "vatbub-github"
-  apt:
-    packages:
-    - openjfx
+  #apt:
+    #packages:
     #- oracle-java8-installer
 cache:
   directories:
