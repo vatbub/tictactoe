@@ -20,7 +20,15 @@ package com.github.vatbub.tictactoe.common;
  * #L%
  */
 
+import org.jetbrains.annotations.NotNull;
+
 public abstract class ServerInteractionException extends RuntimeException implements ServerInteraction {
+    @NotNull
+    @Override
+    public String getProtocolVersion() {
+        return ServerInteractionImpl.PROTOCOL_VERSION;
+    }
+
     private String connectionId;
 
     /**

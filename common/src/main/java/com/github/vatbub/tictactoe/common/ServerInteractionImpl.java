@@ -20,9 +20,12 @@ package com.github.vatbub.tictactoe.common;
  * #L%
  */
 
+import org.jetbrains.annotations.NotNull;
+
 public class ServerInteractionImpl implements ServerInteraction {
     private String className;
     private String connectionId;
+    public static final String PROTOCOL_VERSION = "2.0";
 
     public ServerInteractionImpl() {
         this(null, null);
@@ -31,6 +34,12 @@ public class ServerInteractionImpl implements ServerInteraction {
     public ServerInteractionImpl(String connectionId, String className) {
         setConnectionId(connectionId);
         this.className = className;
+    }
+
+    @NotNull
+    @Override
+    public String getProtocolVersion() {
+        return PROTOCOL_VERSION;
     }
 
     @Override

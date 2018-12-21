@@ -20,11 +20,15 @@ package com.github.vatbub.tictactoe.common;
  * #L%
  */
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 
 public interface ServerInteraction extends Serializable {
+    @NotNull
+    String getProtocolVersion();
+
     @Nullable
     String getConnectionId();
 
