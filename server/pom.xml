@@ -117,7 +117,7 @@
                     <appName>vatbubtictactoe</appName>
                     <includeTarget>false</includeTarget>
                     <includes>
-                        <include>target/${build.finalName}.war</include>
+                        <include>target/${project.build.finalName}.war</include>
                         <include>target/dependency/webapp-runner.jar</include>
                     </includes>
                     <processTypes>
