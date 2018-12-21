@@ -102,7 +102,7 @@ public class GameConnections {
     public void sendMove(Move move) throws URISyntaxException {
         FOKLogger.info(GameConnections.class.getName(), "Sending a move...");
         if (isConnectedToServer())
-            doRequest(serverUrl, new MoveRequest(connectionId, move));
+            doRequestAsync(serverUrl, new MoveRequest(connectionId, move));
         else
             throw new IllegalStateException("Game not connected");
     }
@@ -177,6 +177,22 @@ public class GameConnections {
         } catch (ClassNotFoundException e) {
             return (T) response;
         }
+    }
+
+    private void doRequestAsync(URL url, ServerInteraction request) {
+        doRequestAsync(url, request, null);
+    }
+
+    private <T extends ServerInteraction> void doRequestAsync(URL url, ServerInteraction request, @SuppressWarnings("SameParameterValue") @Nullable OnRequestCompletedRunnable onRequestCompletedRunnable) {
+        new Thread(() -> {
+            try {
+                T response = doRequest(url, request);
+                if (onRequestCompletedRunnable != null)
+                    onRequestCompletedRunnable.run(response);
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 
     @SuppressWarnings("unused")
@@ -290,5 +306,9 @@ public class GameConnections {
 
     public interface OnExceptionRunnable {
         void run(Throwable throwable);
+    }
+
+    private interface OnRequestCompletedRunnable {
+        <T extends ServerInteraction> void run(T response);
     }
 }
