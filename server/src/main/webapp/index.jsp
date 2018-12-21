@@ -1,4 +1,5 @@
-<%--
+<%@ page import="org.jsoup.Jsoup" %>
+<%@ page import="org.jsoup.safety.Whitelist" %><%--
   #%L
   webappRunnerSample Maven Webapp
   %%
@@ -29,7 +30,7 @@
         url.append("/");
 
     url.append("tictactoe");
-    out.println(url);%>
+    out.println(Jsoup.clean(url.toString(), Whitelist.basic()));%>
 
 <p>Read more on <a href="https://github.com/vatbub/tictactoe">GitHub</a>.</p>
 </body>
