@@ -1,5 +1,5 @@
-<%@ page import="org.jsoup.Jsoup" %>
-<%@ page import="org.jsoup.safety.Whitelist" %><%--
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="org.apache.taglibs.standard.functions.Functions" %><%--
   #%L
   webappRunnerSample Maven Webapp
   %%
@@ -19,19 +19,47 @@
   #L%
   --%>
 <html>
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto" rel="stylesheet">
+    <style>
+        body {
+            background-color: #24A59F;
+        }
+
+        p {
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Open Sans', sans-serif;
+            text-align: center;
+        }
+
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
 <body>
-<h1 id="itworks">It works!</h1><br>
-<h1 id="tictactoe">Tic Tac Toe</h1>
+<img src="<c:url value="/resources/thumbsUpMan.svg"/>" width="auto" height="50%"/>
+<h1>Tic Tac Toe - It works!</h1><br>
 
 <p>Good news! Your server is working and you can reach it through the following ip:</p>
-<% StringBuffer url = request.getRequestURL();
+<p>
+    <% StringBuffer url = request.getRequestURL();
 
-    if (!url.toString().endsWith("/"))
-        url.append("/");
+        if (!url.toString().endsWith("/"))
+            url.append("/");
 
-    url.append("tictactoe");
-    out.println(Jsoup.clean(url.toString(), Whitelist.basic()));%>
+        url.append("tictactoe");
+        out.println(Functions.escapeXml(url.toString()));
+    %></p>
 
 <p>Read more on <a href="https://github.com/vatbub/tictactoe">GitHub</a>.</p>
+<p><a href='https://www.freepik.com/free-vector/smiley-salesman-with-flat-design_2672650.htm'>Designed by Freepik</a>
+</p>
 </body>
 </html>
