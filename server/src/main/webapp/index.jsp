@@ -23,7 +23,13 @@
 <h1 id="tictactoe">Tic Tac Toe</h1>
 
 <p>Good news! Your server is working and you can reach it through the following ip:</p>
-<!-- TODO: Insert ip -->
+<% StringBuffer url = request.getRequestURL();
+
+    if (!url.toString().endsWith("/"))
+        url.append("/");
+
+    url.append("tictactoe");
+    out.println(url);%>
 
 <p>Read more on <a href="https://github.com/vatbub/tictactoe">GitHub</a>.</p>
 </body>
