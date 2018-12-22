@@ -36,6 +36,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Type;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.LinkedList;
 import java.util.logging.Level;
 
 /**
@@ -43,6 +44,8 @@ import java.util.logging.Level;
  */
 @SuppressWarnings({"WeakerAccess"})
 public class GameConnections {
+    private static final int DEFAULT_NETWORK_WAIT_TIME_IN_MS_SLOW = 1000;
+    private static final int DEFAULT_NETWORK_WAIT_TIME_IN_MS_FAST = 100;
     private static GameConnections instance;
     private final Gson gson = new Gson();
     private String connectionId;
@@ -50,7 +53,10 @@ public class GameConnections {
     private OnlineMultiPlayerRequestOpponentRequest lastOpponentRequest;
     private Board connectedBoard;
     private Thread requestAndProcessGameDataThread;
+    private Thread sendMovesThread;
     private boolean stopGameDataProcessing;
+    private boolean stopMoveProcessing;
+    private LinkedList<Move> pendingMoves = new LinkedList<>();
 
     public static GameConnections getInstance() {
         if (instance == null)
@@ -99,10 +105,10 @@ public class GameConnections {
         this.connectedBoard = connectedBoard;
     }
 
-    public void sendMove(Move move) throws URISyntaxException {
-        FOKLogger.info(GameConnections.class.getName(), "Sending a move...");
+    public void sendMove(Move move) {
+        FOKLogger.info(GameConnections.class.getName(), "Adding move to be sent: " + move.toString());
         if (isConnectedToServer())
-            doRequestAsync(serverUrl, new MoveRequest(connectionId, move));
+            pendingMoves.addLast(move);
         else
             throw new IllegalStateException("Game not connected");
     }
@@ -143,6 +149,9 @@ public class GameConnections {
      */
     public void resetConnections(boolean cancelGamesOnServer) throws URISyntaxException {
         FOKLogger.info(GameConnections.class.getName(), "Resetting all game connections...");
+
+        FOKLogger.info(GameConnections.class.getName(), "Waiting for pending moves to be sent...");
+        stopMoveProcessing();
 
         if (isConnectedToServer()) {
             abortLastOpponentRequestIfApplicable();
@@ -189,7 +198,7 @@ public class GameConnections {
                 T response = doRequest(url, request);
                 if (onRequestCompletedRunnable != null)
                     onRequestCompletedRunnable.run(response);
-            } catch (URISyntaxException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }).start();
@@ -233,20 +242,23 @@ public class GameConnections {
         Thread pollThread = new Thread(() -> {
             try {
                 OnlineMultiPlayerRequestOpponentResponse response;
-                int waitTime = 10;
-                do {
-                    Thread.sleep(waitTime);
-                    waitTime = waitTime * 2;
+                while (true) {
                     FOKLogger.info(GameConnections.class.getName(), "Waiting for an opponent...");
                     response = doRequest(serverUrl, request);
                     FOKLogger.info(GameConnections.class.getName(), "Response code: " + response.getResponseCode());
-                } while (response.getResponseCode() == ResponseCode.WaitForOpponent);
+
+                    if (response.getResponseCode() != ResponseCode.WaitForOpponent)
+                        break;
+                    else
+                        Thread.sleep(DEFAULT_NETWORK_WAIT_TIME_IN_MS_SLOW);
+                }
 
                 lastOpponentRequest = null;
                 if (response.getResponseCode() == ResponseCode.OpponentFound && onOpponentFound != null)
                     onOpponentFound.run(response);
 
                 requestAndProcessGameData();
+                sendMovesDaemon();
             } catch (Exception e) {
                 onException.run(e);
             }
@@ -261,6 +273,9 @@ public class GameConnections {
             try {
                 GetGameDataResponse response;
                 while (!stopGameDataProcessing) {
+                    if (serverUrl == null)
+                        break;
+
                     response = doRequest(serverUrl, new GetGameDataRequest(connectionId));
                     if (response.isGameCancelled()) {
                         cancelGame(response.getCancelReason());
@@ -272,8 +287,10 @@ public class GameConnections {
 
                     for (Move move : response.getMoves())
                         doMove(move);
+
+                    Thread.sleep(DEFAULT_NETWORK_WAIT_TIME_IN_MS_FAST);
                 }
-            } catch (URISyntaxException e) {
+            } catch (URISyntaxException | InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (NoSuchContentException e) {
                 FOKLogger.log(getClass().getName(), Level.SEVERE, "Unable to get game data", e);
@@ -289,6 +306,40 @@ public class GameConnections {
         stopGameDataProcessing = true;
         try {
             requestAndProcessGameDataThread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void sendMovesDaemon() {
+        stopMoveProcessing = false;
+        sendMovesThread = new Thread(() -> {
+            try {
+                while (!stopMoveProcessing || !pendingMoves.isEmpty()) {
+                    // send pending moves
+                    Move pendingMove;
+                    while ((pendingMove = pendingMoves.pollFirst()) != null) {
+                        FOKLogger.info(getClass().getName(), "Sending move: " + pendingMove.toString());
+                        doRequest(serverUrl, new MoveRequest(connectionId, pendingMove));
+                    }
+                    Thread.sleep(DEFAULT_NETWORK_WAIT_TIME_IN_MS_FAST);
+                }
+            } catch (URISyntaxException | InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (NoSuchContentException e) {
+                FOKLogger.log(getClass().getName(), Level.SEVERE, "Unable to send moves", e);
+            }
+        });
+        sendMovesThread.start();
+    }
+
+    private void stopMoveProcessing() {
+        if (sendMovesThread == null || !sendMovesThread.isAlive())
+            return;
+
+        stopMoveProcessing = true;
+        try {
+            sendMovesThread.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
