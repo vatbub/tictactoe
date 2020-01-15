@@ -170,7 +170,7 @@ public class GameConnections {
     private String doRequest(URL url, String json) throws URISyntaxException {
         FOKLogger.info(getClass().getName(), "Sending the following json:\n" + json);
         HttpRequest<String> httpRequest = HttpRequestBuilder.createPost(url.toURI(), String.class)
-                .responseDeserializer(ResponseDeserializer.ignorableDeserializer()).build();
+                .responseDeserializer(ResponseDeserializer.toStringDeserializer()).build();
         String responseJson = httpRequest.executeWithBody(json).get();
         FOKLogger.info(getClass().getName(), "Received the following json:\n" + responseJson);
         return responseJson;
