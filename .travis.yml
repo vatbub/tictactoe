@@ -23,9 +23,6 @@ script:
 - source ./travisBuild.sh
 before_cache:
 - source ./travisDeploy.sh
-branches:
-  only:
-  - master
 notifications:
   email:
     recipients:
